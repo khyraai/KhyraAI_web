@@ -1,0 +1,147 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-beige: var(--beige);
+  --color-beige-deep: var(--beige-deep);
+  --color-ink: var(--ink);
+  --color-saffron: var(--saffron);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Brand */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.25 0.04 160);
+  --ink: oklch(0.22 0.045 165);
+
+  --primary: oklch(0.38 0.07 165); /* deep green #1f4a3f-ish */
+  --primary-foreground: oklch(0.98 0.01 90);
+
+  --secondary: oklch(0.96 0.015 85); /* warm off white */
+  --secondary-foreground: oklch(0.25 0.04 160);
+
+  --muted: oklch(0.97 0.01 85);
+  --muted-foreground: oklch(0.5 0.02 160);
+
+  --accent: oklch(0.93 0.025 85); /* beige */
+  --accent-foreground: oklch(0.25 0.04 160);
+
+  --beige: oklch(0.95 0.025 85); /* #F1E6D6 */
+  --beige-deep: oklch(0.88 0.04 78);
+  --saffron: oklch(0.74 0.16 55); /* #FF8A5B */
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.04 160);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.04 160);
+
+  --destructive: oklch(0.6 0.22 27);
+  --destructive-foreground: oklch(0.98 0.01 90);
+  --border: oklch(0.92 0.01 85);
+  --input: oklch(0.92 0.01 85);
+  --ring: oklch(0.38 0.07 165);
+
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  --background: oklch(0.2 0.03 165);
+  --foreground: oklch(0.97 0.01 85);
+  --primary: oklch(0.95 0.025 85);
+  --primary-foreground: oklch(0.22 0.045 165);
+  --muted: oklch(0.28 0.03 165);
+  --muted-foreground: oklch(0.75 0.02 85);
+  --border: oklch(1 0 0 / 12%);
+}
+
+@layer base {
+  @font-face {
+    font-family: "Instrument Serif";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/instrumentserif/v4/jizDREVItHgc8qDIbSTKq4XKVbiqdsfRwH0Fjg.woff2)
+      format("woff2");
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--primary) 8%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--primary) 8%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 56px 56px;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .divider-dot::before,
+  .divider-dot::after {
+    content: "";
+    display: inline-block;
+    width: 28px;
+    height: 1px;
+    background: currentColor;
+    vertical-align: middle;
+    margin: 0 10px;
+    opacity: 0.5;
+  }
+}

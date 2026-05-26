@@ -6,6 +6,16 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  ssr: {
+    external: ["@tanstack/react-router", "@tanstack/react-query"],
+  },
+
+  build: {
+    rollupOptions: {
+      external: ["@tanstack/react-router", "@tanstack/react-query"],
+    },
+  },
+
   plugins: [
     tsConfigPaths(),
     tailwindcss(),
@@ -15,6 +25,7 @@ export default defineConfig({
     react(),
     nitro(),
   ],
+
   resolve: {
     dedupe: ["react", "react-dom", "@tanstack/react-router"],
   },

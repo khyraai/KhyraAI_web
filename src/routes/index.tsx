@@ -86,23 +86,23 @@ function Nav() {
           <a href="#use-cases" className="transition-colors hover:text-foreground">
             Use cases
           </a>
-          <a href="#compare" className="transition-colors hover:text-foreground">
+          {/* <a href="#compare" className="transition-colors hover:text-foreground">
             Compare
-          </a>
-          <a href="#pricing" className="transition-colors hover:text-foreground">
+          </a> */}
+          {/* <a href="#pricing" className="transition-colors hover:text-foreground">
             Pricing
-          </a>
+          </a> */}
           <a href="#faq" className="transition-colors hover:text-foreground">
             FAQ
           </a>
         </nav>
         <div className="flex items-center gap-5">
-          <a
+          {/* <a
             href="#demo"
             className="hidden text-sm font-medium text-foreground/70 decoration-saffron underline-offset-4 transition hover:text-foreground hover:underline lg:inline"
           >
             Hear it live
-          </a>
+          </a> */}
           <a
             href="#demo"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/10 transition hover:bg-primary/90 active:scale-[0.97]"
@@ -608,6 +608,7 @@ function Impact() {
 }
 
 /* ---------- Comparison ---------- */
+/*
 function Compare() {
   const reveal = useScrollReveal();
   const cols = ["Khyra AI", "VAPI", "Retell AI", "Telnyx", "Bland AI"];
@@ -675,6 +676,7 @@ function Compare() {
     </section>
   );
 }
+*/
 
 /* ---------- Why Khyra (with mascot — single appearance) ---------- */
 function WhyKhyra() {
@@ -741,6 +743,7 @@ function WhyKhyra() {
 }
 
 /* ---------- Demo CTA ---------- */
+/*
 function DemoCTA() {
   const reveal = useScrollReveal();
   return (
@@ -802,6 +805,7 @@ function DemoField({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+*/
 
 /* ---------- Testimonials ---------- */
 function Testimonials() {
@@ -852,6 +856,7 @@ function Testimonials() {
 }
 
 /* ---------- Pricing ---------- */
+/*
 function Pricing() {
   const reveal = useScrollReveal();
   const tiers = [
@@ -925,6 +930,7 @@ function Pricing() {
     </section>
   );
 }
+*/
 
 /* ---------- FAQ ---------- */
 function FAQ() {
@@ -1064,16 +1070,16 @@ function Footer() {
                   Use cases
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#pricing" className="hover:text-primary">
                   Pricing
                 </a>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <a href="#compare" className="hover:text-primary">
                   Compare
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div>
@@ -1125,14 +1131,14 @@ function Index() {
       <Trust />
       <Pillars />
       <HowItWorks />
-      <DemoCTA />
+      {/* <DemoCTA /> */}
       <Features />
       <UseCases />
       <Impact />
-      <Compare />
+      {/* <Compare /> */}
       <WhyKhyra />
       <Testimonials />
-      <Pricing />
+      {/* <Pricing /> */}
       <FAQ />
       <FinalCTA />
       <Footer />

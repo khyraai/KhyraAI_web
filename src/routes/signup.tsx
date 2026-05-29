@@ -14,7 +14,7 @@ import {
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
-import logo from "@/assets/Khyra.svg";
+import { TopBanner, SiteNav } from "@/components/site-nav";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -123,12 +123,8 @@ function LeftPanel() {
       <div className="pointer-events-none absolute inset-0 opacity-25"
         style={{ backgroundImage: "radial-gradient(ellipse at 20% 80%, color-mix(in oklab, var(--saffron) 55%, transparent) 0%, transparent 55%), radial-gradient(ellipse at 85% 10%, color-mix(in oklab, white 12%, transparent) 0%, transparent 50%)" }}
       />
-      <Link to="/" className="relative flex items-center gap-2.5">
-        <img src={logo} alt="Khyra AI" className="h-8 w-8 rounded-full border border-primary-foreground/30 object-contain" />
-        <span className="font-display text-xl leading-none">Khyra AI</span>
-      </Link>
 
-      <div className="relative flex-1 pt-10">
+      <div className="relative flex flex-1 flex-col justify-center">
         <h2 className="font-display text-3xl leading-tight">Scale your voice<br />business globally.</h2>
         <p className="mt-3 text-sm leading-relaxed text-primary-foreground/65">
           Join forward-thinking businesses using Khyra AI's intelligent voice agents to automate customer interactions in India.
@@ -237,7 +233,10 @@ function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <TopBanner />
+      <SiteNav />
+      <div className="flex flex-1">
       <LeftPanel />
 
       {/* Right panel */}
@@ -418,6 +417,7 @@ function SignupPage() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

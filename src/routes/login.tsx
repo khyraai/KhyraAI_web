@@ -11,7 +11,8 @@ import {
 } from "firebase/auth";
 import { Eye, EyeOff } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import logo from "@/assets/Khyra.svg";
+import { TopBanner, SiteNav } from "@/components/site-nav";
+import robotImg from "@/assets/robot.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -56,7 +57,7 @@ function getFirebaseError(code: string): string {
 /* ---------- Left panel ---------- */
 function LeftPanel() {
   return (
-    <div className="relative hidden w-[400px] flex-shrink-0 flex-col overflow-hidden bg-primary px-10 py-10 text-primary-foreground lg:flex">
+    <div className="relative hidden w-[420px] flex-shrink-0 flex-col overflow-hidden bg-primary px-10 pb-10 pt-6 text-primary-foreground lg:flex">
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
@@ -64,36 +65,17 @@ function LeftPanel() {
             "radial-gradient(ellipse at 20% 80%, color-mix(in oklab, var(--saffron) 60%, transparent) 0%, transparent 55%), radial-gradient(ellipse at 80% 10%, color-mix(in oklab, white 15%, transparent) 0%, transparent 50%)",
         }}
       />
-      <Link to="/" className="relative flex items-center gap-2.5">
-        <img src={logo} alt="Khyra AI" className="h-8 w-8 rounded-full border border-primary-foreground/30 object-contain" />
-        <span className="font-display text-xl leading-none">Khyra AI</span>
-      </Link>
 
-      {/* Globe visual */}
-      <div className="relative flex flex-1 items-center justify-center">
-        <div className="relative flex h-56 w-56 items-center justify-center">
-          {[224, 168, 112].map((s, i) => (
-            <div key={s} className="absolute rounded-full border border-primary-foreground/[0.12]" style={{ width: s, height: s, opacity: 1 - i * 0.1 }} />
-          ))}
-          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border border-primary-foreground/25 bg-primary-foreground/10">
-            <img src={logo} alt="" className="h-10 w-10 opacity-90" />
-          </div>
-          {[
-            { a: 20, r: 56, big: true }, { a: 140, r: 56, big: true }, { a: 260, r: 56, big: true },
-            { a: 80, r: 84, big: false }, { a: 200, r: 84, big: false }, { a: 320, r: 84, big: false },
-          ].map(({ a, r, big }, i) => (
-            <div
-              key={i}
-              className={`absolute rounded-full ${big ? "h-2.5 w-2.5 bg-yellow-400/80" : "h-1.5 w-1.5 bg-primary-foreground/35"}`}
-              style={{ left: `calc(50% + ${r * Math.cos((a * Math.PI) / 180)}px)`, top: `calc(50% + ${r * Math.sin((a * Math.PI) / 180)}px)`, transform: "translate(-50%,-50%)" }}
-            />
-          ))}
-          <div className="absolute h-[140px] w-[140px] rounded-full border border-transparent [border-top-color:color-mix(in_oklab,white_20%,transparent)] [border-bottom-color:color-mix(in_oklab,white_20%,transparent)] rotate-[35deg]" />
-          <div className="absolute h-[110px] w-[110px] rounded-full border border-transparent [border-left-color:color-mix(in_oklab,white_15%,transparent)] [border-right-color:color-mix(in_oklab,white_15%,transparent)] rotate-[-20deg]" />
-        </div>
+      {/* Robot mascot */}
+      <div className="relative flex flex-1 items-end justify-center">
+        <img
+          src={robotImg}
+          alt="Khyra AI"
+          className="w-full max-w-[320px] object-contain drop-shadow-2xl"
+        />
       </div>
 
-      <div className="relative">
+      <div className="relative pt-4">
         <h2 className="font-display text-2xl leading-snug">AI-First Voice Platform<br />for India</h2>
         <p className="mt-2 text-sm leading-relaxed text-primary-foreground/65">
           Deploy intelligent voice agents for Indian businesses — multilingual, always-on, up and running in hours.
@@ -165,7 +147,10 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <TopBanner />
+      <SiteNav />
+      <div className="flex flex-1">
       <LeftPanel />
 
       {/* Right panel */}
@@ -271,6 +256,7 @@ function LoginPage() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

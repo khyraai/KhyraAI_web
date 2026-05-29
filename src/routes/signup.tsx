@@ -15,7 +15,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
-import indiaImg from "@/assets/india-infographic.png";
+import indiaImg from "@/assets/india_info.png";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,

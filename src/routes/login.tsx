@@ -67,11 +67,11 @@ function LeftPanel() {
       />
 
       {/* Robot mascot */}
-      <div className="relative flex flex-1 items-end justify-center">
+      <div className="relative flex flex-1 items-start justify-center pt-4">
         <img
           src={robotImg}
           alt="Khyra AI"
-          className="w-full max-w-[320px] object-contain drop-shadow-2xl"
+          className="w-full max-w-[400px] object-contain drop-shadow-2xl"
         />
       </div>
 
@@ -89,14 +89,14 @@ function LeftPanel() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-foreground">{label}</label>
+      <label className="mb-1.5 block text-[15px] font-medium text-foreground">{label}</label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-[13px] text-red-500">{error}</p>}
     </div>
   );
 }
 
-const inputCls = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
+const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
 
 /* ---------- Page ---------- */
 function LoginPage() {
@@ -154,7 +154,7 @@ function LoginPage() {
       <LeftPanel />
 
       {/* Right panel */}
-      <div className="flex flex-1 flex-col bg-background">
+      <div className="flex flex-1 flex-col bg-[#faf7f2]">
         <div className="flex items-center justify-end px-8 py-5">
           <p className="text-sm text-muted-foreground">
             Don't have an Account?{" "}
@@ -163,13 +163,13 @@ function LoginPage() {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-8 pb-10">
-          <div className="w-full max-w-[420px]">
+          <div className="w-full max-w-[500px]">
             {!resetMode ? (
               <>
                 <div className="mb-7">
-                  <h1 className="font-display text-[2rem] leading-tight text-ink">Welcome to Khyra AI</h1>
-                  <p className="mt-0.5 text-sm font-semibold text-foreground/80">Smarter Voice Infrastructure</p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  <h1 className="font-display text-[2.15rem] leading-tight text-ink">Welcome to Khyra AI</h1>
+                  <p className="mt-0.5 text-base font-semibold text-foreground/80">Smarter Voice Infrastructure</p>
+                  <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">
                     Access secure, AI-first voice agents to build, manage, and scale intelligent voice applications across India effortlessly.
                   </p>
                 </div>
@@ -185,8 +185,8 @@ function LoginPage() {
 
                   <div>
                     <div className="mb-1.5 flex items-center justify-between">
-                      <label className="text-sm font-medium text-foreground">Password</label>
-                      <button type="button" onClick={() => setResetMode(true)} className="text-sm font-medium text-primary underline-offset-4 hover:underline">Forgot Password?</button>
+                      <label className="text-[15px] font-medium text-foreground">Password</label>
+                      <button type="button" onClick={() => setResetMode(true)} className="text-[15px] font-medium text-primary underline-offset-4 hover:underline">Forgot Password?</button>
                     </div>
                     <div className="relative">
                       <input {...register("password")} type={showPw ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" className={`${inputCls} pr-11`} />
@@ -194,10 +194,10 @@ function LoginPage() {
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+                    {errors.password && <p className="mt-1 text-[13px] text-red-500">{errors.password.message}</p>}
                   </div>
 
-                  <button type="submit" disabled={submitting} className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60">
+                  <button type="submit" disabled={submitting} className="w-full rounded-xl bg-primary py-3.5 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60">
                     {submitting ? "Signing in…" : "Login"}
                   </button>
                 </form>
@@ -206,18 +206,18 @@ function LoginPage() {
                   <div className="h-px flex-1 bg-border" /><span className="text-xs uppercase tracking-wider text-muted-foreground">or</span><div className="h-px flex-1 bg-border" />
                 </div>
 
-                <button type="button" onClick={handleGoogle} className="flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 transition hover:bg-secondary active:scale-[0.98]">
+                <button type="button" onClick={handleGoogle} className="flex w-full items-center justify-between rounded-xl border border-border bg-white px-4 py-3 transition hover:bg-stone-50 active:scale-[0.98]">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">K</div>
                     <div className="text-left">
-                      <p className="text-sm font-medium text-foreground">Continue with Google</p>
-                      <p className="text-xs text-muted-foreground">Sign in using your Google account</p>
+                      <p className="text-[15px] font-medium text-foreground">Continue with Google</p>
+                      <p className="text-[13px] text-muted-foreground">Sign in using your Google account</p>
                     </div>
                   </div>
                   {GOOGLE_ICON}
                 </button>
 
-                <p className="mt-5 text-center text-xs text-muted-foreground">
+                <p className="mt-5 text-center text-[13px] text-muted-foreground">
                   By continuing, you agree to Khyra AI's{" "}
                   <a href="#" className="text-primary hover:underline">Terms of Service</a> &{" "}
                   <a href="#" className="text-primary hover:underline">Privacy Policy</a>.

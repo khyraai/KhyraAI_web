@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
+import indiaImg from "@/assets/india-infographic.png";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -91,9 +92,9 @@ function F({ label, req, error, children }: { label: string; req?: boolean; erro
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
   const steps = [{ n: 1, label: "Account" }, { n: 2, label: "Details" }, { n: 3, label: "Verify" }];
   return (
-    <div className="mb-8 flex items-start">
+    <div className="mb-8 flex w-full items-start">
       {steps.map((s, i) => (
-        <div key={s.n} className="flex items-start">
+        <Fragment key={s.n}>
           <div className="flex flex-col items-center gap-1.5">
             <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-semibold transition-colors ${
               step > s.n ? "bg-primary text-primary-foreground" :
@@ -106,8 +107,8 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
               step === s.n ? "text-primary" : step > s.n ? "text-foreground" : "text-muted-foreground"
             }`}>{s.label}</span>
           </div>
-          {i < steps.length - 1 && <div className={`mx-5 mt-4 h-px w-20 flex-shrink-0 transition-colors ${step > s.n ? "bg-primary" : "bg-border"}`} />}
-        </div>
+          {i < steps.length - 1 && <div className={`mx-3 mt-4 h-px flex-1 transition-colors ${step > s.n ? "bg-primary" : "bg-border"}`} />}
+        </Fragment>
       ))}
     </div>
   );
@@ -128,33 +129,11 @@ function LeftPanel() {
 
       {/* India infographic */}
       <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
-        <svg viewBox="0 0 200 210" fill="none" className="h-[190px] w-auto">
-          <defs>
-            <radialGradient id="ig" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="white" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <ellipse cx="95" cy="108" rx="85" ry="95" fill="url(#ig)" />
-          <path
-            d="M 88,6 L 100,4 L 112,6 L 122,10 L 135,16 L 148,25 L 158,38 L 162,52 L 158,65 L 162,76 L 156,90 L 148,104 L 140,118 L 130,134 L 120,150 L 108,166 L 98,178 L 90,185 L 82,178 L 70,162 L 58,145 L 46,126 L 36,108 L 26,90 L 20,74 L 18,60 L 22,48 L 28,38 L 24,28 L 30,18 L 40,10 L 55,5 L 70,4 Z"
-            fill="rgba(255,255,255,0.08)"
-            stroke="rgba(255,255,255,0.5)"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          {([[88,68],[50,122],[140,102],[118,152],[92,162]] as [number,number][]).map(([cx,cy],i) => (
-            <g key={i}>
-              <circle cx={cx} cy={cy} r="6" fill="rgba(251,191,36,0.18)" />
-              <circle cx={cx} cy={cy} r="3.5" fill="#fbbf24" opacity="0.9" />
-            </g>
-          ))}
-          <line x1="88" y1="68" x2="50" y2="122" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,4" />
-          <line x1="88" y1="68" x2="140" y2="102" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,4" />
-          <line x1="50" y1="122" x2="92" y2="162" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,4" />
-          <line x1="140" y1="102" x2="118" y2="152" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,4" />
-          <line x1="118" y1="152" x2="92" y2="162" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,4" />
-        </svg>
+        <img
+          src={indiaImg}
+          alt="India market infographic"
+          className="w-full max-w-[300px] object-contain drop-shadow-lg"
+        />
 
         <div className="grid w-full grid-cols-3 gap-2">
           {[{ value: "1.4B+", label: "Population" }, { value: "800M+", label: "Internet" }, { value: "22+", label: "Languages" }].map((s) => (

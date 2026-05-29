@@ -1,0 +1,4 @@
+const tsrStartManifest = () => ({ routes: { __root__: { filePath: "C:/Manoj/Khyra AI/Khyra_web/KhyraAI_web/src/routes/__root.tsx", children: ["/", "/login", "/signup"], preloads: ["/assets/index-DPKmCbu7.js"] }, "/": { filePath: "C:/Manoj/Khyra AI/Khyra_web/KhyraAI_web/src/routes/index.tsx", children: void 0, preloads: ["/assets/index-op-vUVW_.js", "/assets/Khyra-Dr1NaN2-.js", "/assets/phone-DxgN9mU0.js"] }, "/login": { filePath: "C:/Manoj/Khyra AI/Khyra_web/KhyraAI_web/src/routes/login.tsx", children: void 0, preloads: ["/assets/login-BUBx90YD.js", "/assets/mail-fnVLxOyn.js", "/assets/Khyra-Dr1NaN2-.js"] }, "/signup": { filePath: "C:/Manoj/Khyra AI/Khyra_web/KhyraAI_web/src/routes/signup.tsx", children: void 0, preloads: ["/assets/signup-D118vxUR.js", "/assets/mail-fnVLxOyn.js", "/assets/Khyra-Dr1NaN2-.js", "/assets/phone-DxgN9mU0.js"] } }, clientEntry: "/assets/index-DPKmCbu7.js" });
+export {
+  tsrStartManifest
+};

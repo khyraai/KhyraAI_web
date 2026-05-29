@@ -6,11 +6,11 @@ import { z } from "zod";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-  sendEmailVerification,
   GoogleAuthProvider,
   signInWithPopup,
   type User as FirebaseUser,
 } from "firebase/auth";
+import { sendVerificationEmail } from "@/lib/send-verification-email";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, ChevronDown, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
@@ -266,7 +266,7 @@ function SignupPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth!, data.email, data.password);
       await updateProfile(user, { displayName: data.name });
-      await sendEmailVerification(user);
+      await sendVerificationEmail({ data: { email: data.email, displayName: data.name } });
       setFirebaseUser(user);
       setUserEmail(data.email);
       setStep(2);
@@ -311,7 +311,10 @@ function SignupPage() {
   const handleResend = async () => {
     if (!firebaseUser) return;
     setResendLoading(true); setResendSent(false);
-    try { await sendEmailVerification(firebaseUser); setResendSent(true); }
+    try {
+      await sendVerificationEmail({ data: { email: userEmail, displayName: firebaseUser.displayName ?? "User" } });
+      setResendSent(true);
+    }
     catch { /* silently ignore */ } finally { setResendLoading(false); }
   };
 

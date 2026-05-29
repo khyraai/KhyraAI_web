@@ -122,7 +122,7 @@ function LeftPanel() {
     { title: "Pay As You Scale", body: "No hidden fees. Start small, grow big." },
   ];
   return (
-    <div className="relative hidden w-[420px] flex-shrink-0 flex-col overflow-hidden bg-primary px-10 py-8 text-primary-foreground lg:flex">
+    <div className="relative hidden w-[420px] flex-shrink-0 flex-col overflow-hidden bg-primary px-10 pb-8 pt-0 text-primary-foreground lg:flex">
       <div className="pointer-events-none absolute inset-0 opacity-25"
         style={{ backgroundImage: "radial-gradient(ellipse at 20% 80%, color-mix(in oklab, var(--saffron) 55%, transparent) 0%, transparent 55%), radial-gradient(ellipse at 85% 10%, color-mix(in oklab, white 12%, transparent) 0%, transparent 50%)" }}
       />

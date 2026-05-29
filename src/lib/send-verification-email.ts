@@ -40,7 +40,7 @@ export const sendVerificationEmail = createServerFn()
     }
 
     const auth = getAuth();
-    const appUrl = process.env["VITE_APP_URL"] ?? "https://khyra-ai-web.vercel.app";
+    const appUrl = process.env["VITE_APP_URL"] ?? "https://khyraai.com";
 
     let link: string;
     try {

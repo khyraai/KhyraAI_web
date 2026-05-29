@@ -266,7 +266,9 @@ function SignupPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth!, data.email, data.password);
       await updateProfile(user, { displayName: data.name });
-      await sendVerificationEmail({ data: { email: data.email, displayName: data.name } });
+      sendVerificationEmail({ data: { email: data.email, displayName: data.name } }).catch(() => {
+        /* email sending is best-effort — user can resend from Step 3 */
+      });
       setFirebaseUser(user);
       setUserEmail(data.email);
       setStep(2);

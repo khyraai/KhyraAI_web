@@ -61,7 +61,7 @@ function LoginPage() {
     setAuthError("");
     setIsSubmitting(true);
     try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      await signInWithEmailAndPassword(auth!, data.email, data.password);
       navigate({ to: "/" });
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";
@@ -79,7 +79,7 @@ function LoginPage() {
     }
     setResetLoading(true);
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(auth!, resetEmail);
       setResetSent(true);
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";

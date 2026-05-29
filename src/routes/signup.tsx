@@ -113,7 +113,7 @@ function SignupPage() {
     setIsSubmitting(true);
     try {
       const { user } = await createUserWithEmailAndPassword(
-        auth,
+        auth!,
         data.email,
         data.password
       );
@@ -121,7 +121,7 @@ function SignupPage() {
       await updateProfile(user, { displayName: data.name });
 
       try {
-        await setDoc(doc(db, "users", user.uid), {
+        await setDoc(doc(db!, "users", user.uid), {
           uid: user.uid,
           name: data.name,
           email: data.email,

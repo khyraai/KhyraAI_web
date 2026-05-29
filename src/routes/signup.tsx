@@ -128,16 +128,16 @@ function LeftPanel() {
       />
 
       {/* India infographic */}
-      <div className="relative flex flex-1 items-start justify-center pt-1">
+      <div className="relative flex flex-1 items-start justify-center pt-0">
         <img
           src={indiaImg}
           alt="India market infographic"
-          className="h-full max-h-[380px] w-full object-contain drop-shadow-lg"
+          className="h-full max-h-[420px] w-full object-contain drop-shadow-lg"
         />
       </div>
 
-      <div className="relative pt-3">
-        <h2 className="font-display text-2xl leading-snug">Scale your voice<br />business globally.</h2>
+      <div className="relative pt-1">
+        <h2 className="font-display text-2xl leading-snug">Scale your voice business globally.</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-primary-foreground/65">
           Join forward-thinking businesses using Khyra AI's intelligent voice agents to automate customer interactions in India.
         </p>

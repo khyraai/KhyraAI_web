@@ -29,7 +29,12 @@ const step1Schema = z
   .object({
     name: z.string().min(2, "At least 2 characters"),
     email: z.string().email("Enter a valid email address"),
-    password: z.string().min(8, "At least 8 characters").regex(/[A-Za-z]/, "Must include a letter").regex(/[0-9]/, "Must include a number"),
+    password: z.string()
+      .min(8, "At least 8 characters")
+      .regex(/[A-Z]/, "Must include an uppercase letter")
+      .regex(/[a-z]/, "Must include a lowercase letter")
+      .regex(/[0-9]/, "Must include a number")
+      .regex(/[^A-Za-z0-9]/, "Must include a special character"),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
@@ -40,7 +45,7 @@ const step2Schema = z.object({
   country: z.string().min(1, "Country is required"),
   state: z.string().min(1, "State / Province is required"),
   city: z.string().min(1, "City is required"),
-  zip: z.string().min(3, "Enter a valid postal code"),
+  zip: z.string().regex(/^[1-9][0-9]{5}$/, "Enter a valid 6-digit PIN code"),
   streetAddress: z.string().min(1, "Street address is required"),
   about: z.string().optional(),
 });
@@ -84,6 +89,41 @@ function F({ label, req, error, children }: { label: string; req?: boolean; erro
       </label>
       {children}
       {error && <p className="mt-1 text-[13px] text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+const INDIA_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Andaman & Nicobar Islands", "Chandigarh", "Dadra & Nagar Haveli and Daman & Diu",
+  "Delhi", "Jammu & Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
+];
+
+function PasswordStrength({ password }: { password: string }) {
+  if (!password) return null;
+  const checks = [
+    password.length >= 8,
+    /[A-Z]/.test(password),
+    /[a-z]/.test(password),
+    /[0-9]/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ];
+  const strength = checks.filter(Boolean).length;
+  const segColors = ["bg-red-500", "bg-orange-400", "bg-yellow-400", "bg-green-400", "bg-green-600"];
+  const labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
+  const labelColor = strength <= 2 ? "text-red-500" : strength === 3 ? "text-yellow-600" : "text-green-600";
+  return (
+    <div className="mt-2">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= strength ? segColors[strength - 1] : "bg-border"}`} />
+        ))}
+      </div>
+      <p className={`mt-1 text-[12px] font-medium ${labelColor}`}>{labels[strength]}</p>
     </div>
   );
 }
@@ -176,6 +216,8 @@ function SignupPage() {
 
   const s1 = useForm<Step1Data>({ resolver: zodResolver(step1Schema) });
   const s2 = useForm<Step2Data>({ resolver: zodResolver(step2Schema), defaultValues: { country: "India" } });
+  const pwValue = s1.watch("password") ?? "";
+  const [submitting2, setSubmitting2] = useState(false);
 
   /* Step 1 → create Firebase user */
   const handleStep1 = s1.handleSubmit(async (data) => {
@@ -193,11 +235,11 @@ function SignupPage() {
     }
   });
 
-  /* Step 2 → save details to Firestore */
+  /* Step 2 → save details to Firestore then advance */
   const handleStep2 = s2.handleSubmit(async (data) => {
-    setAuthError("");
-    if (firebaseUser) {
-      try {
+    setAuthError(""); setSubmitting2(true);
+    try {
+      if (firebaseUser) {
         await setDoc(doc(db!, "users", firebaseUser.uid), {
           uid: firebaseUser.uid,
           name: firebaseUser.displayName,
@@ -205,8 +247,9 @@ function SignupPage() {
           ...data,
           createdAt: serverTimestamp(),
         });
-      } catch { /* Firestore optional */ }
-    }
+      }
+    } catch { /* Firestore save optional — continue to verify step */ }
+    finally { setSubmitting2(false); }
     setStep(3);
   });
 
@@ -283,11 +326,14 @@ function SignupPage() {
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <F label="Password" req error={s1.formState.errors.password?.message}>
-                      <div className="relative">
-                        <input {...s1.register("password")} type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="8 digit Password" className={`${inputCls} pr-11`} />
-                        <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                          {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
+                      <div>
+                        <div className="relative">
+                          <input {...s1.register("password")} type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Min 8 chars, Aa, 0–9, !@#" className={`${inputCls} pr-11`} />
+                          <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        <PasswordStrength password={pwValue} />
                       </div>
                     </F>
                     <F label="Confirm Password" req error={s1.formState.errors.confirmPassword?.message}>
@@ -345,7 +391,10 @@ function SignupPage() {
                     </F>
                     <F label="Phone number" req error={s2.formState.errors.phone?.message}>
                       <div className="flex gap-2">
-                        <div className="flex items-center rounded-xl border border-border bg-white px-3 text-[15px] text-muted-foreground">+91 IN</div>
+                        <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-white px-3 text-[15px] text-muted-foreground">
+                          <span className="text-base leading-none">🇮🇳</span>
+                          <span>+91</span>
+                        </div>
                         <input {...s2.register("phone")} type="tel" placeholder="1234567890" className={inputCls} />
                       </div>
                     </F>
@@ -357,7 +406,10 @@ function SignupPage() {
                       </select>
                     </F>
                     <F label="State/Province" req error={s2.formState.errors.state?.message}>
-                      <input {...s2.register("state")} type="text" placeholder="Select state/province" className={inputCls} />
+                      <select {...s2.register("state")} className={selectCls}>
+                        <option value="">Select state…</option>
+                        {INDIA_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+                      </select>
                     </F>
                     <F label="City" req error={s2.formState.errors.city?.message}>
                       <input {...s2.register("city")} type="text" placeholder="City" className={inputCls} />
@@ -378,8 +430,8 @@ function SignupPage() {
                     <button type="button" onClick={() => setStep(1)} className="inline-flex items-center gap-1.5 rounded-xl border border-border px-5 py-3 text-[15px] font-medium text-foreground transition hover:bg-secondary">
                       <ChevronLeft className="h-4 w-4" /> Back
                     </button>
-                    <button type="submit" className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98]">
-                      Next <ArrowRight className="h-4 w-4" />
+                    <button type="submit" disabled={submitting2} className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60">
+                      {submitting2 ? "Saving…" : <><span>Next</span><ArrowRight className="h-4 w-4" /></>}
                     </button>
                   </div>
                 </form>

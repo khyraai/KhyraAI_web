@@ -15,7 +15,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
-import indiaImg from "@/assets/india_info.png";
+import indiaImg from "@/assets/india-infographic.png";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -128,21 +128,12 @@ function LeftPanel() {
       />
 
       {/* India infographic */}
-      <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
+      <div className="relative flex flex-1 items-start justify-center pt-4">
         <img
           src={indiaImg}
           alt="India market infographic"
-          className="w-full max-w-[300px] object-contain drop-shadow-lg"
+          className="h-full max-h-[320px] w-full object-contain drop-shadow-lg"
         />
-
-        <div className="grid w-full grid-cols-3 gap-2">
-          {[{ value: "1.4B+", label: "Population" }, { value: "800M+", label: "Internet" }, { value: "22+", label: "Languages" }].map((s) => (
-            <div key={s.label} className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/10 px-2 py-3 text-center">
-              <p className="text-lg font-bold leading-none">{s.value}</p>
-              <p className="mt-1 text-[11px] leading-tight text-primary-foreground/65">{s.label}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
       <div className="relative pt-5">

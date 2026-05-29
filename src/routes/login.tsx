@@ -12,7 +12,7 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
-import robotImg from "@/assets/khyra-mascot.png";
+import robotImg from "@/assets/khyra-login-mascot.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

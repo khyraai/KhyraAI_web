@@ -7,6 +7,7 @@ export const sendVerificationEmail = createServerFn()
   })
   .handler(async (ctx) => {
     const { email, displayName } = ctx.data;
+    console.log("[send-verification-email] invoked for:", email);
 
     // Dynamic imports — these never ship to the browser bundle
     const [{ initializeApp, getApps, cert }, { getAuth }, { Resend }] = await Promise.all([
@@ -16,32 +17,60 @@ export const sendVerificationEmail = createServerFn()
     ]);
 
     if (!getApps().length) {
+      console.log("[send-verification-email] initialising Firebase Admin...");
+      const projectId = process.env["FIREBASE_ADMIN_PROJECT_ID"];
+      const clientEmail = process.env["FIREBASE_ADMIN_CLIENT_EMAIL"];
+      const privateKey = process.env["FIREBASE_ADMIN_PRIVATE_KEY"];
+      if (!projectId || !clientEmail || !privateKey) {
+        console.error("[send-verification-email] Missing Firebase Admin env vars:", {
+          projectId: !!projectId,
+          clientEmail: !!clientEmail,
+          privateKey: !!privateKey,
+        });
+        throw new Error("Firebase Admin env vars not configured");
+      }
       initializeApp({
         credential: cert({
-          projectId: process.env["FIREBASE_ADMIN_PROJECT_ID"]!,
-          clientEmail: process.env["FIREBASE_ADMIN_CLIENT_EMAIL"]!,
-          privateKey: process.env["FIREBASE_ADMIN_PRIVATE_KEY"]!.replace(/\\n/g, "\n"),
+          projectId,
+          clientEmail,
+          privateKey: privateKey.replace(/\\n/g, "\n"),
         }),
       });
+      console.log("[send-verification-email] Firebase Admin initialised");
     }
 
     const auth = getAuth();
     const appUrl = process.env["VITE_APP_URL"] ?? "https://khyra-ai-web.vercel.app";
 
-    const link = await auth.generateEmailVerificationLink(email, {
-      url: `${appUrl}/login`,
-    });
+    let link: string;
+    try {
+      link = await auth.generateEmailVerificationLink(email, { url: `${appUrl}/login` });
+      console.log("[send-verification-email] verification link generated");
+    } catch (err) {
+      console.error("[send-verification-email] generateEmailVerificationLink failed:", err);
+      throw err;
+    }
 
-    const resend = new Resend(process.env["RESEND_API_KEY"]!);
-    const { error } = await resend.emails.send({
+    const resendKey = process.env["RESEND_API_KEY"];
+    if (!resendKey) {
+      console.error("[send-verification-email] RESEND_API_KEY is not set");
+      throw new Error("RESEND_API_KEY not configured");
+    }
+
+    const resend = new Resend(resendKey);
+    const { data: sendData, error } = await resend.emails.send({
       from: "Khyra AI <noreply@khyraai.com>",
       to: email,
       subject: "Verify your Khyra AI account",
       html: buildEmailHtml(displayName, link),
     });
 
-    if (error) throw new Error(`Resend error: ${(error as { message: string }).message}`);
+    if (error) {
+      console.error("[send-verification-email] Resend send failed:", error);
+      throw new Error(`Resend error: ${(error as { message: string }).message}`);
+    }
 
+    console.log("[send-verification-email] email sent successfully, id:", sendData?.id);
     return { ok: true };
   });
 

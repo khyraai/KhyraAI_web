@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, Fragment } from "react";
-import { useForm } from "react-hook-form";
+import { useState, Fragment, useRef, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -12,7 +12,7 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, Mail } from "lucide-react";
+import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, ChevronDown, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import indiaImg from "@/assets/india-infographic.png";
@@ -124,6 +124,46 @@ function PasswordStrength({ password }: { password: string }) {
         ))}
       </div>
       <p className={`mt-1 text-[12px] font-medium ${labelColor}`}>{labels[strength]}</p>
+    </div>
+  );
+}
+
+function StateDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function outside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, []);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputCls} flex items-center justify-between`}
+      >
+        <span className={value ? "text-ink" : "text-muted-foreground/60"}>{value || "Select state…"}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full overflow-y-auto rounded-xl border border-border bg-white shadow-lg" style={{ maxHeight: "calc(8 * 2.75rem)" }}>
+          {INDIA_STATES.map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => { onChange(st); setOpen(false); }}
+              className={`w-full px-4 py-2.5 text-left text-[15px] transition-colors hover:bg-secondary ${
+                value === st ? "bg-primary/10 font-medium text-primary" : "text-ink"
+              }`}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -328,12 +368,13 @@ function SignupPage() {
                     <F label="Password" req error={s1.formState.errors.password?.message}>
                       <div>
                         <div className="relative">
-                          <input {...s1.register("password")} type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Min 8 chars, Aa, 0–9, !@#" className={`${inputCls} pr-11`} />
+                          <input {...s1.register("password")} type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Enter password" className={`${inputCls} pr-11`} />
                           <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                             {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
                         <PasswordStrength password={pwValue} />
+                        {!pwValue && <p className="mt-1.5 text-[12px] text-muted-foreground">Min 8 chars · uppercase · lowercase · number · special character</p>}
                       </div>
                     </F>
                     <F label="Confirm Password" req error={s1.formState.errors.confirmPassword?.message}>
@@ -400,16 +441,21 @@ function SignupPage() {
                     </F>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <F label="Country" req error={s2.formState.errors.country?.message}>
-                      <select {...s2.register("country")} className={selectCls}>
-                        {["India","United States","United Kingdom","Canada","Australia","Singapore","UAE","Germany","Other"].map(c => <option key={c}>{c}</option>)}
-                      </select>
+                    <F label="Country" req>
+                      <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink">
+                        <span className="text-base leading-none">🇮🇳</span>
+                        <span>India</span>
+                      </div>
+                      <input {...s2.register("country")} type="hidden" />
                     </F>
                     <F label="State/Province" req error={s2.formState.errors.state?.message}>
-                      <select {...s2.register("state")} className={selectCls}>
-                        <option value="">Select state…</option>
-                        {INDIA_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
-                      </select>
+                      <Controller
+                        control={s2.control}
+                        name="state"
+                        render={({ field }) => (
+                          <StateDropdown value={field.value ?? ""} onChange={field.onChange} />
+                        )}
+                      />
                     </F>
                     <F label="City" req error={s2.formState.errors.city?.message}>
                       <input {...s2.register("city")} type="text" placeholder="City" className={inputCls} />

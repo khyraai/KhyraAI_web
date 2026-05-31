@@ -1,7 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
 
 type DemoRequestInput = {
   uid: string;
@@ -33,17 +30,21 @@ export const createDemoRequest = createServerFn()
   })
   .handler(async (ctx) => {
     const input = ctx.data;
-    const admin = require("firebase-admin");
+    const [{ initializeApp, getApps, cert }, adminModule] = await Promise.all([
+      import("firebase-admin/app"),
+      import("firebase-admin"),
+    ]);
+    const admin = (adminModule as unknown as { default?: any }).default ?? adminModule;
 
-    if (!admin.apps.length) {
+    if (!getApps().length) {
       const projectId = process.env["FIREBASE_ADMIN_PROJECT_ID"];
       const clientEmail = process.env["FIREBASE_ADMIN_CLIENT_EMAIL"];
       const privateKey = process.env["FIREBASE_ADMIN_PRIVATE_KEY"];
       if (!projectId || !clientEmail || !privateKey) {
         throw new Error("Firebase Admin env vars not configured");
       }
-      admin.initializeApp({
-        credential: admin.credential.cert({
+      initializeApp({
+        credential: cert({
           projectId,
           clientEmail,
           privateKey: privateKey.replace(/\\n/g, "\n"),

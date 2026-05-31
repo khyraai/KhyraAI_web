@@ -30,11 +30,10 @@ export const createDemoRequest = createServerFn()
   })
   .handler(async (ctx) => {
     const input = ctx.data;
-    const [{ initializeApp, getApps, cert }, adminModule] = await Promise.all([
+    const [{ initializeApp, getApps, getApp, cert }, { getFirestore, initializeFirestore, FieldValue }] = await Promise.all([
       import("firebase-admin/app"),
-      import("firebase-admin"),
+      import("firebase-admin/firestore"),
     ]);
-    const admin = (adminModule as unknown as { default?: any }).default ?? adminModule;
 
     if (!getApps().length) {
       const projectId = process.env["FIREBASE_ADMIN_PROJECT_ID"];
@@ -52,7 +51,15 @@ export const createDemoRequest = createServerFn()
       });
     }
 
-    const adminDb = admin.firestore();
+    const app = getApp();
+    const globalState = globalThis as { __khyraFirestoreInit?: boolean };
+    if (!globalState.__khyraFirestoreInit) {
+      // Force REST transport to avoid gRPC constructor/runtime issues in serverless bundles.
+      initializeFirestore(app, { preferRest: true });
+      globalState.__khyraFirestoreInit = true;
+    }
+
+    const adminDb = getFirestore(app);
     const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
     const existingSnap = await adminDb
       .collection("demo_requests")
@@ -73,7 +80,7 @@ export const createDemoRequest = createServerFn()
     await adminDb.collection("demo_requests").add({
       uid: input.uid,
       status: "new",
-      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+      submittedAt: FieldValue.serverTimestamp(),
       roleTitle: input.roleTitle,
       teamSize: input.teamSize,
       useCasePainPoints: input.useCasePainPoints,

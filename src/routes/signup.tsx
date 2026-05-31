@@ -8,6 +8,7 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
   type User as FirebaseUser,
 } from "firebase/auth";
 import { sendVerificationEmail } from "@/lib/send-verification-email";
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
   validateSearch: z.object({
     email: z.string().email().optional().catch(undefined),
+    incomplete: z.boolean().optional().catch(undefined),
   }),
   head: () => ({
     meta: [{ title: "Create Account — Khyra AI" }],
@@ -245,7 +247,7 @@ function LeftPanel() {
 /* ---------- Page ---------- */
 function SignupPage() {
   const navigate = useNavigate();
-  const { email: prefillEmail } = useSearch({ from: "/signup" });
+  const { email: prefillEmail, incomplete } = useSearch({ from: "/signup" });
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [authError, setAuthError] = useState("");
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -271,6 +273,29 @@ function SignupPage() {
       s1.setValue("email", prefillEmail);
     }
   }, [prefillEmail, s1]);
+
+  // Handle returning incomplete users: they're already Firebase-authenticated
+  // (either from a previous abandoned signup or from the login page redirect)
+  // but have no Firestore profile yet. Auto-jump them to Step 2.
+  useEffect(() => {
+    if (!incomplete) return;
+    const currentUser = auth?.currentUser;
+    if (!currentUser) return;
+
+    // Safety: if they somehow already have a profile, send them home
+    getDoc(doc(db!, "users", currentUser.uid)).then((snap) => {
+      if (snap.exists()) {
+        navigate({ to: "/" });
+        return;
+      }
+      const isGoogle = currentUser.providerData[0]?.providerId === "google.com";
+      setFirebaseUser(currentUser);
+      setUserEmail(currentUser.email ?? "");
+      setIsGoogleUser(isGoogle);
+      setStep(2);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomplete]);
 
   /* Step 1 → create Firebase user */
   const handleStep1 = s1.handleSubmit(async (data) => {
@@ -516,7 +541,20 @@ function SignupPage() {
                     <textarea {...s2.register("about")} rows={3} placeholder="Brief description" className={`${inputCls} resize-none`} />
                   </F>
                   <div className="flex items-center justify-between pt-2">
-                    <button type="button" onClick={() => setStep(1)} className="inline-flex items-center gap-1.5 rounded-xl border border-border px-5 py-3 text-[15px] font-medium text-foreground transition hover:bg-secondary">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        // If user is already Firebase-authenticated (incomplete/Google flow),
+                        // Back = cancel registration: sign them out and go to login.
+                        if (incomplete || isGoogleUser) {
+                          if (auth) await signOut(auth);
+                          navigate({ to: "/login" });
+                        } else {
+                          setStep(1);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border px-5 py-3 text-[15px] font-medium text-foreground transition hover:bg-secondary"
+                    >
                       <ChevronLeft className="h-4 w-4" /> Back
                     </button>
                     <button type="submit" disabled={submitting2} className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60">

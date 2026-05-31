@@ -8,7 +8,6 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -117,7 +116,14 @@ function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setAuthError(""); setSubmitting(true);
     try {
-      await signInWithEmailAndPassword(auth!, data.email, data.password);
+      const { user } = await signInWithEmailAndPassword(auth!, data.email, data.password);
+      // Guard: if the user abandoned signup at Step 2, their Firestore profile
+      // will be missing. Redirect them back to finish the registration.
+      const userDoc = await getDoc(doc(db!, "users", user.uid));
+      if (!userDoc.exists()) {
+        navigate({ to: "/signup", search: { incomplete: true } });
+        return;
+      }
       navigate({ to: "/" });
     } catch (e: unknown) {
       setAuthError(getFirebaseError((e as { code?: string }).code ?? ""));
@@ -145,12 +151,9 @@ function LoginPage() {
       // Check if user has completed registration (Firestore profile exists)
       const userDoc = await getDoc(doc(db!, "users", user.uid));
       if (!userDoc.exists()) {
-        // No profile found — sign them out and redirect to signup with email pre-filled
-        await signOut(auth!);
-        navigate({
-          to: "/signup",
-          search: { email: user.email ?? "" },
-        });
+        // Keep the user authenticated — signup page will detect auth.currentUser
+        // and auto-jump to Step 2 to complete the mandatory profile form.
+        navigate({ to: "/signup", search: { incomplete: true } });
         return;
       }
 

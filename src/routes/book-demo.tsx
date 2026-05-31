@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { collection, addDoc, getDoc, getDocs, limit, query, serverTimestamp, where, doc } from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
 import { ArrowRight, Check } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { sendDemoRequestEmail } from "@/lib/send-demo-request-email";
+import { createDemoRequest } from "@/lib/create-demo-request";
 
 export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
@@ -94,35 +95,23 @@ function BookDemoPage() {
     setPendingMessage("");
     setSubmitting(true);
     try {
-      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
-      const existingQuery = query(
-        collection(db, "demo_requests"),
-        where("uid", "==", auth.currentUser.uid),
-        limit(25),
-      );
-      const existing = await getDocs(existingQuery);
-      const hasRecent = existing.docs.some((d) => {
-        const submittedAt = d.data()?.submittedAt;
-        const submittedAtMs = submittedAt?.toDate?.()?.getTime?.();
-        return typeof submittedAtMs === "number" && submittedAtMs >= tenDaysAgoMs;
+      const createRes = await createDemoRequest({
+        data: {
+          uid: auth.currentUser.uid,
+          roleTitle: data.roleTitle,
+          teamSize: data.teamSize,
+          useCasePainPoints: data.useCasePainPoints,
+          preferredLanguages: data.preferredLanguages,
+          profileSnapshot: profile,
+        },
       });
-      if (hasRecent) {
+
+      if (!createRes?.ok && createRes?.error === "duplicate_recent") {
         setPendingMessage("You already submitted a demo request in the last 10 days. Our representative will get back to you within 24 hours.");
         setSubmitting(false);
         return;
       }
-
-      await addDoc(collection(db, "demo_requests"), {
-        uid: auth.currentUser.uid,
-        status: "new",
-        submittedAt: serverTimestamp(),
-        roleTitle: data.roleTitle,
-        teamSize: data.teamSize,
-        useCasePainPoints: data.useCasePainPoints,
-        preferredLanguages: data.preferredLanguages,
-        profileSnapshot: profile,
-        source: "website_book_demo",
-      });
+      if (!createRes?.ok) throw new Error("Unable to create demo request");
 
       await sendDemoRequestEmail({ data: { email: profile.email, name: profile.name || "there" } }).catch(() => {
         // Do not block successful request submission if email fails.

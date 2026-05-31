@@ -1,12 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 
 export const sendDemoRequestEmail = createServerFn()
-  .inputValidator((data: { email: string; name: string }) => {
+  .inputValidator((data: {
+    email: string;
+    name: string;
+    roleTitle: string;
+    teamSize: string;
+    useCasePainPoints: string;
+    preferredLanguages: string[];
+  }) => {
     if (!data?.email || !data?.name) throw new Error("email and name are required");
     return data;
   })
   .handler(async (ctx) => {
-    const { email, name } = ctx.data;
+    const { email, name, roleTitle, teamSize, useCasePainPoints, preferredLanguages } = ctx.data;
     console.log("[send-demo-request-email] invoked for:", email);
 
     const [{ Resend }] = await Promise.all([import("resend")]);
@@ -23,7 +30,7 @@ export const sendDemoRequestEmail = createServerFn()
         from: "Khyra AI <noreply@khyraai.com>",
         to: email,
         subject: "We received your demo request",
-        html: buildEmailHtml(name),
+        html: buildEmailHtml(name, roleTitle, teamSize, useCasePainPoints, preferredLanguages),
       });
       error = sendRes.error;
     } catch (err) {
@@ -39,7 +46,14 @@ export const sendDemoRequestEmail = createServerFn()
     return { ok: true as const };
   });
 
-function buildEmailHtml(name: string): string {
+function buildEmailHtml(
+  name: string,
+  roleTitle: string,
+  teamSize: string,
+  useCasePainPoints: string,
+  preferredLanguages: string[],
+): string {
+  const languagesText = preferredLanguages.join(", ");
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,9 +92,33 @@ function buildEmailHtml(name: string): string {
             <p style="margin:0 0 12px;color:#4b5563;font-size:15px;line-height:1.7;">
               Thanks for requesting a demo with Khyra AI. Our representative will get back to you within 24 hours.
             </p>
-            <p style="margin:0;color:#4b5563;font-size:15px;line-height:1.7;">
+            <p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">
               We will share the scheduling details in our follow-up response.
             </p>
+
+            <table cellpadding="0" cellspacing="0" style="width:100%;background:#f9f6f1;border-radius:12px;margin:0 0 20px;">
+              <tr><td style="padding:20px 24px;">
+                <p style="margin:0 0 14px;color:#1a3c34;font-size:16px;font-weight:700;">Your demo request details</p>
+                <table cellpadding="0" cellspacing="0" style="width:100%;">
+                  <tr>
+                    <td style="padding:0 0 8px;color:#6b7280;font-size:13px;width:140px;vertical-align:top;">Role / Title</td>
+                    <td style="padding:0 0 8px;color:#1a3c34;font-size:14px;font-weight:600;vertical-align:top;">${roleTitle}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 0 8px;color:#6b7280;font-size:13px;vertical-align:top;">Team size</td>
+                    <td style="padding:0 0 8px;color:#1a3c34;font-size:14px;font-weight:600;vertical-align:top;">${teamSize}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 0 8px;color:#6b7280;font-size:13px;vertical-align:top;">Use case</td>
+                    <td style="padding:0 0 8px;color:#1a3c34;font-size:14px;font-weight:600;vertical-align:top;">${useCasePainPoints}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0;color:#6b7280;font-size:13px;vertical-align:top;">Languages</td>
+                    <td style="padding:0;color:#1a3c34;font-size:14px;font-weight:600;vertical-align:top;">${languagesText}</td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
           </td>
         </tr>
         <tr>

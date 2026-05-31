@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getDoc, doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
-import { ArrowRight, Check } from "lucide-react";
+import { getDoc, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { ArrowRight, Check, Pencil } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { sendDemoRequestEmail } from "@/lib/send-demo-request-email";
+import { saveDemoRequest } from "@/lib/save-demo-request";
+import { updateDemoRequest } from "@/lib/update-demo-request";
 
 export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
@@ -48,10 +50,20 @@ function BookDemoPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitInfo, setSubmitInfo] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [pendingMessage, setPendingMessage] = useState("");
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string; companyName: string; city: string; state: string } | null>(null);
+  const [existingRequest, setExistingRequest] = useState<{
+    status: string;
+    submittedAtMs: number;
+    roleTitle: string;
+    teamSize: string;
+    useCasePainPoints: string;
+    preferredLanguages: string[];
+    source: string;
+    demoRequestDocId?: string;
+  } | null>(null);
+  const [editMode, setEditMode] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { preferredLanguages: [] },
   });
@@ -83,9 +95,34 @@ function BookDemoPage() {
         city: data.city ?? "",
         state: data.state ?? "",
       });
+      const latest = data?.latestDemoRequest;
+      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
+      if (latest?.submittedAtMs && typeof latest.submittedAtMs === "number" && latest.submittedAtMs >= tenDaysAgoMs) {
+        setExistingRequest({
+          status: latest.status ?? "new",
+          submittedAtMs: latest.submittedAtMs,
+          roleTitle: latest.roleTitle ?? "",
+          teamSize: latest.teamSize ?? "",
+          useCasePainPoints: latest.useCasePainPoints ?? "",
+          preferredLanguages: latest.preferredLanguages ?? [],
+          source: latest.source ?? "website_book_demo",
+          demoRequestDocId: latest.demoRequestDocId,
+        });
+      }
     };
     loadProfile().catch(() => setSubmitError("Unable to load your profile. Please try again."));
   }, [authChecked, navigate]);
+
+  useEffect(() => {
+    if (editMode && existingRequest) {
+      reset({
+        roleTitle: existingRequest.roleTitle,
+        teamSize: existingRequest.teamSize,
+        useCasePainPoints: existingRequest.useCasePainPoints,
+        preferredLanguages: existingRequest.preferredLanguages as FormData["preferredLanguages"],
+      });
+    }
+  }, [editMode, existingRequest, reset]);
 
   const canRenderForm = useMemo(() => !!user && !!profile, [user, profile]);
 
@@ -93,78 +130,142 @@ function BookDemoPage() {
     if (!auth?.currentUser || !db || !profile) return;
     setSubmitError("");
     setSubmitInfo("");
-    setPendingMessage("");
     setSubmitting(true);
     try {
-      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
-      const userRef = doc(db, "users", auth.currentUser.uid);
-      const freshUserSnap = await getDoc(userRef);
-      const latest = freshUserSnap.data()?.latestDemoRequest;
-      const latestSubmittedAtMs = latest?.submittedAtMs as number | undefined;
-      if (typeof latestSubmittedAtMs === "number" && latestSubmittedAtMs >= tenDaysAgoMs) {
-        setPendingMessage("You already submitted a demo request in the last 10 days. Our representative will get back to you within 24 hours.");
-        setSubmitting(false);
-        return;
-      }
-
       const nowMs = Date.now();
+      const userRef = doc(db, "users", auth.currentUser.uid);
 
-      await setDoc(
-        userRef,
-        {
-          latestDemoRequest: {
+      if (existingRequest) {
+        // UPDATE existing request
+        await setDoc(
+          userRef,
+          {
+            latestDemoRequest: {
+              status: "new",
+              submittedAt: serverTimestamp(),
+              submittedAtMs: existingRequest.submittedAtMs,
+              updatedAtMs: nowMs,
+              roleTitle: data.roleTitle,
+              teamSize: data.teamSize,
+              useCasePainPoints: data.useCasePainPoints,
+              preferredLanguages: data.preferredLanguages,
+              source: "website_book_demo",
+              demoRequestDocId: existingRequest.demoRequestDocId,
+            },
+          },
+          { merge: true },
+        );
+
+        const updateRes = await updateDemoRequest({
+          data: {
+            docId: existingRequest.demoRequestDocId,
+            uid: auth.currentUser.uid,
+            submittedAtMs: existingRequest.submittedAtMs,
             status: "new",
-            submittedAt: serverTimestamp(),
-            submittedAtMs: nowMs,
-            roleTitle: data.roleTitle,
-            teamSize: data.teamSize,
-            useCasePainPoints: data.useCasePainPoints,
-            preferredLanguages: data.preferredLanguages,
             source: "website_book_demo",
-          },
-        },
-        { merge: true },
-      );
-
-      // Try writing analytics/reporting record. If Firestore rules block this
-      // collection, we keep the request successful using users/{uid}.latestDemoRequest.
-      try {
-        await addDoc(collection(db, "demo_requests"), {
-          uid: auth.currentUser.uid,
-          status: "new",
-          source: "website_book_demo",
-          submittedAt: serverTimestamp(),
-          submittedAtMs: nowMs,
-          responseDueAt: Timestamp.fromMillis(nowMs + 24 * 60 * 60 * 1000),
-          request: {
-            roleTitle: data.roleTitle,
-            teamSize: data.teamSize,
-            useCasePainPoints: data.useCasePainPoints,
-            preferredLanguages: data.preferredLanguages,
-          },
-          profileSnapshot: {
-            name: profile.name || auth.currentUser.displayName || "",
-            email: profile.email || auth.currentUser.email || "",
-            phone: profile.phone || "",
-            companyName: profile.companyName || "",
-            city: profile.city || "",
-            state: profile.state || "",
+            request: {
+              roleTitle: data.roleTitle,
+              teamSize: data.teamSize,
+              useCasePainPoints: data.useCasePainPoints,
+              preferredLanguages: data.preferredLanguages,
+            },
+            profileSnapshot: {
+              name: profile.name || auth.currentUser.displayName || "",
+              email: profile.email || auth.currentUser.email || "",
+              phone: profile.phone || "",
+              companyName: profile.companyName || "",
+              city: profile.city || "",
+              state: profile.state || "",
+            },
           },
         });
-      } catch (err: unknown) {
-        const code = (err as { code?: string })?.code ?? "";
-        if (code === "permission-denied" || code.includes("permission")) {
-          setSubmitInfo("Request saved to your user profile, but top-level demo_reports collection write is blocked by Firestore rules.");
-        } else {
+        if (!updateRes?.ok) {
+          setSubmitInfo("Request updated in your profile, but we could not update the reporting record.");
+        }
+      } else {
+        // NEW request
+        const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
+        const freshUserSnap = await getDoc(userRef);
+        const latest = freshUserSnap.data()?.latestDemoRequest;
+        const latestSubmittedAtMs = latest?.submittedAtMs as number | undefined;
+        if (typeof latestSubmittedAtMs === "number" && latestSubmittedAtMs >= tenDaysAgoMs) {
+          setSubmitInfo("A demo request was submitted recently. Refreshing page...");
+          setExistingRequest({
+            status: latest.status ?? "new",
+            submittedAtMs: latest.submittedAtMs,
+            roleTitle: latest.roleTitle ?? "",
+            teamSize: latest.teamSize ?? "",
+            useCasePainPoints: latest.useCasePainPoints ?? "",
+            preferredLanguages: latest.preferredLanguages ?? [],
+            source: latest.source ?? "website_book_demo",
+            demoRequestDocId: latest.demoRequestDocId,
+          });
+          setSubmitting(false);
+          return;
+        }
+
+        await setDoc(
+          userRef,
+          {
+            latestDemoRequest: {
+              status: "new",
+              submittedAt: serverTimestamp(),
+              submittedAtMs: nowMs,
+              roleTitle: data.roleTitle,
+              teamSize: data.teamSize,
+              useCasePainPoints: data.useCasePainPoints,
+              preferredLanguages: data.preferredLanguages,
+              source: "website_book_demo",
+            },
+          },
+          { merge: true },
+        );
+
+        const saveRes = await saveDemoRequest({
+          data: {
+            uid: auth.currentUser.uid,
+            status: "new",
+            source: "website_book_demo",
+            submittedAtMs: nowMs,
+            responseDueAtMs: nowMs + 24 * 60 * 60 * 1000,
+            request: {
+              roleTitle: data.roleTitle,
+              teamSize: data.teamSize,
+              useCasePainPoints: data.useCasePainPoints,
+              preferredLanguages: data.preferredLanguages,
+            },
+            profileSnapshot: {
+              name: profile.name || auth.currentUser.displayName || "",
+              email: profile.email || auth.currentUser.email || "",
+              phone: profile.phone || "",
+              companyName: profile.companyName || "",
+              city: profile.city || "",
+              state: profile.state || "",
+            },
+          },
+        });
+        if (saveRes?.ok && saveRes.docId) {
+          await updateDoc(userRef, { "latestDemoRequest.demoRequestDocId": saveRes.docId });
+        } else if (!saveRes?.ok) {
           setSubmitInfo("Request saved to your user profile, but we could not create the reporting record.");
         }
       }
 
-      const emailRes = await sendDemoRequestEmail({ data: { email: profile.email || auth.currentUser.email || "", name: profile.name || "there" } });
+      const emailRes = await sendDemoRequestEmail({
+        data: {
+          email: profile.email || auth.currentUser.email || "",
+          name: profile.name || "there",
+          roleTitle: data.roleTitle,
+          teamSize: data.teamSize,
+          useCasePainPoints: data.useCasePainPoints,
+          preferredLanguages: data.preferredLanguages,
+        },
+      });
       if (!emailRes?.ok) {
         setSubmitError("Your demo request was saved, but we could not send the confirmation email right now.");
       }
       setSubmitted(true);
+      setEditMode(false);
     } catch (e: unknown) {
       const message = (e as { message?: string })?.message ?? "";
       if (message) {
@@ -218,7 +319,47 @@ function BookDemoPage() {
             </div>
           )}
 
-          {!submitted && canRenderForm && (
+          {!submitted && existingRequest && !editMode && canRenderForm && (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+                <Check className="h-5 w-5 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">You already booked a demo</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Our representative will get back to you within 24 hours with demo scheduling details.
+              </p>
+
+              <div className="mt-5 space-y-3 rounded-xl border border-border bg-white p-5">
+                <h3 className="text-sm font-semibold text-foreground">Demo request details</h3>
+                <Info label="Role / Title" value={existingRequest.roleTitle} />
+                <Info label="Team size" value={existingRequest.teamSize} />
+                <Info label="Use case / pain points" value={existingRequest.useCasePainPoints} />
+                <Info label="Preferred languages" value={existingRequest.preferredLanguages.join(", ")} />
+              </div>
+
+              <p className="mt-4 text-sm text-muted-foreground">
+                If you want to edit any of the details, click on <strong>Edit</strong>.
+              </p>
+
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditMode(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                >
+                  <Pencil className="h-4 w-4" /> Edit
+                </button>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
+                >
+                  Go Back
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {!submitted && canRenderForm && (!existingRequest || editMode) && (
             <form onSubmit={onSubmit} className="space-y-5">
               {(() => {
                 const profileData = profile!;
@@ -266,20 +407,29 @@ function BookDemoPage() {
                 {errors.preferredLanguages && <p className="mt-1 text-[13px] text-red-500">{errors.preferredLanguages.message}</p>}
               </div>
 
-              {pendingMessage && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">{pendingMessage}</div>
-              )}
               {submitError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>
               )}
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                {editMode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMode(false);
+                      reset({ preferredLanguages: [] });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-7 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary"
+                  >
+                    Cancel
+                  </button>
+                )}
                 <button
                   type="submit"
                   disabled={submitting}
                   className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 >
-                  {submitting ? "Submitting..." : "Submit Request"} {!submitting && <ArrowRight className="h-4 w-4" />}
+                  {submitting ? "Submitting..." : editMode ? "Update Request" : "Submit Request"} {!submitting && <ArrowRight className="h-4 w-4" />}
                 </button>
               </div>
             </form>

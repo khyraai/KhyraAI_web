@@ -46,6 +46,7 @@ function BookDemoPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitInfo, setSubmitInfo] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [pendingMessage, setPendingMessage] = useState("");
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string; companyName: string; city: string; state: string } | null>(null);
@@ -91,6 +92,7 @@ function BookDemoPage() {
   const onSubmit = handleSubmit(async (data) => {
     if (!auth?.currentUser || !db || !profile) return;
     setSubmitError("");
+    setSubmitInfo("");
     setPendingMessage("");
     setSubmitting(true);
     try {
@@ -106,28 +108,6 @@ function BookDemoPage() {
       }
 
       const nowMs = Date.now();
-      await addDoc(collection(db, "demo_requests"), {
-        uid: auth.currentUser.uid,
-        status: "new",
-        source: "website_book_demo",
-        submittedAt: serverTimestamp(),
-        submittedAtMs: nowMs,
-        responseDueAt: Timestamp.fromMillis(nowMs + 24 * 60 * 60 * 1000),
-        request: {
-          roleTitle: data.roleTitle,
-          teamSize: data.teamSize,
-          useCasePainPoints: data.useCasePainPoints,
-          preferredLanguages: data.preferredLanguages,
-        },
-        profileSnapshot: {
-          name: profile.name || auth.currentUser.displayName || "",
-          email: profile.email || auth.currentUser.email || "",
-          phone: profile.phone || "",
-          companyName: profile.companyName || "",
-          city: profile.city || "",
-          state: profile.state || "",
-        },
-      });
 
       await setDoc(
         userRef,
@@ -145,6 +125,40 @@ function BookDemoPage() {
         },
         { merge: true },
       );
+
+      // Try writing analytics/reporting record. If Firestore rules block this
+      // collection, we keep the request successful using users/{uid}.latestDemoRequest.
+      try {
+        await addDoc(collection(db, "demo_requests"), {
+          uid: auth.currentUser.uid,
+          status: "new",
+          source: "website_book_demo",
+          submittedAt: serverTimestamp(),
+          submittedAtMs: nowMs,
+          responseDueAt: Timestamp.fromMillis(nowMs + 24 * 60 * 60 * 1000),
+          request: {
+            roleTitle: data.roleTitle,
+            teamSize: data.teamSize,
+            useCasePainPoints: data.useCasePainPoints,
+            preferredLanguages: data.preferredLanguages,
+          },
+          profileSnapshot: {
+            name: profile.name || auth.currentUser.displayName || "",
+            email: profile.email || auth.currentUser.email || "",
+            phone: profile.phone || "",
+            companyName: profile.companyName || "",
+            city: profile.city || "",
+            state: profile.state || "",
+          },
+        });
+      } catch (err: unknown) {
+        const code = (err as { code?: string })?.code ?? "";
+        if (code === "permission-denied" || code.includes("permission")) {
+          setSubmitInfo("Request saved to your user profile, but top-level demo_reports collection write is blocked by Firestore rules.");
+        } else {
+          setSubmitInfo("Request saved to your user profile, but we could not create the reporting record.");
+        }
+      }
 
       const emailRes = await sendDemoRequestEmail({ data: { email: profile.email || auth.currentUser.email || "", name: profile.name || "there" } });
       if (!emailRes?.ok) {
@@ -196,6 +210,8 @@ function BookDemoPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Thanks. Our representative will get back to you within 24 hours with demo scheduling details.
               </p>
+              {submitInfo && <p className="mt-2 text-sm text-amber-700">{submitInfo}</p>}
+              {submitError && <p className="mt-2 text-sm text-red-600">{submitError}</p>}
               <Link to="/" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">
                 Back to Home <ArrowRight className="h-4 w-4" />
               </Link>

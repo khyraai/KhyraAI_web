@@ -8,12 +8,13 @@ export const sendDemoRequestEmail = createServerFn()
     teamSize: string;
     useCasePainPoints: string;
     preferredLanguages: string[];
+    isUpdate?: boolean;
   }) => {
     if (!data?.email || !data?.name) throw new Error("email and name are required");
     return data;
   })
   .handler(async (ctx) => {
-    const { email, name, roleTitle, teamSize, useCasePainPoints, preferredLanguages } = ctx.data;
+    const { email, name, roleTitle, teamSize, useCasePainPoints, preferredLanguages, isUpdate } = ctx.data;
     console.log("[send-demo-request-email] invoked for:", email);
 
     const [{ Resend }] = await Promise.all([import("resend")]);
@@ -29,8 +30,8 @@ export const sendDemoRequestEmail = createServerFn()
       const sendRes = await resend.emails.send({
         from: "Khyra AI <noreply@khyraai.com>",
         to: email,
-        subject: "We received your demo request",
-        html: buildEmailHtml(name, roleTitle, teamSize, useCasePainPoints, preferredLanguages),
+        subject: isUpdate ? "Your Demo Request Has Been Updated" : "Thank you for requesting a Demo.",
+        html: buildEmailHtml(name, roleTitle, teamSize, useCasePainPoints, preferredLanguages, isUpdate),
       });
       error = sendRes.error;
     } catch (err) {
@@ -52,6 +53,7 @@ function buildEmailHtml(
   teamSize: string,
   useCasePainPoints: string,
   preferredLanguages: string[],
+  isUpdate?: boolean,
 ): string {
   const languagesText = preferredLanguages.join(", ");
   return `<!DOCTYPE html>
@@ -86,15 +88,15 @@ function buildEmailHtml(
         </tr>
         <tr>
           <td style="padding:40px;">
-            <h2 style="margin:0;color:#1a3c34;font-size:28px;font-weight:700;line-height:1.2;">Demo request received</h2>
+            <h2 style="margin:0;color:#1a3c34;font-size:28px;font-weight:700;line-height:1.2;">${isUpdate ? 'Demo request updated' : 'Demo request received'}</h2>
             <div style="width:36px;height:3px;background:#c8a96e;border-radius:2px;margin:18px 0 22px;"></div>
             <p style="margin:0 0 8px;color:#1a3c34;font-size:15px;line-height:1.6;">Hi <strong>${name}</strong>,</p>
             <p style="margin:0 0 12px;color:#4b5563;font-size:15px;line-height:1.7;">
-              Thanks for requesting a demo with Khyra AI. Our representative will get back to you within 24 hours.
+              ${isUpdate
+                ? 'Your demo request details have been updated. Our representative will get back to you within 24 hours regarding your updated request.'
+                : 'Thanks for requesting a demo with Khyra AI. Our representative will get back to you within 24 hours.'}
             </p>
-            <p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">
-              We will share the scheduling details in our follow-up response.
-            </p>
+            ${isUpdate ? `<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">If a demo was already scheduled, it will become tentative — final confirmation will be sent via email.</p>` : `<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">We will share the scheduling details in our follow-up response.</p>`}
 
             <table cellpadding="0" cellspacing="0" style="width:100%;background:#f9f6f1;border-radius:12px;margin:0 0 20px;">
               <tr><td style="padding:20px 24px;">

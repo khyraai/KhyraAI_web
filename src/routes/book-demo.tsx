@@ -50,6 +50,7 @@ function BookDemoPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitInfo, setSubmitInfo] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [wasUpdate, setWasUpdate] = useState(false);
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string; companyName: string; city: string; state: string } | null>(null);
   const [existingRequest, setExistingRequest] = useState<{
     status: string;
@@ -262,11 +263,13 @@ function BookDemoPage() {
           teamSize: data.teamSize,
           useCasePainPoints: data.useCasePainPoints,
           preferredLanguages: data.preferredLanguages,
+          isUpdate: !!existingRequest,
         },
       });
       if (!emailRes?.ok) {
         setSubmitError("Your demo request was saved, but we could not send the confirmation email right now.");
       }
+      setWasUpdate(!!existingRequest);
       setSubmitted(true);
       setEditMode(false);
     } catch (e: unknown) {
@@ -310,9 +313,13 @@ function BookDemoPage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
                 <Check className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground">Request received</h2>
+              <h2 className="text-xl font-semibold text-foreground">
+                {wasUpdate ? "Request updated" : "Request received"}
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Thanks. Our representative will get back to you within 24 hours with demo scheduling details.
+                {wasUpdate
+                  ? "Our representative will get back to you within 24 hrs about your updated request. If a demo was already scheduled, it will become tentative — final confirmation will only be sent via email."
+                  : "Thanks. Our representative will get back to you within 24 hours with demo scheduling details."}
               </p>
               {submitInfo && <p className="mt-2 text-sm text-amber-700">{submitInfo}</p>}
               {submitError && <p className="mt-2 text-sm text-red-600">{submitError}</p>}

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { getDoc, doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
 import { ArrowRight, Check } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
@@ -105,13 +105,37 @@ function BookDemoPage() {
         return;
       }
 
+      const nowMs = Date.now();
+      await addDoc(collection(db, "demo_requests"), {
+        uid: auth.currentUser.uid,
+        status: "new",
+        source: "website_book_demo",
+        submittedAt: serverTimestamp(),
+        submittedAtMs: nowMs,
+        responseDueAt: Timestamp.fromMillis(nowMs + 24 * 60 * 60 * 1000),
+        request: {
+          roleTitle: data.roleTitle,
+          teamSize: data.teamSize,
+          useCasePainPoints: data.useCasePainPoints,
+          preferredLanguages: data.preferredLanguages,
+        },
+        profileSnapshot: {
+          name: profile.name || auth.currentUser.displayName || "",
+          email: profile.email || auth.currentUser.email || "",
+          phone: profile.phone || "",
+          companyName: profile.companyName || "",
+          city: profile.city || "",
+          state: profile.state || "",
+        },
+      });
+
       await setDoc(
         userRef,
         {
           latestDemoRequest: {
             status: "new",
             submittedAt: serverTimestamp(),
-            submittedAtMs: Date.now(),
+            submittedAtMs: nowMs,
             roleTitle: data.roleTitle,
             teamSize: data.teamSize,
             useCasePainPoints: data.useCasePainPoints,

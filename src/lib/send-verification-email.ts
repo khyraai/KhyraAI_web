@@ -50,7 +50,15 @@ export const sendVerificationEmail = createServerFn()
       console.log("[send-verification-email] verification link generated");
     } catch (err) {
       console.error("[send-verification-email] generateEmailVerificationLink failed:", err);
-      throw err;
+      // Rate-limited by Firebase — too many verification emails for this address.
+      // Return a structured response instead of throwing so the UI can show a
+      // helpful message rather than crashing silently.
+      const code = (err as { errorInfo?: { code?: string } })?.errorInfo?.code ?? "";
+      const message = (err as { message?: string })?.message ?? "";
+      if (code === "auth/too-many-requests" || message.includes("TOO_MANY_ATTEMPTS_TRY_LATER")) {
+        return { ok: false as const, error: "rate_limited" };
+      }
+      return { ok: false as const, error: "link_failed" };
     }
 
     const resendKey = process.env["RESEND_API_KEY"];
@@ -75,11 +83,11 @@ export const sendVerificationEmail = createServerFn()
 
     if (error) {
       console.error("[send-verification-email] Resend send failed:", error);
-      throw new Error(`Resend error: ${(error as { message: string }).message}`);
+      return { ok: false as const, error: "send_failed" };
     }
 
     console.log("[send-verification-email] email sent successfully, id:", sendData?.id);
-    return { ok: true };
+    return { ok: true as const };
   });
 
 function buildEmailHtml(name: string, link: string, logoB64: string, mascotB64: string): string {

@@ -262,6 +262,7 @@ function SignupPage() {
   const [verifyError, setVerifyError] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
+  const [emailSendIssue, setEmailSendIssue] = useState<"" | "rate_limited" | "failed">("");
   // Track if user signed in via Google (skips email verification step)
   const [isGoogleUser, setIsGoogleUser] = useState(false);
 
@@ -297,7 +298,7 @@ function SignupPage() {
           navigate({ to: "/" });
           return;
         }
-        const isGoogle = currentUser.providerData[0]?.providerId === "google.com";
+        const isGoogle = currentUser.providerData.some((p) => p.providerId === "google.com");
         setFirebaseUser(currentUser);
         setUserEmail(currentUser.email ?? "");
         setIsGoogleUser(isGoogle);
@@ -326,8 +327,14 @@ function SignupPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth!, data.email, data.password);
       await updateProfile(user, { displayName: data.name });
-      sendVerificationEmail({ data: { email: data.email, displayName: data.name } }).catch(() => {
-        /* email sending is best-effort — user can resend from Step 3 */
+      sendVerificationEmail({ data: { email: data.email, displayName: data.name } }).then((res) => {
+        if (!res?.ok) {
+          setEmailSendIssue(res.error === "rate_limited" ? "rate_limited" : "failed");
+        } else {
+          setEmailSendIssue("");
+        }
+      }).catch(() => {
+        setEmailSendIssue("failed");
       });
       setFirebaseUser(user);
       setUserEmail(data.email);
@@ -395,10 +402,23 @@ function SignupPage() {
     if (!firebaseUser) return;
     setResendLoading(true); setResendSent(false);
     try {
-      await sendVerificationEmail({ data: { email: userEmail, displayName: firebaseUser.displayName ?? "User" } });
-      setResendSent(true);
+      const res = await sendVerificationEmail({ data: { email: userEmail, displayName: firebaseUser.displayName ?? "User" } });
+      if (res?.ok) {
+        setResendSent(true);
+        setEmailSendIssue("");
+        setVerifyError("");
+      } else if (res?.error === "rate_limited") {
+        setEmailSendIssue("rate_limited");
+        setVerifyError("Too many verification attempts for this email. Please wait and try resending later.");
+      } else {
+        setEmailSendIssue("failed");
+        setVerifyError("We couldn't send the verification email right now. Please try again shortly.");
+      }
     }
-    catch { /* silently ignore */ } finally { setResendLoading(false); }
+    catch {
+      setEmailSendIssue("failed");
+      setVerifyError("We couldn't send the verification email right now. Please try again shortly.");
+    } finally { setResendLoading(false); }
   };
 
   const handleGoogle = async () => {
@@ -611,6 +631,16 @@ function SignupPage() {
                 <h1 className="font-display text-[1.75rem] text-ink">Verify Your Email</h1>
                 <p className="mt-2 text-[15px] text-muted-foreground">We've sent a verification link to</p>
                 <p className="mt-0.5 text-[15px] font-semibold text-primary">{userEmail}</p>
+                {emailSendIssue === "rate_limited" && (
+                  <div className="mx-auto mt-4 max-w-sm rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    Verification email is temporarily rate-limited by Firebase for this address. Please wait a while, then use Resend.
+                  </div>
+                )}
+                {emailSendIssue === "failed" && (
+                  <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    We couldn't send the verification email right now. Please use Resend in a moment.
+                  </div>
+                )}
 
                 <div className="mx-auto mt-6 max-w-sm rounded-xl border border-border bg-secondary/40 px-6 py-5 text-left">
                   <p className="text-[15px] font-medium text-foreground">How to verify:</p>
@@ -650,3 +680,4 @@ function SignupPage() {
     </div>
   );
 }
+

@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
+import {
+  LiveDemoModal,
+  DEMO_ROLES,
+  DEMO_LANGUAGES,
+  DEMO_VOICES,
+  type DemoConfig,
+} from "@/components/live-demo-modal";
 import {
   Phone,
   Target,
@@ -10,6 +17,7 @@ import {
   Minus,
   Plus,
   Mic,
+  ChevronDown,
   Globe,
   Zap,
   ShieldCheck,
@@ -685,10 +693,102 @@ function WhyKhyra() {
   );
 }
 
+/* ---------- Demo select field ---------- */
+function DemoSelectField({
+  label,
+  value,
+  options,
+  onSelect,
+}: {
+  label: string;
+  value: string;
+  options: { label: string; value: string }[];
+  onSelect: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="w-full rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-3 text-left transition hover:bg-primary-foreground/10"
+      >
+        <div className="text-[10px] uppercase tracking-wider opacity-60">{label}</div>
+        <div className="mt-1 flex items-center justify-between text-sm">
+          <span>{selected?.label ?? value}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 opacity-60 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-primary-foreground/20 bg-primary shadow-xl">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onSelect(opt.value);
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-sm transition hover:bg-primary-foreground/10 ${
+                opt.value === value ? "font-medium opacity-100" : "opacity-75"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Demo CTA ---------- */
 function DemoCTA() {
   const reveal = useScrollReveal();
+
+  const [roleId,       setRoleId]       = useState("front_desk");
+  const [domainId,     setDomainId]     = useState("dental_clinic");
+  const [languageCode, setLanguageCode] = useState("hi-IN");
+  const [voiceId,      setVoiceId]      = useState("voice_1");
+  const [showModal,    setShowModal]    = useState(false);
+
+  const selectedRole   = DEMO_ROLES.find((r) => r.id === roleId)!;
+  const selectedDomain = selectedRole.domains.find((d) => d.id === domainId);
+  const selectedLang   = DEMO_LANGUAGES.find((l) => l.code === languageCode)!;
+  const selectedVoice  = DEMO_VOICES.find((v) => v.id === voiceId)!;
+
+  const handleRoleChange = useCallback((id: string) => {
+    setRoleId(id);
+    const role = DEMO_ROLES.find((r) => r.id === id);
+    if (role) setDomainId(role.domains[0].id);
+  }, []);
+
+  const demoConfig: DemoConfig = {
+    roleId,
+    domainId,
+    languageCode,
+    voiceId,
+    voiceLabel: selectedVoice?.label ?? "",
+  };
+
   return (
+    <>
     <section
       ref={reveal.ref}
       data-visible={reveal.visible}
@@ -708,9 +808,9 @@ function DemoCTA() {
               <a
                 className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-primary"
                 style={{ background: "var(--beige-deep)" }}
-                href="#"
+                href="#demo"
               >
-                Try the live demo <ArrowRight className="h-4 w-4" />
+                Configure &amp; try <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-medium"
@@ -721,30 +821,72 @@ function DemoCTA() {
             </div>
           </div>
           <div className="rounded-2xl bg-primary-foreground/5 p-6 backdrop-blur">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <DemoField label="Agent role" value="Front Desk" />
-              <DemoField label="Industry" value="Dental Clinic" />
-              <DemoField label="Language" value="Hindi" />
-              <DemoField label="Voice" value="Meera · Female" />
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <DemoSelectField
+                label="Agent role"
+                value={roleId}
+                options={DEMO_ROLES.map((r) => ({ label: r.label, value: r.id }))}
+                onSelect={handleRoleChange}
+              />
+              <DemoSelectField
+                label="Industry"
+                value={domainId}
+                options={selectedRole.domains.map((d) => ({ label: d.label, value: d.id }))}
+                onSelect={setDomainId}
+              />
+              <DemoSelectField
+                label="Language"
+                value={languageCode}
+                options={DEMO_LANGUAGES.map((l) => ({ label: l.label, value: l.code }))}
+                onSelect={setLanguageCode}
+              />
+              <DemoSelectField
+                label="Voice"
+                value={voiceId}
+                options={DEMO_VOICES.map((v) => ({
+                  label: `${v.label} · ${v.gender}`,
+                  value: v.id,
+                }))}
+                onSelect={setVoiceId}
+              />
             </div>
-            <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-medium text-primary">
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                selectedRole.icon + " " + selectedRole.label,
+                selectedDomain ? selectedDomain.icon + " " + selectedDomain.label : "",
+                selectedLang.label,
+                selectedVoice.label + " · " + selectedVoice.gender,
+              ]
+                .filter(Boolean)
+                .map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-primary-foreground/20 px-2.5 py-0.5 text-[11px] opacity-70"
+                  >
+                    {tag}
+                  </span>
+                ))}
+            </div>
+
+            <button
+              onClick={() => setShowModal(true)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
+            >
               <Mic className="h-4 w-4" /> Start conversation
             </button>
-            <div className="mt-3 text-center text-[11px] opacity-60">
+            <div className="mt-3 text-center text-[11px] opacity-50">
               This demo does not store any data.
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-function DemoField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-3">
-      <div className="text-[10px] uppercase tracking-wider opacity-60">{label}</div>
-      <div className="mt-1">{value}</div>
-    </div>
+
+    {showModal && (
+      <LiveDemoModal config={demoConfig} onClose={() => setShowModal(false)} />
+    )}
+    </>
   );
 }
 

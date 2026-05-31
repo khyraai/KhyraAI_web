@@ -1,7 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const sendDemoRequestEmail = createServerFn()
   .inputValidator((data: {

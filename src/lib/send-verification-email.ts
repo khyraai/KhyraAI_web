@@ -1,8 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { join } from "node:path";
 
 export const sendVerificationEmail = createServerFn()
   .inputValidator((data: { email: string; displayName: string }) => {

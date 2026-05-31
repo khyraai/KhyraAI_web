@@ -150,7 +150,7 @@ function BookDemoPage() {
               useCasePainPoints: data.useCasePainPoints,
               preferredLanguages: data.preferredLanguages,
               source: "website_book_demo",
-              demoRequestDocId: existingRequest.demoRequestDocId,
+              ...(existingRequest.demoRequestDocId ? { demoRequestDocId: existingRequest.demoRequestDocId } : {}),
             },
           },
           { merge: true },

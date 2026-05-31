@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, Fragment, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,7 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 import { sendVerificationEmail } from "@/lib/send-verification-email";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, ChevronDown, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
@@ -19,6 +19,9 @@ import indiaImg from "@/assets/india-infographic.png";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
+  validateSearch: z.object({
+    email: z.string().email().optional().catch(undefined),
+  }),
   head: () => ({
     meta: [{ title: "Create Account — Khyra AI" }],
   }),
@@ -242,6 +245,7 @@ function LeftPanel() {
 /* ---------- Page ---------- */
 function SignupPage() {
   const navigate = useNavigate();
+  const { email: prefillEmail } = useSearch({ from: "/signup" });
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [authError, setAuthError] = useState("");
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -253,11 +257,20 @@ function SignupPage() {
   const [verifyError, setVerifyError] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
+  // Track if user signed in via Google (skips email verification step)
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
 
   const s1 = useForm<Step1Data>({ resolver: zodResolver(step1Schema) });
   const s2 = useForm<Step2Data>({ resolver: zodResolver(step2Schema), defaultValues: { country: "India" } });
   const pwValue = s1.watch("password") ?? "";
   const [submitting2, setSubmitting2] = useState(false);
+
+  // Pre-fill email from ?email= query param (set when redirected from login's Google flow)
+  useEffect(() => {
+    if (prefillEmail) {
+      s1.setValue("email", prefillEmail);
+    }
+  }, [prefillEmail, s1]);
 
   /* Step 1 → create Firebase user */
   const handleStep1 = s1.handleSubmit(async (data) => {
@@ -292,7 +305,13 @@ function SignupPage() {
       }
     } catch { /* Firestore save optional — continue to verify step */ }
     finally { setSubmitting2(false); }
-    setStep(3);
+
+    // Google users' emails are already verified — skip the email verification step
+    if (isGoogleUser) {
+      navigate({ to: "/" });
+    } else {
+      setStep(3);
+    }
   });
 
   /* Step 3 → check email verified */
@@ -323,8 +342,27 @@ function SignupPage() {
   const handleGoogle = async () => {
     setAuthError("");
     try {
-      await signInWithPopup(auth!, new GoogleAuthProvider());
-      navigate({ to: "/" });
+      const result = await signInWithPopup(auth!, new GoogleAuthProvider());
+      const { user } = result;
+
+      // Check if this Google user already completed registration
+      const userDocRef = doc(db!, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        // Already fully registered — go to dashboard
+        navigate({ to: "/" });
+        return;
+      }
+
+      // New Google user — they're authenticated but haven't filled out the profile yet.
+      // Pre-fill their info and jump to Step 2 (no password / email verification needed).
+      setFirebaseUser(user);
+      setUserEmail(user.email ?? "");
+      setIsGoogleUser(true);
+      s1.setValue("name", user.displayName ?? "");
+      s1.setValue("email", user.email ?? "");
+      setStep(2);
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? "";
       if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request")

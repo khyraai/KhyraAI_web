@@ -8,9 +8,11 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { Eye, EyeOff } from "lucide-react";
-import { auth } from "@/lib/firebase";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import robotImg from "@/assets/khyra-login-mascot.png";
 
@@ -137,7 +139,21 @@ function LoginPage() {
   const handleGoogle = async () => {
     setAuthError("");
     try {
-      await signInWithPopup(auth!, new GoogleAuthProvider());
+      const result = await signInWithPopup(auth!, new GoogleAuthProvider());
+      const { user } = result;
+
+      // Check if user has completed registration (Firestore profile exists)
+      const userDoc = await getDoc(doc(db!, "users", user.uid));
+      if (!userDoc.exists()) {
+        // No profile found — sign them out and redirect to signup with email pre-filled
+        await signOut(auth!);
+        navigate({
+          to: "/signup",
+          search: { email: user.email ?? "" },
+        });
+        return;
+      }
+
       navigate({ to: "/" });
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? "";

@@ -99,10 +99,10 @@ function Hero() {
           </p>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="#demo"
+              href="/book-demo"
               className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-semibold text-primary-foreground shadow-xl shadow-primary/15 transition-all hover:shadow-2xl hover:shadow-primary/25 active:scale-[0.98]"
             >
-              Book a live demo{" "}
+              Book a demo{" "}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
             <a
@@ -714,9 +714,9 @@ function DemoCTA() {
               </a>
               <a
                 className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-medium"
-                href="#"
+                href="/book-demo"
               >
-                Book personalised demo
+                Book a demo
               </a>
             </div>
           </div>
@@ -963,10 +963,10 @@ function FinalCTA() {
           a fraction of a full-time hire.
         </p>
         <a
-          href="#demo"
+          href="/book-demo"
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
         >
-          Book a live demo <ArrowRight className="h-4 w-4" />
+          Book a demo <ArrowRight className="h-4 w-4" />
         </a>
       </div>
     </section>

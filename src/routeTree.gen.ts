@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthActionRouteImport } from './routes/auth-action'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookDemoRouteImport } from './routes/book-demo'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -34,16 +35,23 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookDemoRoute = BookDemoRouteImport.update({
+  id: '/book-demo',
+  path: '/book-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth-action': typeof AuthActionRoute
+  '/book-demo': typeof BookDemoRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth-action': typeof AuthActionRoute
+  '/book-demo': typeof BookDemoRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth-action': typeof AuthActionRoute
+  '/book-demo': typeof BookDemoRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth-action' | '/login' | '/signup'
+  fullPaths: '/' | '/auth-action' | '/book-demo' | '/login' | '/signup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth-action' | '/login' | '/signup'
-  id: '__root__' | '/' | '/auth-action' | '/login' | '/signup'
+  to: '/' | '/auth-action' | '/book-demo' | '/login' | '/signup'
+  id: '__root__' | '/' | '/auth-action' | '/book-demo' | '/login' | '/signup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthActionRoute: typeof AuthActionRoute
+  BookDemoRoute: typeof BookDemoRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
 }
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthActionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book-demo': {
+      id: '/book-demo'
+      path: '/book-demo'
+      fullPath: '/book-demo'
+      preLoaderRoute: typeof BookDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthActionRoute: AuthActionRoute,
+  BookDemoRoute: BookDemoRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
 }

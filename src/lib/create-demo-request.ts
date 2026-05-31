@@ -1,4 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 type DemoRequestInput = {
   uid: string;
@@ -30,20 +33,17 @@ export const createDemoRequest = createServerFn()
   })
   .handler(async (ctx) => {
     const input = ctx.data;
-    const [{ initializeApp, getApps, cert }, { getFirestore, FieldValue }] = await Promise.all([
-      import("firebase-admin/app"),
-      import("firebase-admin/firestore"),
-    ]);
+    const admin = require("firebase-admin");
 
-    if (!getApps().length) {
+    if (!admin.apps.length) {
       const projectId = process.env["FIREBASE_ADMIN_PROJECT_ID"];
       const clientEmail = process.env["FIREBASE_ADMIN_CLIENT_EMAIL"];
       const privateKey = process.env["FIREBASE_ADMIN_PRIVATE_KEY"];
       if (!projectId || !clientEmail || !privateKey) {
         throw new Error("Firebase Admin env vars not configured");
       }
-      initializeApp({
-        credential: cert({
+      admin.initializeApp({
+        credential: admin.credential.cert({
           projectId,
           clientEmail,
           privateKey: privateKey.replace(/\\n/g, "\n"),
@@ -51,7 +51,7 @@ export const createDemoRequest = createServerFn()
       });
     }
 
-    const adminDb = getFirestore();
+    const adminDb = admin.firestore();
     const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
     const existingSnap = await adminDb
       .collection("demo_requests")
@@ -59,7 +59,7 @@ export const createDemoRequest = createServerFn()
       .limit(50)
       .get();
 
-    const hasRecent = existingSnap.docs.some((d) => {
+    const hasRecent = existingSnap.docs.some((d: { get: (key: string) => { toDate?: () => Date } }) => {
       const submittedAt = d.get("submittedAt");
       const submittedAtMs = submittedAt?.toDate?.()?.getTime?.();
       return typeof submittedAtMs === "number" && submittedAtMs >= tenDaysAgoMs;
@@ -72,7 +72,7 @@ export const createDemoRequest = createServerFn()
     await adminDb.collection("demo_requests").add({
       uid: input.uid,
       status: "new",
-      submittedAt: FieldValue.serverTimestamp(),
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
       roleTitle: input.roleTitle,
       teamSize: input.teamSize,
       useCasePainPoints: input.useCasePainPoints,
@@ -83,4 +83,3 @@ export const createDemoRequest = createServerFn()
 
     return { ok: true as const };
   });
-

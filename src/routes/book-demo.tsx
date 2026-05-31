@@ -181,6 +181,9 @@ function BookDemoPage() {
         });
         if (!updateRes?.ok) {
           setSubmitInfo("Request updated in your profile, but we could not update the reporting record.");
+        } else if (updateRes.docId && !existingRequest.demoRequestDocId) {
+          await updateDoc(userRef, { "latestDemoRequest.demoRequestDocId": updateRes.docId });
+          setExistingRequest((prev) => (prev ? { ...prev, demoRequestDocId: updateRes.docId } : prev));
         }
       } else {
         // NEW request

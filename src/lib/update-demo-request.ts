@@ -78,7 +78,7 @@ export const updateDemoRequest = createServerFn()
       });
 
       console.log("[update-demo-request] updated successfully, docId:", docId);
-      return { ok: true as const };
+      return { ok: true as const, docId };
     } catch (err) {
       console.error("[update-demo-request] firestore update failed:", err);
       return { ok: false as const, error: "firestore_update_failed" as const };

@@ -9,6 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
 import { sendVerificationEmail } from "@/lib/send-verification-email";
@@ -279,23 +280,42 @@ function SignupPage() {
   // Handle returning incomplete users: they're already Firebase-authenticated
   // (either from a previous abandoned signup or from the login page redirect)
   // but have no Firestore profile yet. Auto-jump them to Step 2.
+  // Uses onAuthStateChanged to handle the case where auth state hasn't
+  // been restored from storage yet at mount time.
   useEffect(() => {
-    if (!incomplete) return;
-    const currentUser = auth?.currentUser;
-    if (!currentUser) return;
+    if (!incomplete || !auth) return;
 
-    // Safety: if they somehow already have a profile, send them home
-    getDoc(doc(db!, "users", currentUser.uid)).then((snap) => {
-      if (snap.exists()) {
-        navigate({ to: "/" });
+    const resolve = (currentUser: FirebaseUser | null) => {
+      if (!currentUser) {
+        // Not authenticated at all — send to login
+        navigate({ to: "/login" });
         return;
       }
-      const isGoogle = currentUser.providerData[0]?.providerId === "google.com";
-      setFirebaseUser(currentUser);
-      setUserEmail(currentUser.email ?? "");
-      setIsGoogleUser(isGoogle);
-      setStep(2);
-    });
+      getDoc(doc(db!, "users", currentUser.uid)).then((snap) => {
+        if (snap.exists()) {
+          // Already has a complete profile — go home
+          navigate({ to: "/" });
+          return;
+        }
+        const isGoogle = currentUser.providerData[0]?.providerId === "google.com";
+        setFirebaseUser(currentUser);
+        setUserEmail(currentUser.email ?? "");
+        setIsGoogleUser(isGoogle);
+        setStep(2);
+      });
+    };
+
+    // If auth state is already known synchronously, use it immediately.
+    // Otherwise subscribe to onAuthStateChanged and fire once.
+    if (auth.currentUser !== null) {
+      resolve(auth.currentUser);
+    } else {
+      const unsub = onAuthStateChanged(auth, (user) => {
+        unsub(); // one-shot
+        resolve(user);
+      });
+      return () => unsub();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomplete]);
 
@@ -319,19 +339,32 @@ function SignupPage() {
 
   /* Step 2 → save details to Firestore then advance */
   const handleStep2 = s2.handleSubmit(async (data) => {
-    setAuthError(""); setSubmitting2(true);
+    setAuthError("");
+
+    // Guard: firebaseUser must be set — if null the session was lost.
+    if (!firebaseUser) {
+      setAuthError("Your session has expired. Please go back and sign in again.");
+      return;
+    }
+
+    setSubmitting2(true);
     try {
-      if (firebaseUser) {
-        await setDoc(doc(db!, "users", firebaseUser.uid), {
-          uid: firebaseUser.uid,
-          name: firebaseUser.displayName,
-          email: userEmail,
-          ...data,
-          createdAt: serverTimestamp(),
-        });
-      }
-    } catch { /* Firestore save optional — continue to verify step */ }
-    finally { setSubmitting2(false); }
+      await setDoc(doc(db!, "users", firebaseUser.uid), {
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName,
+        email: userEmail,
+        ...data,
+        createdAt: serverTimestamp(),
+      });
+    } catch (e: unknown) {
+      // Surface real Firestore errors — previously this was silently swallowed
+      // which caused the user to be redirected home as "logged out" with no feedback.
+      const msg = (e as { message?: string })?.message ?? "Unknown error";
+      setAuthError(`Could not save your details: ${msg}. Please try again.`);
+      setSubmitting2(false);
+      return;
+    }
+    setSubmitting2(false);
 
     // Google users' emails are already verified — skip the email verification step
     if (isGoogleUser) {

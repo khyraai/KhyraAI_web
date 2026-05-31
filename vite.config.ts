@@ -13,18 +13,7 @@ export default defineConfig({
       server: { entry: "server" },
     }),
     react(),
-    nitro({
-      preset: "vercel",
-      rollupConfig: {
-        external: [
-          /^firebase-admin/,
-          /^@google-cloud\/firestore/,
-          /^google-gax/,
-          /^@grpc\//,
-          /^google-auth-library/,
-        ],
-      },
-    }),
+    nitro({ preset: "vercel" }),
   ],
 
   resolve: {

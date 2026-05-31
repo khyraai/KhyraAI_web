@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const sendDemoRequestEmail = createServerFn()
@@ -9,14 +9,19 @@ export const sendDemoRequestEmail = createServerFn()
   })
   .handler(async (ctx) => {
     const { email, name } = ctx.data;
+    console.log("[send-demo-request-email] invoked for:", email);
 
     const [{ Resend }] = await Promise.all([import("resend")]);
     const resendKey = process.env["RESEND_API_KEY"];
-    if (!resendKey) throw new Error("RESEND_API_KEY not configured");
+    if (!resendKey) {
+      console.error("[send-demo-request-email] RESEND_API_KEY not configured");
+      return { ok: false as const, error: "missing_resend_key" as const };
+    }
 
     const assetsDir = join(process.cwd(), "src", "assets");
     const logoB64 = readFileSync(join(assetsDir, "Khyra.svg")).toString("base64");
-    const mascotB64 = readFileSync(join(assetsDir, "email-mascot.png")).toString("base64");
+    const mascotPath = join(assetsDir, "email-mascot.png");
+    const mascotB64 = existsSync(mascotPath) ? readFileSync(mascotPath).toString("base64") : "";
 
     const resend = new Resend(resendKey);
     const { error } = await resend.emails.send({
@@ -26,7 +31,11 @@ export const sendDemoRequestEmail = createServerFn()
       html: buildEmailHtml(name, logoB64, mascotB64),
     });
 
-    if (error) return { ok: false as const };
+    if (error) {
+      console.error("[send-demo-request-email] Resend send failed:", error);
+      return { ok: false as const, error: "send_failed" as const };
+    }
+    console.log("[send-demo-request-email] email sent successfully");
     return { ok: true as const };
   });
 
@@ -60,9 +69,9 @@ function buildEmailHtml(name: string, logoB64: string, mascotB64: string): strin
                   <br>
                   <span style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding-left:48px;display:inline-block;margin-top:4px;">AI-FIRST VOICE PLATFORM FOR INDIA</span>
                 </td>
-                <td style="vertical-align:bottom;text-align:right;width:100px;">
+                ${mascotB64 ? `<td style="vertical-align:bottom;text-align:right;width:100px;">
                   <img src="data:image/png;base64,${mascotB64}" width="90" alt="Khyra AI Mascot" style="display:block;margin-left:auto;">
-                </td>
+                </td>` : `<td></td>`}
               </tr>
             </table>
           </td>
@@ -94,4 +103,3 @@ function buildEmailHtml(name: string, logoB64: string, mascotB64: string): strin
 </body>
 </html>`;
 }
-

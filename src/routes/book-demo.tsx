@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { collection, addDoc, getDoc, getDocs, limit, query, serverTimestamp, where, Timestamp, doc } from "firebase/firestore";
+import { collection, addDoc, getDoc, getDocs, limit, query, serverTimestamp, where, doc } from "firebase/firestore";
 import { ArrowRight, Check } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
@@ -94,15 +94,19 @@ function BookDemoPage() {
     setPendingMessage("");
     setSubmitting(true);
     try {
-      const tenDaysAgo = Timestamp.fromDate(new Date(Date.now() - 10 * 24 * 60 * 60 * 1000));
+      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
       const existingQuery = query(
         collection(db, "demo_requests"),
         where("uid", "==", auth.currentUser.uid),
-        where("submittedAt", ">=", tenDaysAgo),
-        limit(1),
+        limit(25),
       );
       const existing = await getDocs(existingQuery);
-      if (!existing.empty) {
+      const hasRecent = existing.docs.some((d) => {
+        const submittedAt = d.data()?.submittedAt;
+        const submittedAtMs = submittedAt?.toDate?.()?.getTime?.();
+        return typeof submittedAtMs === "number" && submittedAtMs >= tenDaysAgoMs;
+      });
+      if (hasRecent) {
         setPendingMessage("You already submitted a demo request in the last 10 days. Our representative will get back to you within 24 hours.");
         setSubmitting(false);
         return;
@@ -124,8 +128,13 @@ function BookDemoPage() {
         // Do not block successful request submission if email fails.
       });
       setSubmitted(true);
-    } catch {
-      setSubmitError("Could not submit your demo request right now. Please try again.");
+    } catch (e: unknown) {
+      const message = (e as { message?: string })?.message ?? "";
+      if (message) {
+        setSubmitError(`Could not submit your demo request right now. ${message}`);
+      } else {
+        setSubmitError("Could not submit your demo request right now. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }

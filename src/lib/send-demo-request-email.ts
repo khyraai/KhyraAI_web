@@ -96,7 +96,7 @@ function buildEmailHtml(
                 ? 'Your demo request details have been updated. Our representative will get back to you within 24 hours regarding your updated request.'
                 : 'Thanks for requesting a demo with Khyra AI. Our representative will get back to you within 24 hours.'}
             </p>
-            ${isUpdate ? `<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">If a demo was already scheduled, it will become tentative — final confirmation will be sent via email.</p>` : `<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">We will share the scheduling details in our follow-up response.</p>`}
+            ${isUpdate ? `<p style="margin:0 0 20px;color:#1a3c34;font-size:15px;line-height:1.7;font-weight:700;font-style:italic;"><em><strong>If a demo was already scheduled, it will become tentative — final confirmation will only be confirmed via email.</strong></em></p>` : `<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">We will share the scheduling details in our follow-up response.</p>`}
 
             <table cellpadding="0" cellspacing="0" style="width:100%;background:#f9f6f1;border-radius:12px;margin:0 0 20px;">
               <tr><td style="padding:20px 24px;">

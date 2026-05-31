@@ -317,9 +317,15 @@ function BookDemoPage() {
                 {wasUpdate ? "Request updated" : "Request received"}
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {wasUpdate
-                  ? "Our representative will get back to you within 24 hrs about your updated request. If a demo was already scheduled, it will become tentative — final confirmation will only be sent via email."
-                  : "Thanks. Our representative will get back to you within 24 hours with demo scheduling details."}
+                {wasUpdate ? (
+                  <>
+                    Our representative will get back to you within 24 hrs about your updated request.
+                    <br />
+                    <em><strong>If a demo was already scheduled, it will become tentative — final confirmation will only be confirmed via email.</strong></em>
+                  </>
+                ) : (
+                  "Thanks. Our representative will get back to you within 24 hours with demo scheduling details."
+                )}
               </p>
               {submitInfo && <p className="mt-2 text-sm text-amber-700">{submitInfo}</p>}
               {submitError && <p className="mt-2 text-sm text-red-600">{submitError}</p>}

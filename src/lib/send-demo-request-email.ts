@@ -1,6 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 
 export const sendDemoRequestEmail = createServerFn()
   .inputValidator((data: { email: string; name: string }) => {
@@ -18,18 +16,20 @@ export const sendDemoRequestEmail = createServerFn()
       return { ok: false as const, error: "missing_resend_key" as const };
     }
 
-    const assetsDir = join(process.cwd(), "src", "assets");
-    const logoB64 = readFileSync(join(assetsDir, "Khyra.svg")).toString("base64");
-    const mascotPath = join(assetsDir, "email-mascot.png");
-    const mascotB64 = existsSync(mascotPath) ? readFileSync(mascotPath).toString("base64") : "";
-
     const resend = new Resend(resendKey);
-    const { error } = await resend.emails.send({
-      from: "Khyra AI <noreply@khyraai.com>",
-      to: email,
-      subject: "We received your demo request",
-      html: buildEmailHtml(name, logoB64, mascotB64),
-    });
+    let error: unknown = null;
+    try {
+      const sendRes = await resend.emails.send({
+        from: "Khyra AI <noreply@khyraai.com>",
+        to: email,
+        subject: "We received your demo request",
+        html: buildEmailHtml(name),
+      });
+      error = sendRes.error;
+    } catch (err) {
+      console.error("[send-demo-request-email] Resend send exception:", err);
+      return { ok: false as const, error: "send_exception" as const };
+    }
 
     if (error) {
       console.error("[send-demo-request-email] Resend send failed:", error);
@@ -39,7 +39,7 @@ export const sendDemoRequestEmail = createServerFn()
     return { ok: true as const };
   });
 
-function buildEmailHtml(name: string, logoB64: string, mascotB64: string): string {
+function buildEmailHtml(name: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,20 +58,14 @@ function buildEmailHtml(name: string, logoB64: string, mascotB64: string): strin
                 <td style="vertical-align:middle;">
                   <table cellpadding="0" cellspacing="0" style="display:inline-table;vertical-align:middle;">
                     <tr>
-                      <td style="vertical-align:middle;">
-                        <img src="data:image/svg+xml;base64,${logoB64}" width="38" height="38" alt="Khyra AI" style="display:block;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);">
-                      </td>
                       <td style="padding-left:10px;vertical-align:middle;">
                         <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Khyra AI</span>
                       </td>
                     </tr>
                   </table>
                   <br>
-                  <span style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding-left:48px;display:inline-block;margin-top:4px;">AI-FIRST VOICE PLATFORM FOR INDIA</span>
+                  <span style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;margin-top:4px;">AI-FIRST VOICE PLATFORM FOR INDIA</span>
                 </td>
-                ${mascotB64 ? `<td style="vertical-align:bottom;text-align:right;width:100px;">
-                  <img src="data:image/png;base64,${mascotB64}" width="90" alt="Khyra AI Mascot" style="display:block;margin-left:auto;">
-                </td>` : `<td></td>`}
               </tr>
             </table>
           </td>

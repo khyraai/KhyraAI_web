@@ -122,9 +122,10 @@ function BookDemoPage() {
         { merge: true },
       );
 
-      await sendDemoRequestEmail({ data: { email: profile.email, name: profile.name || "there" } }).catch(() => {
-        // Do not block successful request submission if email fails.
-      });
+      const emailRes = await sendDemoRequestEmail({ data: { email: profile.email || auth.currentUser.email || "", name: profile.name || "there" } });
+      if (!emailRes?.ok) {
+        setSubmitError("Your demo request was saved, but we could not send the confirmation email right now.");
+      }
       setSubmitted(true);
     } catch (e: unknown) {
       const message = (e as { message?: string })?.message ?? "";

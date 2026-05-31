@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ArrowRight, Check } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { sendDemoRequestEmail } from "@/lib/send-demo-request-email";
-import { createDemoRequest } from "@/lib/create-demo-request";
 
 export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
@@ -95,23 +94,33 @@ function BookDemoPage() {
     setPendingMessage("");
     setSubmitting(true);
     try {
-      const createRes = await createDemoRequest({
-        data: {
-          uid: auth.currentUser.uid,
-          roleTitle: data.roleTitle,
-          teamSize: data.teamSize,
-          useCasePainPoints: data.useCasePainPoints,
-          preferredLanguages: data.preferredLanguages,
-          profileSnapshot: profile,
-        },
-      });
-
-      if (!createRes?.ok && createRes?.error === "duplicate_recent") {
+      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const freshUserSnap = await getDoc(userRef);
+      const latest = freshUserSnap.data()?.latestDemoRequest;
+      const latestSubmittedAtMs = latest?.submittedAtMs as number | undefined;
+      if (typeof latestSubmittedAtMs === "number" && latestSubmittedAtMs >= tenDaysAgoMs) {
         setPendingMessage("You already submitted a demo request in the last 10 days. Our representative will get back to you within 24 hours.");
         setSubmitting(false);
         return;
       }
-      if (!createRes?.ok) throw new Error("Unable to create demo request");
+
+      await setDoc(
+        userRef,
+        {
+          latestDemoRequest: {
+            status: "new",
+            submittedAt: serverTimestamp(),
+            submittedAtMs: Date.now(),
+            roleTitle: data.roleTitle,
+            teamSize: data.teamSize,
+            useCasePainPoints: data.useCasePainPoints,
+            preferredLanguages: data.preferredLanguages,
+            source: "website_book_demo",
+          },
+        },
+        { merge: true },
+      );
 
       await sendDemoRequestEmail({ data: { email: profile.email, name: profile.name || "there" } }).catch(() => {
         // Do not block successful request submission if email fails.

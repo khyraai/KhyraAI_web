@@ -15,6 +15,7 @@ import { sendVerificationEmail } from "@/lib/send-verification-email";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, ChevronDown, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth-context";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import indiaImg from "@/assets/india-infographic.png";
 
@@ -248,6 +249,7 @@ function LeftPanel() {
 function SignupPage() {
   const navigate = useNavigate();
   const { email: prefillEmail, incomplete } = useSearch({ from: "/signup" });
+  const { refreshProfile } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [authError, setAuthError] = useState("");
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -333,6 +335,7 @@ function SignupPage() {
 
     // Google users' emails are already verified — skip the email verification step
     if (isGoogleUser) {
+      await refreshProfile(); // sync auth context before navigating home
       navigate({ to: "/" });
     } else {
       setStep(3);
@@ -346,6 +349,7 @@ function SignupPage() {
     try {
       await firebaseUser.reload();
       if (firebaseUser.emailVerified) {
+        await refreshProfile(); // sync auth context before navigating home
         navigate({ to: "/" });
       } else {
         setVerifyError("Email not yet verified. Please click the link in your inbox first.");

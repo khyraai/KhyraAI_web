@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,8 +15,13 @@ import { Eye, EyeOff } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import robotImg from "@/assets/khyra-login-mascot.png";
 
+const loginSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/login")({
   component: LoginPage,
+  validateSearch: loginSearchSchema,
   head: () => ({
     meta: [{ title: "Sign In — Khyra AI" }],
   }),
@@ -102,6 +107,7 @@ const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text
 /* ---------- Page ---------- */
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirect } = useSearch({ from: "/login" });
   const [showPw, setShowPw] = useState(false);
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -121,10 +127,14 @@ function LoginPage() {
       // will be missing. Redirect them back to finish the registration.
       const userDoc = await getDoc(doc(db!, "users", user.uid));
       if (!userDoc.exists()) {
-        navigate({ to: "/signup", search: { incomplete: true } });
+        navigate({ to: "/signup", search: { incomplete: true, redirect } });
         return;
       }
-      navigate({ to: "/" });
+      if (redirect) {
+        window.location.href = redirect;
+      } else {
+        navigate({ to: "/" });
+      }
     } catch (e: unknown) {
       setAuthError(getFirebaseError((e as { code?: string }).code ?? ""));
     } finally { setSubmitting(false); }
@@ -153,11 +163,15 @@ function LoginPage() {
       if (!userDoc.exists()) {
         // Keep the user authenticated — signup page will detect auth.currentUser
         // and auto-jump to Step 2 to complete the mandatory profile form.
-        navigate({ to: "/signup", search: { incomplete: true } });
+        navigate({ to: "/signup", search: { incomplete: true, redirect } });
         return;
       }
 
-      navigate({ to: "/" });
+      if (redirect) {
+        window.location.href = redirect;
+      } else {
+        navigate({ to: "/" });
+      }
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? "";
       if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request")

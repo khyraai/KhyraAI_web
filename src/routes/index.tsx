@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import React, { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import React, { useState, useEffect } from "react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import {
   Phone,
@@ -22,10 +22,12 @@ import {
   Sparkles,
   Stethoscope,
   PawPrint,
+  X,
 } from "lucide-react";
 import mascot from "@/assets/khyra-mascot.png";
 import logo from "@/assets/Khyra.svg";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { useAuth } from "@/lib/auth-context";
 
 type UseCaseTab = "Front Desk" | "Lead Follow-Up" | "Support Line";
 
@@ -60,7 +62,69 @@ function Mark({ className = "h-6 w-6" }: { className?: string }) {
   );
 }
 
+/* ---------- Auth Modal ---------- */
+function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-8 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <Check className="h-6 w-6 text-primary" />
+        </div>
+        <h3 className="font-display text-2xl text-ink">Please sign in to book a demo</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          You need to be signed in to access the demo booking page. Redirecting you to the login page shortly...
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="h-1 w-1 animate-pulse rounded-full bg-primary" />
+          <div className="h-1 w-1 animate-pulse rounded-full bg-primary [animation-delay:200ms]" />
+          <div className="h-1 w-1 animate-pulse rounded-full bg-primary [animation-delay:400ms]" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
+/* ---------- Book Demo Button ---------- */
+function BookDemoButton({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showModal, setShowModal] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      navigate({ to: "/book-demo" });
+    } else {
+      setShowModal(true);
+      // Wait 6 seconds then redirect to login with redirect param
+      setTimeout(() => {
+        navigate({ to: "/login", search: { redirect: "/book-demo" } });
+      }, 6000);
+    }
+  };
+
+  return (
+    <>
+      <button onClick={handleClick} className={className}>
+        {children}
+      </button>
+      <AuthModal isOpen={showModal} onClose={() => setShowModal(false)} />
+    </>
+  );
+}
 
 /* ---------- Hero ---------- */
 function Hero() {
@@ -80,7 +144,7 @@ function Hero() {
             "radial-gradient(ellipse 80% 55% at 50% 0%, color-mix(in oklab, var(--beige) 65%, transparent), transparent 70%)",
         }}
       />
-      <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-12 md:pt-32">
+      <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-12 md:pt-16">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-10 inline-flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-sm">
             <span className="relative flex h-2 w-2">
@@ -100,19 +164,12 @@ function Hero() {
             sub-second response time.
           </p>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="/book-demo"
+            <BookDemoButton
               className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-semibold text-primary-foreground shadow-xl shadow-primary/15 transition-all hover:shadow-2xl hover:shadow-primary/25 active:scale-[0.98]"
             >
               Book a demo{" "}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </a>
-            <a
-              href="#demo"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-7 py-4 text-[15px] font-semibold text-foreground transition hover:bg-secondary"
-            >
-              <Mic className="h-4 w-4 opacity-70" /> Hear it live
-            </a>
+            </BookDemoButton>
           </div>
         </div>
 
@@ -197,7 +254,7 @@ function Trust() {
   ];
   const stats = [
     { k: "11+", v: "Indian languages" },
-    { k: "<800ms", v: "Avg response latency" },
+    { k: "1200ms", v: "Avg response latency" },
     { k: "99.9%", v: "Uptime SLA" },
     { k: "24×7", v: "No breaks. No sick days." },
   ];
@@ -209,7 +266,7 @@ function Trust() {
     >
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="text-center text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          Trusted across industries
+          Venturing across industries
         </div>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-muted-foreground">
           {industries.map(({ i: Icon, l }) => (
@@ -313,13 +370,13 @@ function HowItWorks() {
   const steps = [
     {
       n: "01",
-      t: "Configure your agent",
-      d: "Choose role, industry, voice persona and language. No code.",
+      t: "Book a demo with us",
+      d: "We walk you through a personalised demo tailored to your use case and answer your questions.",
     },
     {
       n: "02",
-      t: "Connect your systems",
-      d: "Plug in your phone number, calendar, CRM or helpdesk via webhook or API.",
+      t: "We set up your systems",
+      d: "Our experts collect your credentials and configure everything — telephony, calendars, CRM — for you.",
     },
     {
       n: "03",
@@ -339,7 +396,7 @@ function HowItWorks() {
             How it works
           </div>
           <h2 className="mt-3 font-display text-4xl text-ink md:text-5xl">
-            From sign-up to live calls in hours.
+            From first call to going live.
           </h2>
         </div>
 
@@ -537,12 +594,12 @@ function UseCases({
 function Impact() {
   const reveal = useScrollReveal();
   const stats = [
-    ["60%", "Reduction in front desk staffing costs"],
-    ["<800ms", "End-to-end voice latency"],
+    ["40%", "Reduction in front desk staffing costs"],
+    ["1200ms", "End-to-end voice latency"],
     ["11", "Indian languages supported"],
     ["99.9%", "Production uptime SLA"],
     ["15+", "Verticals out of the box"],
-    ["100s", "Concurrent calls per deployment"],
+    ["20", "Concurrent calls per deployment"],
   ];
   return (
     <section
@@ -984,12 +1041,9 @@ function FinalCTA() {
           Give your business an AI voice agent that sounds local, works around the clock, and costs
           a fraction of a full-time hire.
         </p>
-        <a
-          href="/book-demo"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-        >
+        <BookDemoButton className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
           Book a demo <ArrowRight className="h-4 w-4" />
-        </a>
+        </BookDemoButton>
       </div>
     </section>
   );

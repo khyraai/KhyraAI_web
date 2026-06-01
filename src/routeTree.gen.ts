@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as BookDemoRouteImport } from './routes/book-demo'
 import { Route as AuthActionRouteImport } from './routes/auth-action'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BookDemoRouteImport } from './routes/book-demo'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -25,6 +25,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookDemoRoute = BookDemoRouteImport.update({
+  id: '/book-demo',
+  path: '/book-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthActionRoute = AuthActionRouteImport.update({
   id: '/auth-action',
   path: '/auth-action',
@@ -33,11 +38,6 @@ const AuthActionRoute = AuthActionRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookDemoRoute = BookDemoRouteImport.update({
-  id: '/book-demo',
-  path: '/book-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -95,18 +95,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth-action': {
-      id: '/auth-action'
-      path: '/auth-action'
-      fullPath: '/auth-action'
-      preLoaderRoute: typeof AuthActionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/book-demo': {
       id: '/book-demo'
       path: '/book-demo'
       fullPath: '/book-demo'
       preLoaderRoute: typeof BookDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth-action': {
+      id: '/auth-action'
+      path: '/auth-action'
+      fullPath: '/auth-action'
+      preLoaderRoute: typeof AuthActionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {

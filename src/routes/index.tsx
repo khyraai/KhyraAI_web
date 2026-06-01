@@ -1085,7 +1085,7 @@ function Footer() {
                   Use cases
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#pricing" className="hover:text-primary-foreground transition-colors">
                   Pricing
                 </a>
@@ -1094,7 +1094,7 @@ function Footer() {
                 <a href="#compare" className="hover:text-primary-foreground transition-colors">
                   Compare
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div>

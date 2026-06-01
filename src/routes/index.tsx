@@ -945,8 +945,8 @@ function DemoCTA() {
         <DemoSelectField label="Voice"       value={voiceId}      options={DEMO_VOICES.map((v) => ({ label: `${v.label} · ${v.gender}`, value: v.id }))}     onSelect={locked ? () => {} : setVoiceId} />
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {[selectedRole.icon + " " + selectedRole.label,
-          selectedDomain ? selectedDomain.icon + " " + selectedDomain.label : "",
+        {[selectedRole.label,
+          selectedDomain ? selectedDomain.label : "",
           selectedLang.label,
           selectedVoice.label + " · " + selectedVoice.gender,
         ].filter(Boolean).map((tag) => (
@@ -1063,7 +1063,7 @@ function DemoCTA() {
 
           {/* Panel C: Siri orb — slides in from right */}
           <div
-            className="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-3"
+            className="absolute inset-y-0 right-0 p-5"
             style={{
               width: "50%",
               transform: active ? "translateX(0)" : "translateX(100%)",
@@ -1071,35 +1071,51 @@ function DemoCTA() {
               transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease",
             }}
           >
-            <SiriOrb state={orbState} />
-            <p className={`text-xs font-medium ${sessionState === "error" ? "text-red-400" : "opacity-45"}`}>
-              {statusLabel[sessionState]}
-            </p>
-            {sessionState === "ended" || sessionState === "error" ? (
-              <button onClick={endConversation} className="flex items-center gap-2 rounded-full bg-primary-foreground/10 px-5 py-2.5 text-sm opacity-70 hover:opacity-100 transition">
-                <RotateCcw className="h-3.5 w-3.5" /> Close &amp; reconfigure
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleMicClick}
-                  disabled={!canTapMic}
-                  aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
-                  className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ${
-                    sessionState === "listening"
-                      ? "scale-110 bg-red-500 shadow-xl shadow-red-500/40"
-                      : canTapMic
-                      ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 active:scale-95"
-                      : "cursor-not-allowed bg-primary-foreground/5 opacity-40"
-                  }`}
-                >
-                  {sessionState === "listening" ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7" />}
+            <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl bg-primary-foreground/5 px-4 py-6 backdrop-blur">
+              <SiriOrb state={orbState} />
+
+              <p className={`text-xs font-medium ${sessionState === "error" ? "text-red-400" : "opacity-45"}`}>
+                {statusLabel[sessionState]}
+              </p>
+
+              {/* Voice · Role / Industry */}
+              <div className="text-center leading-snug">
+                <p className="text-sm font-medium opacity-75">
+                  {selectedVoice.label} · {selectedRole.label}
+                </p>
+                {selectedDomain && (
+                  <p className="mt-0.5 text-xs opacity-45">
+                    {selectedDomain.label}
+                  </p>
+                )}
+              </div>
+
+              {sessionState === "ended" || sessionState === "error" ? (
+                <button onClick={endConversation} className="flex items-center gap-2 rounded-full bg-primary-foreground/10 px-5 py-2.5 text-sm opacity-70 hover:opacity-100 transition">
+                  <RotateCcw className="h-3.5 w-3.5" /> Close &amp; reconfigure
                 </button>
-                <button onClick={endConversation} className="text-[11px] opacity-40 hover:opacity-80 transition-opacity">
-                  End conversation
-                </button>
-              </>
-            )}
+              ) : (
+                <>
+                  <button
+                    onClick={handleMicClick}
+                    disabled={!canTapMic}
+                    aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
+                    className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ${
+                      sessionState === "listening"
+                        ? "scale-110 bg-red-500 shadow-xl shadow-red-500/40"
+                        : canTapMic
+                        ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 active:scale-95"
+                        : "cursor-not-allowed bg-primary-foreground/5 opacity-40"
+                    }`}
+                  >
+                    {sessionState === "listening" ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7" />}
+                  </button>
+                  <button onClick={endConversation} className="mt-auto text-[11px] opacity-40 hover:opacity-80 transition-opacity">
+                    End conversation
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

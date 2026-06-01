@@ -8,37 +8,34 @@ export const DEMO_ROLES = [
     id: "front_desk",
     label: "Front Desk",
     description: "Reception & appointment management",
-    icon: "🏥",
     domains: [
-      { id: "dental_clinic",        label: "Dental Clinic",          icon: "🦷" },
-      { id: "veterinary_clinic",    label: "Veterinary Clinic",      icon: "🐾" },
-      { id: "spa_salon",            label: "Spa & Salon",            icon: "💆" },
-      { id: "therapist_clinic",     label: "Therapist & Wellness",   icon: "🧘" },
-      { id: "hotel_resort",         label: "Hotel & Resort",         icon: "🏨" },
-      { id: "cosmetic_clinic",      label: "Cosmetic Clinic",        icon: "✨" },
-      { id: "general_clinic",       label: "General Clinic",         icon: "🩺" },
+      { id: "dental_clinic",        label: "Dental Clinic"        },
+      { id: "veterinary_clinic",    label: "Veterinary Clinic"    },
+      { id: "spa_salon",            label: "Spa & Salon"          },
+      { id: "therapist_clinic",     label: "Therapist & Wellness" },
+      { id: "hotel_resort",         label: "Hotel & Resort"       },
+      { id: "cosmetic_clinic",      label: "Cosmetic Clinic"      },
+      { id: "general_clinic",       label: "General Clinic"       },
     ],
   },
   {
     id: "lead_followup",
     label: "Lead Follow-Up",
     description: "Consultative outbound sales",
-    icon: "📞",
     domains: [
-      { id: "ai_voice_services",    label: "AI Voice Services",      icon: "🤖" },
-      { id: "real_estate",          label: "Real Estate",            icon: "🏠" },
-      { id: "it_projects",          label: "IT Projects",            icon: "💻" },
+      { id: "ai_voice_services",    label: "AI Voice Services"    },
+      { id: "real_estate",          label: "Real Estate"          },
+      { id: "it_projects",          label: "IT Projects"          },
     ],
   },
   {
     id: "support_line",
     label: "Support Line",
     description: "Enterprise technical support desk",
-    icon: "🛠️",
     domains: [
-      { id: "devops_support",             label: "DevOps Support",         icon: "⚙️" },
-      { id: "access_management_support",  label: "Access Management",      icon: "🔐" },
-      { id: "saas_product_support",       label: "SaaS Product Support",   icon: "☁️" },
+      { id: "devops_support",             label: "DevOps Support"       },
+      { id: "access_management_support",  label: "Access Management"    },
+      { id: "saas_product_support",       label: "SaaS Product Support" },
     ],
   },
 ] as const;
@@ -92,11 +89,11 @@ export interface Message {
 export type OrbState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
 
 const ORB_PALETTES: Record<OrbState, string[]> = {
-  connecting: ["#00b894", "#55efc4", "#00cec9", "#81ecec"],
-  idle:       ["#6c5ce7", "#a29bfe", "#74b9ff", "#0984e3"],
-  listening:  ["#fd79a8", "#e17055", "#ff7675", "#fab1a0"],
-  thinking:   ["#fdcb6e", "#e17055", "#f9ca24", "#fd79a8"],
-  speaking:   ["#0abde3", "#48dbfb", "#6c5ce7", "#a29bfe"],
+  connecting: ["#2d6a4f", "#52b788", "#74c69d", "#d4b896"],
+  idle:       ["#1f4a3f", "#2d6a4f", "#d4b896", "#e8d5b7"],
+  listening:  ["#d4b896", "#c8a87e", "#e8d5b7", "#f5efe6"],
+  thinking:   ["#2d6a4f", "#c8a87e", "#52b788", "#e8d5b7"],
+  speaking:   ["#52b788", "#2d6a4f", "#d4b896", "#f5efe6"],
 };
 
 export function SiriOrb({ state }: { state: OrbState }) {

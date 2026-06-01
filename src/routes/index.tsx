@@ -730,19 +730,19 @@ function DemoSelectField({
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full rounded-lg border border-primary/15 bg-primary/5 p-3 text-left text-primary transition hover:bg-primary/10"
+        className="w-full rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-3 text-left transition hover:bg-primary-foreground/10"
       >
-        <div className="text-[10px] uppercase tracking-wider text-primary/60">{label}</div>
+        <div className="text-[10px] uppercase tracking-wider opacity-60">{label}</div>
         <div className="mt-1 flex items-center justify-between text-sm">
           <span>{selected?.label ?? value}</span>
           <ChevronDown
-            className={`h-3.5 w-3.5 text-primary/60 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-3.5 w-3.5 opacity-60 transition-transform ${open ? "rotate-180" : ""}`}
           />
         </div>
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-primary/20 bg-beige shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-primary-foreground/20 bg-primary shadow-xl">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -751,7 +751,7 @@ function DemoSelectField({
                 onSelect(opt.value);
                 setOpen(false);
               }}
-              className={`w-full px-4 py-2.5 text-left text-sm text-primary transition hover:bg-primary/10 ${
+              className={`w-full px-4 py-2.5 text-left text-sm transition hover:bg-primary-foreground/10 ${
                 opt.value === value ? "font-medium opacity-100" : "opacity-75"
               }`}
             >
@@ -950,7 +950,7 @@ function DemoCTA() {
           selectedLang.label,
           selectedVoice.label + " · " + selectedVoice.gender,
         ].filter(Boolean).map((tag) => (
-          <span key={tag} className="rounded-full border border-primary/20 px-2.5 py-0.5 text-[10px] text-primary/60">{tag}</span>
+          <span key={tag} className="rounded-full border border-primary-foreground/20 px-2.5 py-0.5 text-[10px] opacity-60">{tag}</span>
         ))}
       </div>
     </div>
@@ -963,7 +963,7 @@ function DemoCTA() {
       id="demo"
       className="mx-auto max-w-7xl px-6 py-24 opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
     >
-      <div className="overflow-hidden rounded-3xl border border-border bg-primary text-primary-foreground">
+      <div className={`overflow-hidden rounded-3xl border border-border transition-colors duration-500 ${active ? 'bg-beige text-primary' : 'bg-primary text-primary-foreground'}`}>
 
         {/* ── "Live demo" label — nudges up+left when active ── */}
         <div
@@ -981,21 +981,21 @@ function DemoCTA() {
                 <h2 className="font-display text-4xl">Hear Khyra before you buy.</h2>
                 <p className="mt-3 text-sm opacity-80 leading-relaxed">Pick a role, pick a language, and talk live. No sign-up.</p>
               </div>
-              <div className="rounded-2xl bg-beige p-5 flex flex-col gap-4 text-primary">
+              <div className="rounded-2xl bg-primary p-5 flex flex-col gap-4 text-primary-foreground">
                 {configGrid(false)}
-                <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 active:scale-95 transition">
+                <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary hover:opacity-90 active:scale-95 transition">
                   <Mic className="h-4 w-4" /> Start conversation
                 </button>
-                <p className="text-center text-[10px] text-primary/40">This demo does not store any data.</p>
+                <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
               </div>
             </>
           ) : (
-            <div className="rounded-2xl bg-beige p-5 flex flex-col items-center gap-3 text-primary overflow-hidden">
+            <div className="flex flex-col items-center gap-3 py-4">
               <SiriOrb state={orbState} size={160} />
-              <p className="text-xs font-medium text-primary/45">{sessionState !== "error" ? statusLabel[sessionState] : statusLabel["idle"]}</p>
+              <p className="text-xs font-medium opacity-45">{sessionState !== "error" ? statusLabel[sessionState] : statusLabel["idle"]}</p>
               <div className="text-center leading-snug">
-                <p className="text-sm font-medium text-primary/75">{selectedVoice.label} · {selectedRole.label}</p>
-                {selectedDomain && <p className="mt-0.5 text-xs text-primary/45">{selectedDomain.label}</p>}
+                <p className="text-sm font-medium opacity-75">{selectedVoice.label} · {selectedRole.label}</p>
+                {selectedDomain && <p className="mt-0.5 text-xs opacity-45">{selectedDomain.label}</p>}
               </div>
               {sessionState !== "ended" && sessionState !== "error" && (
                 <button onClick={handleMicClick} disabled={!canTapMic} className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 ${sessionState === "listening" ? "scale-110 bg-red-500 shadow-lg shadow-red-500/40" : canTapMic ? "bg-primary/10 hover:bg-primary/20 active:scale-95" : "cursor-not-allowed bg-primary/5 opacity-40"}`}>
@@ -1007,7 +1007,7 @@ function DemoCTA() {
                   <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
                 </button>
               ) : (
-                <button onClick={endConversation} className="text-[11px] text-primary/40 hover:text-primary/70 transition-colors">End conversation</button>
+                <button onClick={endConversation} className="text-[11px] opacity-40 hover:opacity-70 transition-opacity">End conversation</button>
               )}
             </div>
           )}
@@ -1051,24 +1051,24 @@ function DemoCTA() {
               transition: "left 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            <div className="flex h-full flex-col gap-3 rounded-2xl bg-beige p-5 text-primary">
+            <div className="flex h-full flex-col gap-3 rounded-2xl bg-primary p-5 text-primary-foreground">
               {configGrid(active)}
               {!active ? (
                 <button
                   onClick={() => setActive(true)}
-                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 active:scale-95"
+                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
                 >
                   <Mic className="h-4 w-4" /> Start conversation
                 </button>
               ) : (sessionState === "ended" || sessionState === "error") ? (
                 <button
                   onClick={endConversation}
-                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 active:scale-95"
+                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
                 >
                   <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
                 </button>
               ) : null}
-              <p className="text-center text-[10px] text-primary/40">This demo does not store any data.</p>
+              <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
             </div>
           </div>
 
@@ -1082,7 +1082,7 @@ function DemoCTA() {
               transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease",
             }}
           >
-            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-2xl bg-beige overflow-hidden px-4 py-5 text-primary">
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-4 py-5">
               <SiriOrb state={orbState} size={160} />
 
               <p className="text-xs font-medium text-primary/45">

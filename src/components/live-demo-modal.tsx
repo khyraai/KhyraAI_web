@@ -182,7 +182,6 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
       width={size}
       height={size}
       className="select-none"
-      style={{ filter: "saturate(1.25)" }}
     />
   );
 }

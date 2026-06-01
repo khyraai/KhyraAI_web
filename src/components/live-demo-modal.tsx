@@ -89,11 +89,11 @@ export interface Message {
 export type OrbState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
 
 const ORB_PALETTES: Record<OrbState, string[]> = {
-  connecting: ["#2d6a4f", "#52b788", "#74c69d", "#d4b896"],
-  idle:       ["#1f4a3f", "#2d6a4f", "#d4b896", "#e8d5b7"],
-  listening:  ["#d4b896", "#c8a87e", "#e8d5b7", "#f5efe6"],
-  thinking:   ["#2d6a4f", "#c8a87e", "#52b788", "#e8d5b7"],
-  speaking:   ["#52b788", "#2d6a4f", "#d4b896", "#f5efe6"],
+  connecting: ["#2d6a4f", "#52b788", "#74c69d", "#40916c"],
+  idle:       ["#1f4a3f", "#2d6a4f", "#40916c", "#52b788"],
+  listening:  ["#40916c", "#52b788", "#74c69d", "#95d5b2"],
+  thinking:   ["#1f4a3f", "#2d6a4f", "#40916c", "#52b788"],
+  speaking:   ["#52b788", "#1f4a3f", "#40916c", "#74c69d"],
 };
 
 export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number }) {
@@ -109,11 +109,11 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const W  = canvas.width;
-    const H  = canvas.height;
-    const cx = W / 2;
-    const cy = H / 2;
-    const sc = size / 240;
+    const W  = 400; // fixed internal resolution — blobs never clip
+    const H  = 400;
+    const cx = 200;
+    const cy = 200;
+    const sc = 1;   // draw at natural scale; CSS handles visual sizing
 
     function drawBlob(
       x: number, y: number, r: number,
@@ -173,15 +173,15 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
 
     animRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size]);
+  }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      width={size}
-      height={size}
-      className="select-none"
+      width={400}
+      height={400}
+      className="select-none rounded-full"
+      style={{ width: size, height: size }}
     />
   );
 }

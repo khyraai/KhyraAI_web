@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, Mic, MicOff, RotateCcw } from "lucide-react";
+import { X, RotateCcw } from "lucide-react";
 
 // ─────────────────────────── Config (mirrors product_demo_voice/src/config.py) ─────
 
@@ -208,6 +208,12 @@ export function int16ToFloat32(buf: ArrayBuffer): Float32Array<ArrayBuffer> {
 export const WS_URL: string =
   (import.meta.env as Record<string, string>).VITE_DEMO_WS_URL ?? "ws://localhost:8000/ws";
 
+// ─────────────────────────── VAD constants ───────────────────────────────────
+const SILENCE_MS       = 1500;          // ms of silence after speech → flush
+const RMS_THRESHOLD    = 0.025;         // RMS level to classify as speech
+const MIN_SPEECH_MS    = 400;           // discard clips shorter than this
+const BUFFER_CAP_BYTES = 5 * 16_000 * 2; // force-flush after 5 s of audio
+
 export function LiveDemoModal({
   config,
   onClose,
@@ -228,6 +234,11 @@ export function LiveDemoModal({
   const streamRef        = useRef<MediaStream | null>(null);
   const messagesEndRef   = useRef<HTMLDivElement>(null);
   const configRef        = useRef(config);
+  const aiSpeakingRef    = useRef<boolean>(false);
+  const speechStartedRef = useRef<boolean>(false);
+  const silenceTimerRef  = useRef<number | null>(null);
+  const audioBufferRef   = useRef<ArrayBuffer[]>([]);
+  const bufferBytesRef   = useRef<number>(0);
 
   const setState = useCallback((s: SessionState) => {
     sessionStateRef.current = s;
@@ -258,8 +269,12 @@ export function LiveDemoModal({
     nextPlayTimeRef.current = start + abuf.duration;
   }, []);
 
-  // ── Recording ───────────────────────────────────────────────────────────────
-  const stopRecording = useCallback(() => {
+  // ── VAD helpers ─────────────────────────────────────────────────────────────
+  const cleanupMic = useCallback(() => {
+    if (silenceTimerRef.current !== null) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     processorRef.current?.disconnect();
     processorRef.current = null;
     recordCtxRef.current?.close().catch(() => {});
@@ -268,58 +283,92 @@ export function LiveDemoModal({
     streamRef.current = null;
   }, []);
 
-  const startRecording = useCallback(async () => {
+  const startListening = useCallback(() => {
+    speechStartedRef.current = false;
+    audioBufferRef.current   = [];
+    bufferBytesRef.current   = 0;
+    if (silenceTimerRef.current !== null) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    setState("listening");
+  }, [setState]);
+
+  const stopListening = useCallback(() => {
+    if (silenceTimerRef.current !== null) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    speechStartedRef.current = false;
+    audioBufferRef.current   = [];
+    bufferBytesRef.current   = 0;
+  }, []);
+
+  const flushAudio = useCallback(() => {
+    const buffers = audioBufferRef.current;
+    if (!speechStartedRef.current || buffers.length === 0) return;
+    const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
+    const durationMs = (totalBytes / 2 / 16_000) * 1000;
+    speechStartedRef.current = false;
+    audioBufferRef.current   = [];
+    bufferBytesRef.current   = 0;
+    if (durationMs < MIN_SPEECH_MS) return;
+    setState("thinking");
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) {
+      for (const buf of buffers) ws.send(buf);
+      ws.send(JSON.stringify({ type: "audio_end" }));
+    }
+  }, [setState]);
+
+  const startMic = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      streamRef.current  = stream;
-
-      const nativeCtx    = new AudioContext();
-      recordCtxRef.current = nativeCtx;
-      const nativeSR     = nativeCtx.sampleRate;
-      const TARGET       = 16000;
-
-      const source       = nativeCtx.createMediaStreamSource(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: false,
+      });
+      streamRef.current = stream;
+      const ctx = new AudioContext({ sampleRate: 16_000 });
+      recordCtxRef.current = ctx;
+      if (ctx.state === "suspended") await ctx.resume();
+      const source = ctx.createMediaStreamSource(stream);
       // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const processor    = nativeCtx.createScriptProcessor(4096, 1, 1);
+      const processor = ctx.createScriptProcessor(2048, 1, 1);
       processorRef.current = processor;
-
       processor.onaudioprocess = (e) => {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-        const input  = e.inputBuffer.getChannelData(0);
-        let samples  = input;
-
-        if (nativeSR !== TARGET) {
-          const ratio  = nativeSR / TARGET;
-          const len    = Math.round(input.length / ratio);
-          samples      = new Float32Array(len);
-          for (let i  = 0; i < len; i++) samples[i] = input[Math.round(i * ratio)];
+        if (aiSpeakingRef.current) return;
+        const floats = e.inputBuffer.getChannelData(0);
+        let sum = 0;
+        for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
+        const rms      = Math.sqrt(sum / floats.length);
+        const isSpeech = rms > RMS_THRESHOLD;
+        const pcm = new Int16Array(floats.length);
+        for (let i = 0; i < floats.length; i++)
+          pcm[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
+        if (isSpeech) {
+          speechStartedRef.current = true;
+          if (silenceTimerRef.current !== null) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+          audioBufferRef.current.push(pcm.buffer.slice(0));
+          bufferBytesRef.current += pcm.buffer.byteLength;
+          if (bufferBytesRef.current >= BUFFER_CAP_BYTES) flushAudio();
+        } else if (speechStartedRef.current && silenceTimerRef.current === null) {
+          silenceTimerRef.current = window.setTimeout(() => {
+            silenceTimerRef.current = null;
+            if (speechStartedRef.current && !aiSpeakingRef.current) flushAudio();
+          }, SILENCE_MS);
         }
-
-        wsRef.current.send(float32ToInt16(samples));
       };
-
       source.connect(processor);
-      processor.connect(nativeCtx.destination);
-
-      setState("listening");
+      processor.connect(ctx.destination);
+      startListening();
     } catch {
       setErrorMsg("Microphone access denied.");
       setState("error");
     }
-  }, [setState]);
-
-  const handleMicClick = useCallback(async () => {
-    const s = sessionStateRef.current;
-    if (s === "listening") {
-      stopRecording();
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "audio_end" }));
-      }
-      setState("thinking");
-    } else if (s === "idle") {
-      await startRecording();
-    }
-  }, [startRecording, stopRecording, setState]);
+  }, [setState, startListening, flushAudio]);
 
   // ── WebSocket lifecycle ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -353,10 +402,12 @@ export function LiveDemoModal({
 
       switch (data.type) {
         case "ready":
-          setState("connecting");
+          startMic();
           break;
         case "response_text":
           if (data.text) setMessages((p) => [...p, { role: "agent", text: data.text! }]);
+          aiSpeakingRef.current = true;
+          stopListening();
           setState("speaking");
           break;
         case "transcript":
@@ -370,7 +421,8 @@ export function LiveDemoModal({
           break;
         case "audio_end":
           nextPlayTimeRef.current = 0;
-          setState("idle");
+          aiSpeakingRef.current   = false;
+          startListening();
           break;
         case "error":
           setErrorMsg(data.message ?? "Unknown error");
@@ -390,7 +442,7 @@ export function LiveDemoModal({
 
     return () => {
       ws.close();
-      stopRecording();
+      cleanupMic();
       playbackCtxRef.current?.close().catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -407,15 +459,13 @@ export function LiveDemoModal({
 
   const statusLabel = {
     connecting: "Connecting…",
-    idle:       "Tap mic to speak",
-    listening:  "Listening… tap to send",
+    idle:       "Ready — just speak",
+    listening:  "Listening…",
     thinking:   "Thinking…",
     speaking:   "Speaking…",
     error:      errorMsg || "Error",
     ended:      "Session ended",
   }[sessionState];
-
-  const canTapMic = sessionState === "idle" || sessionState === "listening";
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -485,7 +535,7 @@ export function LiveDemoModal({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* ── Mic button ── */}
+        {/* ── Controls ── */}
         <div className="flex flex-col items-center gap-2 py-5">
           {sessionState === "ended" || sessionState === "error" ? (
             <button
@@ -497,22 +547,11 @@ export function LiveDemoModal({
             </button>
           ) : (
             <button
-              onClick={handleMicClick}
-              disabled={!canTapMic}
-              aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
-              className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ${
-                sessionState === "listening"
-                  ? "scale-110 bg-red-500 shadow-lg shadow-red-500/50"
-                  : canTapMic
-                  ? "bg-white/15 hover:bg-white/25 active:scale-95"
-                  : "cursor-not-allowed bg-white/5 opacity-40"
-              }`}
+              onClick={onClose}
+              aria-label="End session"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-400 transition hover:bg-red-500/40 active:scale-95"
             >
-              {sessionState === "listening" ? (
-                <MicOff className="h-7 w-7 text-white" />
-              ) : (
-                <Mic className="h-7 w-7 text-white" />
-              )}
+              <X className="h-6 w-6" />
             </button>
           )}
           <p className="text-[10px] text-white/25">This demo does not store any data.</p>

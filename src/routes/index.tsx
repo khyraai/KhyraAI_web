@@ -2,11 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import {
-  LiveDemoModal,
+  SiriOrb,
   DEMO_ROLES,
   DEMO_LANGUAGES,
   DEMO_VOICES,
-  type DemoConfig,
+  WS_URL,
+  float32ToInt16,
+  int16ToFloat32,
+  type SessionState,
+  type OrbState,
 } from "@/components/live-demo-modal";
 import {
   Phone,
@@ -17,6 +21,8 @@ import {
   Minus,
   Plus,
   Mic,
+  MicOff,
+  RotateCcw,
   ChevronDown,
   Globe,
   Zap,
@@ -762,12 +768,26 @@ function DemoSelectField({
 function DemoCTA() {
   const reveal = useScrollReveal();
 
+  /* ── Config ─────────────────────────────────────────── */
   const [roleId,       setRoleId]       = useState("front_desk");
   const [domainId,     setDomainId]     = useState("dental_clinic");
   const [languageCode, setLanguageCode] = useState("hi-IN");
   const [voiceId,      setVoiceId]      = useState("voice_1");
-  const [showModal,    setShowModal]    = useState(false);
 
+  /* ── Session ─────────────────────────────────────────── */
+  const [active,       setActive]       = useState(false);
+  const [sessionState, setSSRaw]        = useState<SessionState>("connecting");
+  const [errorMsg,     setErrorMsg]     = useState("");
+
+  const ssRef          = useRef<SessionState>("connecting");
+  const wsRef          = useRef<WebSocket | null>(null);
+  const playCtxRef     = useRef<AudioContext | null>(null);
+  const nextPlayRef    = useRef(0);
+  const recCtxRef      = useRef<AudioContext | null>(null);
+  const procRef        = useRef<ScriptProcessorNode | null>(null);
+  const streamRef      = useRef<MediaStream | null>(null);
+
+  /* ── Derived config ──────────────────────────────────── */
   const selectedRole   = DEMO_ROLES.find((r) => r.id === roleId)!;
   const selectedDomain = selectedRole.domains.find((d) => d.id === domainId);
   const selectedLang   = DEMO_LANGUAGES.find((l) => l.code === languageCode)!;
@@ -779,16 +799,164 @@ function DemoCTA() {
     if (role) setDomainId(role.domains[0].id);
   }, []);
 
-  const demoConfig: DemoConfig = {
-    roleId,
-    domainId,
-    languageCode,
-    voiceId,
-    voiceLabel: selectedVoice?.label ?? "",
+  const setSS = useCallback((s: SessionState) => {
+    ssRef.current = s;
+    setSSRaw(s);
+  }, []);
+
+  /* ── Playback ─────────────────────────────────────────── */
+  const playChunk = useCallback((buf: ArrayBuffer) => {
+    if (!playCtxRef.current || playCtxRef.current.state === "closed") {
+      playCtxRef.current = new AudioContext({ sampleRate: 16000 });
+      nextPlayRef.current = 0;
+    }
+    const ctx  = playCtxRef.current;
+    const f32  = int16ToFloat32(buf);
+    const abuf = ctx.createBuffer(1, f32.length, 16000);
+    abuf.copyToChannel(f32, 0);
+    const src  = ctx.createBufferSource();
+    src.buffer = abuf;
+    src.connect(ctx.destination);
+    const now  = ctx.currentTime;
+    const t    = Math.max(now, nextPlayRef.current);
+    src.start(t);
+    nextPlayRef.current = t + abuf.duration;
+  }, []);
+
+  /* ── Recording ───────────────────────────────────────── */
+  const stopRecording = useCallback(() => {
+    procRef.current?.disconnect();
+    procRef.current = null;
+    recCtxRef.current?.close().catch(() => {});
+    recCtxRef.current = null;
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      streamRef.current = stream;
+      const nCtx   = new AudioContext();
+      recCtxRef.current = nCtx;
+      const ratio  = nCtx.sampleRate / 16000;
+      const src    = nCtx.createMediaStreamSource(stream);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const proc   = nCtx.createScriptProcessor(4096, 1, 1);
+      procRef.current = proc;
+      proc.onaudioprocess = (e) => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+        const raw  = e.inputBuffer.getChannelData(0);
+        const len  = Math.round(raw.length / ratio);
+        const out  = ratio === 1 ? raw : new Float32Array(len);
+        if (ratio !== 1) for (let i = 0; i < len; i++) out[i] = raw[Math.round(i * ratio)];
+        wsRef.current.send(float32ToInt16(out));
+      };
+      src.connect(proc);
+      proc.connect(nCtx.destination);
+      setSS("listening");
+    } catch {
+      setErrorMsg("Microphone access denied.");
+      setSS("error");
+    }
+  }, [setSS]);
+
+  const handleMicClick = useCallback(async () => {
+    const s = ssRef.current;
+    if (s === "listening") {
+      stopRecording();
+      if (wsRef.current?.readyState === WebSocket.OPEN)
+        wsRef.current.send(JSON.stringify({ type: "audio_end" }));
+      setSS("thinking");
+    } else if (s === "idle") {
+      await startRecording();
+    }
+  }, [startRecording, stopRecording, setSS]);
+
+  /* ── WebSocket — fires when active flips to true ─────── */
+  useEffect(() => {
+    if (!active) return;
+    const ws = new WebSocket(WS_URL);
+    ws.binaryType = "arraybuffer";
+    wsRef.current = ws;
+
+    ws.onopen = () =>
+      ws.send(JSON.stringify({ type: "init", role: roleId, domain: domainId,
+        language: languageCode, voice_id: voiceId }));
+
+    ws.onmessage = (evt) => {
+      if (evt.data instanceof ArrayBuffer) {
+        playChunk(evt.data);
+        if (ssRef.current !== "speaking") setSS("speaking");
+        return;
+      }
+      let d: { type: string; text?: string; message?: string };
+      try { d = JSON.parse(evt.data as string); } catch { return; }
+      if      (d.type === "ready")     setSS("idle");
+      else if (d.type === "audio_end") { nextPlayRef.current = 0; setSS("idle"); }
+      else if (d.type === "error")     { setErrorMsg(d.message ?? "Error"); setSS("error"); }
+    };
+
+    ws.onerror  = () => { setErrorMsg("Cannot reach demo server."); setSS("error"); };
+    ws.onclose  = () => { if (ssRef.current !== "error") setSS("ended"); };
+
+    return () => {
+      ws.close();
+      stopRecording();
+      playCtxRef.current?.close().catch(() => {});
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  const endConversation = useCallback(() => {
+    wsRef.current?.close();
+    stopRecording();
+    playCtxRef.current?.close().catch(() => {});
+    setActive(false);
+    setTimeout(() => { ssRef.current = "connecting"; setSSRaw("connecting"); setErrorMsg(""); }, 520);
+  }, [stopRecording]);
+
+  /* ── Derived UI ──────────────────────────────────────── */
+  const orbState: OrbState =
+    sessionState === "listening"  ? "listening"  :
+    sessionState === "thinking"   ? "thinking"   :
+    sessionState === "speaking"   ? "speaking"   :
+    sessionState === "connecting" ? "connecting" : "idle";
+
+  const statusLabel: Record<SessionState, string> = {
+    connecting: "Connecting…",
+    idle:       "Tap mic to speak",
+    listening:  "Listening…  tap to send",
+    thinking:   "Thinking…",
+    speaking:   "Speaking…",
+    error:      errorMsg || "Error",
+    ended:      "Session ended",
   };
 
+  const canTapMic = sessionState === "idle" || sessionState === "listening";
+
+  /* ── Config panel (shared between mobile + desktop) ──── */
+  const configGrid = (locked: boolean) => (
+    <div className={locked ? "pointer-events-none" : ""}>
+      <div className="grid grid-cols-2 gap-2.5 text-sm">
+        <DemoSelectField label="Agent role"  value={roleId}       options={DEMO_ROLES.map((r) => ({ label: r.label, value: r.id }))}                        onSelect={locked ? () => {} : handleRoleChange} />
+        <DemoSelectField label="Industry"    value={domainId}     options={selectedRole.domains.map((d) => ({ label: d.label, value: d.id }))}               onSelect={locked ? () => {} : setDomainId} />
+        <DemoSelectField label="Language"    value={languageCode} options={DEMO_LANGUAGES.map((l) => ({ label: l.label, value: l.code }))}                   onSelect={locked ? () => {} : setLanguageCode} />
+        <DemoSelectField label="Voice"       value={voiceId}      options={DEMO_VOICES.map((v) => ({ label: `${v.label} · ${v.gender}`, value: v.id }))}     onSelect={locked ? () => {} : setVoiceId} />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {[selectedRole.icon + " " + selectedRole.label,
+          selectedDomain ? selectedDomain.icon + " " + selectedDomain.label : "",
+          selectedLang.label,
+          selectedVoice.label + " · " + selectedVoice.gender,
+        ].filter(Boolean).map((tag) => (
+          <span key={tag} className="rounded-full border border-primary-foreground/20 px-2.5 py-0.5 text-[10px] opacity-60">{tag}</span>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <>
     <section
       ref={reveal.ref}
       data-visible={reveal.visible}
@@ -796,97 +964,147 @@ function DemoCTA() {
       className="mx-auto max-w-7xl px-6 py-24 opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
     >
       <div className="overflow-hidden rounded-3xl border border-border bg-primary text-primary-foreground">
-        <div className="grid gap-10 p-10 md:grid-cols-2 md:p-16">
-          <div>
-            <div className="text-xs uppercase tracking-[0.2em] opacity-70">Live demo</div>
-            <h2 className="mt-3 font-display text-4xl md:text-5xl">Hear Khyra before you buy.</h2>
-            <p className="mt-4 max-w-md opacity-80">
-              Pick a role, pick a language, and have a live conversation with a Khyra agent right
-              now. No sign-up.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-primary"
-                style={{ background: "var(--beige-deep)" }}
-                href="#demo"
-              >
+
+        {/* ── "Live demo" label — nudges up+left when active ── */}
+        <div
+          className="transition-all duration-500 ease-in-out"
+          style={{ padding: active ? "1.5rem 2.5rem 0.25rem" : "2.5rem 2.5rem 0" }}
+        >
+          <div className="text-xs uppercase tracking-[0.2em] opacity-70">Live demo</div>
+        </div>
+
+        {/* ── Mobile (stacked, no slide) ── */}
+        <div className="md:hidden p-6 pt-4 flex flex-col gap-5">
+          {!active ? (
+            <>
+              <div>
+                <h2 className="font-display text-4xl">Hear Khyra before you buy.</h2>
+                <p className="mt-3 text-sm opacity-80 leading-relaxed">Pick a role, pick a language, and talk live. No sign-up.</p>
+              </div>
+              <div className="rounded-2xl bg-primary-foreground/5 p-5 backdrop-blur flex flex-col gap-4">
+                {configGrid(false)}
+                <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary hover:opacity-90 active:scale-95 transition">
+                  <Mic className="h-4 w-4" /> Start conversation
+                </button>
+                <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-4 py-2">
+              <SiriOrb state={orbState} />
+              <p className={`text-xs font-medium ${sessionState === "error" ? "text-red-400" : "opacity-45"}`}>{statusLabel[sessionState]}</p>
+              {sessionState === "ended" || sessionState === "error" ? (
+                <button onClick={endConversation} className="flex items-center gap-2 rounded-full bg-primary-foreground/10 px-5 py-2 text-sm opacity-70 hover:opacity-100 transition">
+                  <RotateCcw className="h-3.5 w-3.5" /> Reconfigure
+                </button>
+              ) : (
+                <>
+                  <button onClick={handleMicClick} disabled={!canTapMic} className={`flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200 ${sessionState === "listening" ? "scale-110 bg-red-500 shadow-lg shadow-red-500/40" : canTapMic ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 active:scale-95" : "cursor-not-allowed bg-primary-foreground/5 opacity-40"}`}>
+                    {sessionState === "listening" ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                  </button>
+                  <button onClick={endConversation} className="text-[11px] opacity-40 hover:opacity-80 transition-opacity">End conversation</button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Desktop (sliding panels) ── */}
+        <div className="relative hidden md:block" style={{ minHeight: 360 }}>
+
+          {/* Panel A: text copy — fades + slides out on active */}
+          <div
+            className="absolute inset-y-0 left-0 flex flex-col justify-between py-10 pl-16 pr-8 transition-all duration-400 ease-in-out"
+            style={{
+              width: "50%",
+              opacity: active ? 0 : 1,
+              transform: active ? "translateX(-20px)" : "translateX(0)",
+              pointerEvents: active ? "none" : "auto",
+            }}
+          >
+            <div>
+              <h2 className="font-display text-5xl leading-tight">Hear Khyra<br />before you buy.</h2>
+              <p className="mt-4 max-w-sm text-sm opacity-80 leading-relaxed">
+                Pick a role, pick a language, and have a live conversation with a Khyra agent right now. No sign-up.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 pb-2">
+              <a className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-primary" style={{ background: "var(--beige-deep)" }} href="#demo">
                 Configure &amp; try <ArrowRight className="h-4 w-4" />
               </a>
-              <a
-                className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-medium"
-                href="/book-demo"
-              >
+              <a className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-medium" href="/book-demo">
                 Book a demo
               </a>
             </div>
           </div>
-          <div className="rounded-2xl bg-primary-foreground/5 p-6 backdrop-blur">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <DemoSelectField
-                label="Agent role"
-                value={roleId}
-                options={DEMO_ROLES.map((r) => ({ label: r.label, value: r.id }))}
-                onSelect={handleRoleChange}
-              />
-              <DemoSelectField
-                label="Industry"
-                value={domainId}
-                options={selectedRole.domains.map((d) => ({ label: d.label, value: d.id }))}
-                onSelect={setDomainId}
-              />
-              <DemoSelectField
-                label="Language"
-                value={languageCode}
-                options={DEMO_LANGUAGES.map((l) => ({ label: l.label, value: l.code }))}
-                onSelect={setLanguageCode}
-              />
-              <DemoSelectField
-                label="Voice"
-                value={voiceId}
-                options={DEMO_VOICES.map((v) => ({
-                  label: `${v.label} · ${v.gender}`,
-                  value: v.id,
-                }))}
-                onSelect={setVoiceId}
-              />
-            </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                selectedRole.icon + " " + selectedRole.label,
-                selectedDomain ? selectedDomain.icon + " " + selectedDomain.label : "",
-                selectedLang.label,
-                selectedVoice.label + " · " + selectedVoice.gender,
-              ]
-                .filter(Boolean)
-                .map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-primary-foreground/20 px-2.5 py-0.5 text-[11px] opacity-70"
-                  >
-                    {tag}
-                  </span>
-                ))}
-            </div>
-
-            <button
-              onClick={() => setShowModal(true)}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
-            >
-              <Mic className="h-4 w-4" /> Start conversation
-            </button>
-            <div className="mt-3 text-center text-[11px] opacity-50">
-              This demo does not store any data.
+          {/* Panel B: config card — slides from right half → left half */}
+          <div
+            className="absolute inset-y-0 p-5"
+            style={{
+              width: "50%",
+              left: active ? 0 : "50%",
+              transition: "left 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          >
+            <div className="flex h-full flex-col gap-3 rounded-2xl bg-primary-foreground/5 p-5 backdrop-blur">
+              {configGrid(active)}
+              {!active && (
+                <button
+                  onClick={() => setActive(true)}
+                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
+                >
+                  <Mic className="h-4 w-4" /> Start conversation
+                </button>
+              )}
+              <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
             </div>
           </div>
+
+          {/* Panel C: Siri orb — slides in from right */}
+          <div
+            className="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-3"
+            style={{
+              width: "50%",
+              transform: active ? "translateX(0)" : "translateX(100%)",
+              opacity: active ? 1 : 0,
+              transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease",
+            }}
+          >
+            <SiriOrb state={orbState} />
+            <p className={`text-xs font-medium ${sessionState === "error" ? "text-red-400" : "opacity-45"}`}>
+              {statusLabel[sessionState]}
+            </p>
+            {sessionState === "ended" || sessionState === "error" ? (
+              <button onClick={endConversation} className="flex items-center gap-2 rounded-full bg-primary-foreground/10 px-5 py-2.5 text-sm opacity-70 hover:opacity-100 transition">
+                <RotateCcw className="h-3.5 w-3.5" /> Close &amp; reconfigure
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleMicClick}
+                  disabled={!canTapMic}
+                  aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
+                  className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ${
+                    sessionState === "listening"
+                      ? "scale-110 bg-red-500 shadow-xl shadow-red-500/40"
+                      : canTapMic
+                      ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 active:scale-95"
+                      : "cursor-not-allowed bg-primary-foreground/5 opacity-40"
+                  }`}
+                >
+                  {sessionState === "listening" ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7" />}
+                </button>
+                <button onClick={endConversation} className="text-[11px] opacity-40 hover:opacity-80 transition-opacity">
+                  End conversation
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
       </div>
     </section>
-
-    {showModal && (
-      <LiveDemoModal config={demoConfig} onClose={() => setShowModal(false)} />
-    )}
-    </>
   );
 }
 

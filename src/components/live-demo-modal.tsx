@@ -80,16 +80,16 @@ export interface DemoConfig {
   voiceLabel:   string;
 }
 
-type SessionState = "connecting" | "idle" | "listening" | "thinking" | "speaking" | "error" | "ended";
+export type SessionState = "connecting" | "idle" | "listening" | "thinking" | "speaking" | "error" | "ended";
 
-interface Message {
+export interface Message {
   role: "user" | "agent";
   text: string;
 }
 
 // ─────────────────────────── Siri-style orb (canvas) ─────────────────────────
 
-type OrbState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
+export type OrbState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
 
 const ORB_PALETTES: Record<OrbState, string[]> = {
   connecting: ["#00b894", "#55efc4", "#00cec9", "#81ecec"],
@@ -99,7 +99,7 @@ const ORB_PALETTES: Record<OrbState, string[]> = {
   speaking:   ["#0abde3", "#48dbfb", "#6c5ce7", "#a29bfe"],
 };
 
-function SiriOrb({ state }: { state: OrbState }) {
+export function SiriOrb({ state }: { state: OrbState }) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const animRef    = useRef<number>(0);
   const stateRef   = useRef<OrbState>(state);
@@ -190,7 +190,7 @@ function SiriOrb({ state }: { state: OrbState }) {
 
 // ─────────────────────────── Audio helpers ───────────────────────────────────
 
-function float32ToInt16(float32: Float32Array): ArrayBuffer {
+export function float32ToInt16(float32: Float32Array<ArrayBufferLike>): ArrayBuffer {
   const out = new Int16Array(float32.length);
   for (let i = 0; i < float32.length; i++) {
     out[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i] * 32767)));
@@ -198,7 +198,7 @@ function float32ToInt16(float32: Float32Array): ArrayBuffer {
   return out.buffer;
 }
 
-function int16ToFloat32(buf: ArrayBuffer): Float32Array {
+export function int16ToFloat32(buf: ArrayBuffer): Float32Array<ArrayBuffer> {
   const i16   = new Int16Array(buf);
   const f32   = new Float32Array(i16.length);
   for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 32768;
@@ -207,7 +207,7 @@ function int16ToFloat32(buf: ArrayBuffer): Float32Array {
 
 // ─────────────────────────── LiveDemoModal ───────────────────────────────────
 
-const WS_URL: string =
+export const WS_URL: string =
   (import.meta.env as Record<string, string>).VITE_DEMO_WS_URL ?? "ws://localhost:8000/ws";
 
 export function LiveDemoModal({

@@ -139,8 +139,8 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
       const speed   = s === "speaking" ? 1.8 : s === "listening" ? 1.4 : s === "thinking" ? 1.0 : 0.45;
       const t       = ts * 0.001 * speed;
       const colors  = ORB_PALETTES[s];
-      const spread  = (s === "speaking" ? 72 : s === "listening" ? 65 : s === "thinking" ? 55 : 42) * sc;
-      const alpha   = s === "idle" || s === "connecting" ? 0.55 : 0.72;
+      const spread  = s === "speaking" ? 95 : s === "listening" ? 82 : s === "thinking" ? 68 : 55;
+      const alpha   = s === "idle" || s === "connecting" ? 0.60 : 0.76;
 
       // Rotating coloured blobs
       for (let i = 0; i < colors.length; i++) {
@@ -149,19 +149,19 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
         const dist   = spread + Math.sin(t * (1.1 + i * 0.35) + i * 1.3) * (spread * 0.32);
         const bx     = cx + Math.cos(angle) * dist;
         const by     = cy + Math.sin(angle * 0.88 + i * 0.18) * dist;
-        const br     = (88 + Math.sin(t * (1.2 + i * 0.45) + i) * 26) * sc;
-        drawBlob(bx, by, br, colors[i], alpha, 20 * sc);
+        const br     = 118 + Math.sin(t * (1.2 + i * 0.45) + i) * 32;
+        drawBlob(bx, by, br, colors[i], alpha, 32);
       }
 
-      // Bright centre glow
-      const pulse   = Math.sin(t * 2.5) * 6 * sc;
-      const coreR   = (s === "speaking" ? 44 : s === "listening" ? 40 : 34) * sc + pulse;
+      // Soft diffuse centre glow — no harsh dot
+      const pulse   = Math.sin(t * 2.5) * 12;
+      const coreR   = (s === "speaking" ? 115 : s === "listening" ? 98 : 82) + pulse;
       const cg      = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
-      cg.addColorStop(0,   "rgba(255,255,255,0.95)");
-      cg.addColorStop(0.4, colors[0] + "bb");
+      cg.addColorStop(0,   "rgba(255,255,255,0.15)");
+      cg.addColorStop(0.3, colors[0] + "44");
       cg.addColorStop(1,   "rgba(0,0,0,0)");
       ctx.save();
-      ctx.filter    = `blur(${3 * sc}px)`;
+      ctx.filter    = "blur(28px)";
       ctx.fillStyle = cg;
       ctx.beginPath();
       ctx.arc(cx, cy, coreR, 0, Math.PI * 2);

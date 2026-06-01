@@ -96,7 +96,7 @@ const ORB_PALETTES: Record<OrbState, string[]> = {
   speaking:   ["#52b788", "#1f4a3f", "#40916c", "#74c69d"],
 };
 
-export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number }) {
+export function SiriOrb({ state, size = 240, volumeRef }: { state: OrbState; size?: number; volumeRef?: { current: number } }) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const animRef    = useRef<number>(0);
   const stateRef   = useRef<OrbState>(state);
@@ -114,6 +114,7 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
     const cx = 200;
     const cy = 200;
     const sc = 1;   // draw at natural scale; CSS handles visual sizing
+    let smoothVol = 0;
 
     function drawBlob(
       x: number, y: number, r: number,
@@ -135,28 +136,39 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
     const animate = (ts: number) => {
       ctx.clearRect(0, 0, W, H);
 
-      const s       = stateRef.current;
-      const speed   = s === "speaking" ? 1.8 : s === "listening" ? 1.4 : s === "thinking" ? 1.0 : 0.45;
-      const t       = ts * 0.001 * speed;
-      const colors  = ORB_PALETTES[s];
-      const spread  = s === "speaking" ? 95 : s === "listening" ? 82 : s === "thinking" ? 68 : 55;
-      const alpha   = s === "idle" || s === "connecting" ? 0.60 : 0.76;
+      // Voice-reactive volume — EMA-smoothed so there are no jittery jumps
+      const rawVol  = volumeRef?.current ?? 0;
+      smoothVol     = smoothVol * 0.88 + rawVol * 0.12;
+      const normVol = Math.min(1, Math.max(0, (smoothVol - 0.01) / 0.14));
+
+      const s        = stateRef.current;
+      const speed    = s === "speaking" ? 1.8 : s === "listening" ? 1.4 : s === "thinking" ? 1.0 : 0.45;
+      const t        = ts * 0.001 * speed;
+      const colors   = ORB_PALETTES[s];
+      const volBoost = s === "listening" ? normVol * 48 : 0;
+      const spread   = (s === "speaking" ? 95 : s === "listening" ? 82 : s === "thinking" ? 68 : 55) + volBoost;
+      const alpha    = s === "idle" || s === "connecting" ? 0.60 : 0.76 + (s === "listening" ? normVol * 0.14 : 0);
+
+      // Subtle wobble movement when user speaks
+      const wobble  = s === "listening" ? normVol * 9 : 0;
+      const wobX    = cx + Math.sin(ts * 0.0037) * wobble;
+      const wobY    = cy + Math.cos(ts * 0.0029) * wobble;
 
       // Rotating coloured blobs
       for (let i = 0; i < colors.length; i++) {
         const phase  = (i * Math.PI * 2) / colors.length;
         const angle  = t * (0.6 + i * 0.28) + phase;
         const dist   = spread + Math.sin(t * (1.1 + i * 0.35) + i * 1.3) * (spread * 0.32);
-        const bx     = cx + Math.cos(angle) * dist;
-        const by     = cy + Math.sin(angle * 0.88 + i * 0.18) * dist;
-        const br     = 118 + Math.sin(t * (1.2 + i * 0.45) + i) * 32;
+        const bx     = wobX + Math.cos(angle) * dist;
+        const by     = wobY + Math.sin(angle * 0.88 + i * 0.18) * dist;
+        const br     = 118 + Math.sin(t * (1.2 + i * 0.45) + i) * 32 + volBoost * 0.5;
         drawBlob(bx, by, br, colors[i], alpha, 32);
       }
 
       // Soft diffuse centre glow — no harsh dot
       const pulse   = Math.sin(t * 2.5) * 12;
-      const coreR   = (s === "speaking" ? 115 : s === "listening" ? 98 : 82) + pulse;
-      const cg      = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+      const coreR   = (s === "speaking" ? 115 : s === "listening" ? 98 : 82) + pulse + volBoost * 0.6;
+      const cg      = ctx.createRadialGradient(wobX, wobY, 0, wobX, wobY, coreR);
       cg.addColorStop(0,   "rgba(255,255,255,0.15)");
       cg.addColorStop(0.3, colors[0] + "44");
       cg.addColorStop(1,   "rgba(0,0,0,0)");
@@ -164,7 +176,7 @@ export function SiriOrb({ state, size = 240 }: { state: OrbState; size?: number 
       ctx.filter    = "blur(28px)";
       ctx.fillStyle = cg;
       ctx.beginPath();
-      ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+      ctx.arc(wobX, wobY, coreR, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
@@ -239,6 +251,7 @@ export function LiveDemoModal({
   const silenceTimerRef  = useRef<number | null>(null);
   const audioBufferRef   = useRef<ArrayBuffer[]>([]);
   const bufferBytesRef   = useRef<number>(0);
+  const micVolumeRef     = useRef<number>(0);
 
   const setState = useCallback((s: SessionState) => {
     sessionStateRef.current = s;
@@ -336,11 +349,12 @@ export function LiveDemoModal({
       const processor = ctx.createScriptProcessor(2048, 1, 1);
       processorRef.current = processor;
       processor.onaudioprocess = (e) => {
-        if (aiSpeakingRef.current) return;
+        if (aiSpeakingRef.current) { micVolumeRef.current = 0; return; }
         const floats = e.inputBuffer.getChannelData(0);
         let sum = 0;
         for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
         const rms      = Math.sqrt(sum / floats.length);
+        micVolumeRef.current = rms;
         const isSpeech = rms > RMS_THRESHOLD;
         const pcm = new Int16Array(floats.length);
         for (let i = 0; i < floats.length; i++)
@@ -495,7 +509,7 @@ export function LiveDemoModal({
 
         {/* ── Orb ── */}
         <div className="flex justify-center py-2">
-          <SiriOrb state={orbState} />
+          <SiriOrb state={orbState} volumeRef={micVolumeRef} />
         </div>
 
         {/* ── Status ── */}

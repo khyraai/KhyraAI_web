@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import {
   Phone,
@@ -26,6 +26,8 @@ import {
 import mascot from "@/assets/khyra-mascot.png";
 import logo from "@/assets/Khyra.svg";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+
+type UseCaseTab = "Front Desk" | "Lead Follow-Up" | "Support Line";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -230,23 +232,26 @@ function Trust() {
 }
 
 /* ---------- Pillars ---------- */
-function Pillars() {
+function Pillars({ setActiveTab }: { setActiveTab: (tab: UseCaseTab) => void }) {
   const reveal = useScrollReveal();
-  const pillars = [
+  const pillars: Array<{ i: React.ElementType; t: string; d: string; tab: UseCaseTab }> = [
     {
       i: Phone,
       t: "Front Desk Agent",
       d: "Answers calls, books appointments, handles cancellations — around the clock.",
+      tab: "Front Desk",
     },
     {
       i: Target,
       t: "Lead Follow-Up Agent",
       d: "Calls back warm leads, qualifies prospects, and schedules meetings automatically.",
+      tab: "Lead Follow-Up",
     },
     {
       i: Wrench,
       t: "Support Line Agent",
       d: "Resolves Tier-1 support tickets, resets access, and escalates intelligently.",
+      tab: "Support Line",
     },
   ];
   return (
@@ -272,10 +277,22 @@ function Pillars() {
         </p>
       </div>
       <div className="mt-14 grid gap-5 md:grid-cols-3">
-        {pillars.map(({ i: Icon, t, d }) => (
+        {pillars.map(({ i: Icon, t, d, tab }) => (
           <div
             key={t}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-7 transition hover:border-primary/30 hover:shadow-lg"
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              setActiveTab(tab);
+              document.getElementById("use-cases")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                setActiveTab(tab);
+                document.getElementById("use-cases")?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-card p-7 transition hover:border-primary/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <div className="mb-6 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-beige text-primary">
               <Icon className="h-5 w-5" />
@@ -444,7 +461,13 @@ function Features() {
 }
 
 /* ---------- Use cases (tabs) ---------- */
-function UseCases() {
+function UseCases({
+  activeTab,
+  setActiveTab,
+}: {
+  activeTab: UseCaseTab;
+  setActiveTab: (tab: UseCaseTab) => void;
+}) {
   const reveal = useScrollReveal();
   const tabs = {
     "Front Desk": [
@@ -467,7 +490,6 @@ function UseCases() {
     ],
   } as const;
   const keys = Object.keys(tabs) as Array<keyof typeof tabs>;
-  const [active, setActive] = useState<keyof typeof tabs>(keys[0]);
   return (
     <section
       ref={reveal.ref}
@@ -485,9 +507,9 @@ function UseCases() {
         {keys.map((k) => (
           <button
             key={k}
-            onClick={() => setActive(k)}
+            onClick={() => setActiveTab(k)}
             className={`rounded-full border px-4 py-2 text-sm transition ${
-              active === k
+              activeTab === k
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-background text-muted-foreground hover:text-foreground"
             }`}
@@ -497,7 +519,7 @@ function UseCases() {
         ))}
       </div>
       <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {tabs[active].map(([t, d]) => (
+        {tabs[activeTab].map(([t, d]) => (
           <div
             key={t}
             className="rounded-xl border border-border bg-card p-6 transition hover:border-primary/30"
@@ -979,79 +1001,79 @@ function Footer() {
     <footer
       ref={reveal.ref}
       data-visible={reveal.visible}
-      className="border-t border-border bg-secondary/40 opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
+      className="border-t border-primary/30 bg-primary opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
     >
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 text-primary">
+            <div className="flex items-center gap-2 text-primary-foreground">
               <img
                 src={logo}
                 alt="Khyra AI logo"
-                className="h-9 w-9 rounded-full border border-primary/70 object-contain"
+                className="h-9 w-9 rounded-full border border-primary-foreground/30 object-contain"
               />
               <span className="font-display text-2xl">Khyra AI</span>
             </div>
-            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-3 max-w-sm text-sm text-primary-foreground/70">
               AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours.
             </p>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Product</div>
-            <ul className="mt-4 space-y-2 text-sm">
+            <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Product</div>
+            <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="#features" className="hover:text-primary">
+                <a href="#features" className="hover:text-primary-foreground transition-colors">
                   Features
                 </a>
               </li>
               <li>
-                <a href="#use-cases" className="hover:text-primary">
+                <a href="#use-cases" className="hover:text-primary-foreground transition-colors">
                   Use cases
                 </a>
               </li>
               <li>
-                <a href="#pricing" className="hover:text-primary">
+                <a href="#pricing" className="hover:text-primary-foreground transition-colors">
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#compare" className="hover:text-primary">
+                <a href="#compare" className="hover:text-primary-foreground transition-colors">
                   Compare
                 </a>
               </li>
             </ul>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Contact</div>
-            <ul className="mt-4 space-y-2 text-sm">
+            <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Contact</div>
+            <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="mailto:hello@khyra.ai" className="hover:text-primary">
+                <a href="mailto:hello@khyra.ai" className="hover:text-primary-foreground transition-colors">
                   hello@khyra.ai
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary">
+                <a href="#" className="hover:text-primary-foreground transition-colors">
                   WhatsApp
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary">
+                <a href="#" className="hover:text-primary-foreground transition-colors">
                   LinkedIn
                 </a>
               </li>
             </ul>
           </div>
         </div>
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/60">
           <div>© 2026 Khyra AI. Built in India for Indian businesses.</div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">
+            <a href="#" className="hover:text-primary-foreground transition-colors">
               Privacy
             </a>
-            <a href="#" className="hover:text-foreground">
+            <a href="#" className="hover:text-primary-foreground transition-colors">
               Terms
             </a>
-            <a href="#" className="hover:text-foreground">
+            <a href="#" className="hover:text-primary-foreground transition-colors">
               Cookies
             </a>
           </div>
@@ -1062,24 +1084,25 @@ function Footer() {
 }
 
 function Index() {
+  const [activeUseCaseTab, setActiveUseCaseTab] = useState<UseCaseTab>("Front Desk");
   return (
     <main className="min-h-screen bg-background">
       <TopBanner />
       <SiteNav />
       <Hero />
       <Trust />
-      <Pillars />
+      <Pillars setActiveTab={setActiveUseCaseTab} />
+      {/* <DemoCTA /> */}
       <HowItWorks />
-      <DemoCTA />
-      <Features />
-      <UseCases />
-      <Impact />
-      <Compare />
-      <WhyKhyra />
-      <Testimonials />
-      <Pricing />
-      <FAQ />
       <FinalCTA />
+      <Features />
+      <UseCases activeTab={activeUseCaseTab} setActiveTab={setActiveUseCaseTab} />
+      <Impact />
+      {/* <Compare /> */}
+      {/* <WhyKhyra /> */}
+      {/* <Testimonials /> */}
+      {/* <Pricing /> */}
+      <FAQ />
       <Footer />
     </main>
   );

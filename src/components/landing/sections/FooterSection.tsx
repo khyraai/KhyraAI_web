@@ -27,14 +27,14 @@ export function FooterSection() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Product</div>
-            <ul className="mt-4 space-y-2 text-sm">
+            <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="#features" className="text-primary-foreground hover:text-white transition-colors cursor-pointer">
+                <a href="#features" className="hover:text-primary-foreground transition-colors">
                   Features
                 </a>
               </li>
               <li>
-                <a href="#use-cases" className="text-primary-foreground hover:text-white transition-colors cursor-pointer">
+                <a href="#use-cases" className="hover:text-primary-foreground transition-colors">
                   Use cases
                 </a>
               </li>
@@ -42,19 +42,19 @@ export function FooterSection() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Contact</div>
-            <ul className="mt-4 space-y-2 text-sm">
+            <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="mailto:hello@khyraai.com" className="text-primary-foreground hover:text-white transition-colors cursor-pointer">
+                <a href="mailto:hello@khyraai.com" className="hover:text-primary-foreground transition-colors">
                   hello@khyraai.com
                 </a>
               </li>
               <li>
-                <a href="https://wa.me/9480007233" target="_blank" rel="noopener noreferrer" className="text-primary-foreground hover:text-white transition-colors cursor-pointer">
+                <a href="https://wa.me/9480007233" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground transition-colors">
                   WhatsApp
                 </a>
               </li>
               <li>
-                <a href="https://www.linkedin.com/company/khyra-ai/" target="_blank" rel="noopener noreferrer" className="text-primary-foreground hover:text-white transition-colors cursor-pointer">
+                <a href="https://www.linkedin.com/company/khyra-ai/" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground transition-colors">
                   LinkedIn
                 </a>
               </li>

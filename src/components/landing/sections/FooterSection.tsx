@@ -44,17 +44,17 @@ export function FooterSection() {
             <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Contact</div>
             <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="mailto:hello@khyra.ai" className="hover:text-primary-foreground transition-colors">
-                  hello@khyra.ai
+                <a href="mailto:hello@khyraai.com" className="hover:text-primary-foreground transition-colors">
+                  hello@khyraai.com
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary-foreground transition-colors">
+                <a href="https://wa.me/9480007233" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground transition-colors">
                   WhatsApp
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary-foreground transition-colors">
+                <a href="https://www.linkedin.com/company/khyra-ai/" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground transition-colors">
                   LinkedIn
                 </a>
               </li>

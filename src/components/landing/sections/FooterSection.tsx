@@ -42,9 +42,9 @@ export function FooterSection() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-primary-foreground/60">Contact</div>
-            <ul className="mt-4 space-y-2 text-sm">
+            <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
               <li>
-                <a href="mailto:hello@khyraai.com" className="text-primary-foreground underline underline-offset-2 hover:text-white transition-colors">
+                <a href="mailto:hello@khyraai.com" className="hover:text-primary-foreground transition-colors">
                   hello@khyraai.com
                 </a>
               </li>

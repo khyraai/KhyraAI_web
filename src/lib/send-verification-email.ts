@@ -1,6 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 export const sendVerificationEmail = createServerFn()
   .inputValidator((data: { email: string; displayName: string }) => {
@@ -69,16 +67,11 @@ export const sendVerificationEmail = createServerFn()
 
     const resend = new Resend(resendKey);
 
-    // Read assets server-side and embed as base64 data URIs (works without a CDN)
-    const assetsDir = join(process.cwd(), "src", "assets");
-    const logoB64 = readFileSync(join(assetsDir, "Khyra.svg")).toString("base64");
-    const mascotB64 = readFileSync(join(assetsDir, "email-mascot.png")).toString("base64");
-
     const { data: sendData, error } = await resend.emails.send({
       from: "Khyra AI <noreply@khyraai.com>",
       to: email,
       subject: "Verify your Khyra AI account",
-      html: buildEmailHtml(displayName, link, logoB64, mascotB64),
+      html: buildEmailHtml(displayName, link),
     });
 
     if (error) {
@@ -90,7 +83,7 @@ export const sendVerificationEmail = createServerFn()
     return { ok: true as const };
   });
 
-function buildEmailHtml(name: string, link: string, logoB64: string, mascotB64: string): string {
+function buildEmailHtml(name: string, link: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,27 +98,19 @@ function buildEmailHtml(name: string, link: string, logoB64: string, mascotB64: 
 
         <!-- ===== HEADER ===== -->
         <tr>
-          <td style="background:#1a3c34;padding:28px 40px;position:relative;overflow:hidden;">
+          <td style="background:#1a3c34;padding:28px 40px;">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="vertical-align:middle;">
-                  <!-- Khyra AI Logo -->
                   <table cellpadding="0" cellspacing="0" style="display:inline-table;vertical-align:middle;">
                     <tr>
-                      <td style="vertical-align:middle;">
-                        <img src="data:image/svg+xml;base64,${logoB64}" width="38" height="38" alt="Khyra AI" style="display:block;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);">
-                      </td>
                       <td style="padding-left:10px;vertical-align:middle;">
                         <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Khyra AI</span>
                       </td>
                     </tr>
                   </table>
                   <br>
-                  <span style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding-left:48px;display:inline-block;margin-top:4px;">AI-FIRST VOICE PLATFORM FOR INDIA</span>
-                </td>
-                <!-- Email mascot -->
-                <td style="vertical-align:bottom;text-align:right;width:100px;">
-                  <img src="data:image/png;base64,${mascotB64}" width="90" alt="Khyra AI Mascot" style="display:block;margin-left:auto;">
+                  <span style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;margin-top:4px;">AI-FIRST VOICE PLATFORM FOR INDIA</span>
                 </td>
               </tr>
             </table>

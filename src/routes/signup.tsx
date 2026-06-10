@@ -25,6 +25,7 @@ export const Route = createFileRoute("/signup")({
   validateSearch: z.object({
     email: z.string().email().optional().catch(undefined),
     incomplete: z.boolean().optional().catch(undefined),
+    redirect: z.string().optional(),
   }),
   head: () => ({
     meta: [{ title: "Create Account — Khyra AI" }],
@@ -249,7 +250,7 @@ function LeftPanel() {
 /* ---------- Page ---------- */
 function SignupPage() {
   const navigate = useNavigate();
-  const { email: prefillEmail, incomplete } = useSearch({ from: "/signup" });
+  const { email: prefillEmail, incomplete, redirect } = useSearch({ from: "/signup" });
   const { refreshProfile } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [authError, setAuthError] = useState("");
@@ -294,8 +295,9 @@ function SignupPage() {
       }
       getDoc(doc(db!, "users", currentUser.uid)).then((snap) => {
         if (snap.exists()) {
-          // Already has a complete profile — go home
-          navigate({ to: "/" });
+          // Already has a complete profile — go home or redirect
+          if (redirect) window.location.href = redirect;
+          else navigate({ to: "/" });
           return;
         }
         const isGoogle = currentUser.providerData.some((p) => p.providerId === "google.com");
@@ -376,7 +378,8 @@ function SignupPage() {
     // Google users' emails are already verified — skip the email verification step
     if (isGoogleUser) {
       await refreshProfile(); // sync auth context before navigating home
-      navigate({ to: "/" });
+      if (redirect) window.location.href = redirect;
+      else navigate({ to: "/" });
     } else {
       setStep(3);
     }
@@ -390,7 +393,8 @@ function SignupPage() {
       await firebaseUser.reload();
       if (firebaseUser.emailVerified) {
         await refreshProfile(); // sync auth context before navigating home
-        navigate({ to: "/" });
+        if (redirect) window.location.href = redirect;
+        else navigate({ to: "/" });
       } else {
         setVerifyError("Email not yet verified. Please click the link in your inbox first.");
       }

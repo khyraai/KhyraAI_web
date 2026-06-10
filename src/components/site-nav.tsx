@@ -41,25 +41,18 @@ export function SiteNav() {
           <a href="/#use-cases" className="transition-colors hover:text-foreground">
             Use cases
           </a>
-          <a href="/#compare" className="transition-colors hover:text-foreground">
+          {/* <a href="/#compare" className="transition-colors hover:text-foreground">
             Compare
           </a>
           <a href="/#pricing" className="transition-colors hover:text-foreground">
             Pricing
-          </a>
+          </a> */}
           <a href="/#faq" className="transition-colors hover:text-foreground">
             FAQ
           </a>
         </nav>
 
         <div className="flex items-center gap-5">
-          <a
-            href="/#demo"
-            className="hidden text-sm font-medium text-foreground/70 decoration-saffron underline-offset-4 transition hover:text-foreground hover:underline lg:inline"
-          >
-            Hear it live
-          </a>
-
           {user ? (
             <div className="flex items-center gap-3">
               <span className="hidden text-sm font-medium text-foreground/70 lg:inline">
@@ -73,20 +66,12 @@ export function SiteNav() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                to="/login"
-                className="hidden text-sm font-medium text-foreground/70 underline-offset-4 transition hover:text-foreground hover:underline lg:inline"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/10 transition hover:bg-primary/90 active:scale-[0.97]"
-              >
-                Get started <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/10 transition hover:bg-primary/90 active:scale-[0.97]"
+            >
+              Get started <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           )}
         </div>
       </div>

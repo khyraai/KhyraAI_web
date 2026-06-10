@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ArrowRight, Activity } from "lucide-react";
+import { ArrowRight, Activity, Mic } from "lucide-react";
 import { BookDemoButton } from "@/components/landing/ui/BookDemoButton";
 import { RevealSection } from "@/components/landing/ui/RevealSection";
 import { heroConversationByLanguage } from "@/data/landing";
@@ -66,6 +66,12 @@ export function HeroSection() {
             <BookDemoButton className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-semibold text-primary-foreground shadow-xl shadow-primary/15 transition-all hover:shadow-2xl hover:shadow-primary/25 active:scale-[0.98]">
               Book a demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </BookDemoButton>
+            <a
+              href="#demo"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-7 py-4 text-[15px] font-semibold text-foreground transition hover:bg-secondary"
+            >
+              Hear it live <Mic className="h-4 w-4" />
+            </a>
           </div>
         </div>
 

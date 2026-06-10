@@ -41,12 +41,12 @@ export function SiteNav() {
           <a href="/#use-cases" className="transition-colors hover:text-foreground">
             Use cases
           </a>
-          {/* <a href="/#compare" className="transition-colors hover:text-foreground">
+          <a href="/#compare" className="transition-colors hover:text-foreground">
             Compare
           </a>
           <a href="/#pricing" className="transition-colors hover:text-foreground">
             Pricing
-          </a> */}
+          </a>
           <a href="/#faq" className="transition-colors hover:text-foreground">
             FAQ
           </a>

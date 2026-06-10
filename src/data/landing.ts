@@ -219,3 +219,109 @@ export const demoFields = [
   { label: "Language", value: "Hindi" },
   { label: "Voice", value: "Meera · Female" },
 ] as const;
+
+export const pricingTiers = [
+  {
+    name: "Starter",
+    description: "Solo practitioners and small clinics.",
+    features: ["1 agent", "1 language", "500 minutes / month", "Email support"],
+  },
+  {
+    name: "Growth",
+    description: "SMBs and multi-location businesses.",
+    features: ["3 agents", "5 languages", "3,000 minutes / month", "Priority support"],
+    featured: true,
+  },
+  {
+    name: "Enterprise",
+    description: "Large teams and custom deployments.",
+    features: ["Unlimited agents", "All 11 languages", "Custom volume", "Dedicated SLA + on-prem"],
+  },
+] as const;
+
+export const testimonials = [
+  {
+    quote:
+      "We went from missing 40% of after-hours calls to zero overnight. Booking rate is up 30% in month one.",
+    author: "Dr. Priya S.",
+    role: "Dental Clinic Owner, Bengaluru",
+  },
+  {
+    quote:
+      "Our sales team was spending 3 hours a day on follow-ups. Khyra does that now. They focus on closing.",
+    author: "Rohan M.",
+    role: "Founder, PropTech Startup, Hyderabad",
+  },
+  {
+    quote:
+      "The Kannada support was the deciding factor. Our patients speak Kannada first. No other tool could do that.",
+    author: "Operations Manager",
+    role: "Multi-specialty Hospital, Mysuru",
+  },
+] as const;
+
+export const whyKhyraItems = [
+  {
+    title: "India-first, not afterthought",
+    description:
+      "Built from day one for Indian accents, languages and workflows. Powered by Sarvam AI's STT/TTS.",
+  },
+  {
+    title: "Deploy in hours, not months",
+    description:
+      "Agents come pre-trained on your vertical. No data labelling. No six-month pilot.",
+  },
+  {
+    title: "The full stack, not just an API",
+    description:
+      "Voice, brain, telephony, integrations and observability — one vendor, one contract.",
+  },
+  {
+    title: "Priced for the Indian market",
+    description:
+      "INR pricing in tiers that make sense for a 3-clinic chain, not just Fortune 500.",
+  },
+] as const;
+
+export const comparisonColumns = [
+  "Khyra AI",
+  "VAPI",
+  "Retell AI",
+  "Telnyx",
+  "Bland AI",
+] as const;
+
+export const comparisonRows = [
+  {
+    feature: "11 Indian languages",
+    values: [true, false, false, false, false],
+  },
+  {
+    feature: "India-specific voices",
+    values: [true, false, false, false, false],
+  },
+  {
+    feature: "15+ prebuilt verticals",
+    values: [true, "Manual", "Manual", false, false],
+  },
+  {
+    feature: "Sub-800ms latency",
+    values: [true, "Varies", "Varies", "Varies", "Varies"],
+  },
+  {
+    feature: "Front desk + sales + support",
+    values: [true, "Build it", "Build it", false, "Build it"],
+  },
+  {
+    feature: "Indian telephony",
+    values: [true, false, false, "Partial", false],
+  },
+  {
+    feature: "No-code config",
+    values: [true, "Dev req.", "Partial", false, "Partial"],
+  },
+  {
+    feature: "Data residency in India",
+    values: [true, false, false, false, false],
+  },
+] as const;

@@ -24,10 +24,9 @@ export function Index() {
       <TrustStrip />
       <PillarsSection setActiveTab={setActiveUseCaseTab} />
       <HowItWorksSection />
-      
       <LiveDemoSection />
-      <FeaturesSection />
       <FinalCTASection />
+      <FeaturesSection />
       <UseCasesSection activeTab={activeUseCaseTab} setActiveTab={setActiveUseCaseTab} />
       <ImpactSection />
       <FAQSection />

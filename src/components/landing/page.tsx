@@ -7,6 +7,7 @@ import { FooterSection } from "@/components/landing/sections/FooterSection";
 import { HeroSection } from "@/components/landing/sections/HeroSection";
 import { HowItWorksSection } from "@/components/landing/sections/HowItWorksSection";
 import { ImpactSection } from "@/components/landing/sections/ImpactSection";
+import { LiveDemoSection } from "@/components/landing/sections/LiveDemoSection";
 import { PillarsSection } from "@/components/landing/sections/PillarsSection";
 import { TrustStrip } from "@/components/landing/sections/TrustStrip";
 import { UseCasesSection } from "@/components/landing/sections/UseCasesSection";
@@ -23,8 +24,10 @@ export function Index() {
       <TrustStrip />
       <PillarsSection setActiveTab={setActiveUseCaseTab} />
       <HowItWorksSection />
-      <FinalCTASection />
+      
+      <LiveDemoSection />
       <FeaturesSection />
+      <FinalCTASection />
       <UseCasesSection activeTab={activeUseCaseTab} setActiveTab={setActiveUseCaseTab} />
       <ImpactSection />
       <FAQSection />

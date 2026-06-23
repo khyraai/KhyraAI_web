@@ -198,11 +198,8 @@ export function LiveDemoSection() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 pb-2 mt-8">
-              <button onClick={() => setActive(true)} className="inline-flex items-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95">
-                Configure &amp; try <ArrowRight className="h-4 w-4" />
-              </button>
-              <a href="/book-demo" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-white/5 px-6 py-3 text-sm font-semibold transition hover:bg-white/10">
-                Book a demo
+              <a href="/book-demo" className="inline-flex items-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95">
+                Book a demo <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           </div>
@@ -276,15 +273,6 @@ export function LiveDemoSection() {
                   )}
                 </div>
               </div>
-
-              {sessionState !== "ended" && sessionState !== "error" && (
-                <button 
-                  onClick={handleEndConversation} 
-                  className="mt-6 text-xs font-medium text-primary/40 hover:text-primary/80 transition-colors uppercase tracking-wider"
-                >
-                  End conversation
-                </button>
-              )}
             </div>
           </div>
         </div>

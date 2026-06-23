@@ -307,7 +307,7 @@ function SignupPage() {
         <div className="flex items-center justify-end px-8 py-5">
           <p className="text-[15px] text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-primary underline-offset-4 hover:underline">Log in</Link>
+            <Link to="/login" search={redirect ? { redirect } : undefined} className="font-semibold text-primary underline-offset-4 hover:underline">Log in</Link>
           </p>
         </div>
 

@@ -61,11 +61,11 @@ export function LiveDemoSection() {
 
   const configGrid = (locked: boolean) => (
     <div className={locked ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1.5">Agent role</p>
+          <p className="text-xs uppercase tracking-wider opacity-60 mb-2">Agent role</p>
           <Select value={roleId} onValueChange={locked ? undefined : setRoleId}>
-            <SelectTrigger className="h-11 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3.5 text-xs transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
+            <SelectTrigger className="h-12 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-4 text-sm transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
               <SelectValue placeholder="Choose role" />
             </SelectTrigger>
             <SelectContent>
@@ -77,9 +77,9 @@ export function LiveDemoSection() {
         </div>
 
         <div>
-          <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1.5">Industry</p>
+          <p className="text-xs uppercase tracking-wider opacity-60 mb-2">Industry</p>
           <Select value={domainId} onValueChange={locked ? undefined : setDomainId}>
-            <SelectTrigger className="h-11 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3.5 text-xs transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
+            <SelectTrigger className="h-12 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-4 text-sm transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
               <SelectValue placeholder="Choose industry" />
             </SelectTrigger>
             <SelectContent>
@@ -91,9 +91,9 @@ export function LiveDemoSection() {
         </div>
 
         <div>
-          <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1.5">Language</p>
+          <p className="text-xs uppercase tracking-wider opacity-60 mb-2">Language</p>
           <Select value={languageCode} onValueChange={locked ? undefined : setLanguageCode}>
-            <SelectTrigger className="h-11 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3.5 text-xs transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
+            <SelectTrigger className="h-12 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-4 text-sm transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
               <SelectValue placeholder="Choose language" />
             </SelectTrigger>
             <SelectContent>
@@ -105,9 +105,9 @@ export function LiveDemoSection() {
         </div>
 
         <div>
-          <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1.5">Voice</p>
+          <p className="text-xs uppercase tracking-wider opacity-60 mb-2">Voice</p>
           <Select value={voiceId} onValueChange={locked ? undefined : setVoiceId}>
-            <SelectTrigger className="h-11 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3.5 text-xs transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
+            <SelectTrigger className="h-12 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-4 text-sm transition hover:bg-primary-foreground/10 focus:ring-1 focus:ring-primary-foreground/30 text-primary-foreground">
               <SelectValue placeholder="Choose voice" />
             </SelectTrigger>
             <SelectContent>
@@ -118,9 +118,9 @@ export function LiveDemoSection() {
           </Select>
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-5 flex flex-wrap gap-2">
         {[role.label, domain.label, DEMO_LANGUAGES.find((item) => item.code === languageCode)?.label ?? "", voice.label + " · " + voice.gender].map((tag) => (
-          <span key={tag} className="rounded-full border border-primary-foreground/20 px-2.5 py-0.5 text-[10px] opacity-60">{tag}</span>
+          <span key={tag} className="rounded-full border border-primary-foreground/20 px-3 py-1 text-xs opacity-60">{tag}</span>
         ))}
       </div>
     </div>
@@ -131,45 +131,45 @@ export function LiveDemoSection() {
       <div className={`overflow-hidden rounded-[2.5rem] border border-border transition-colors duration-500 shadow-xl ${active ? 'bg-beige text-primary' : 'bg-primary text-primary-foreground'}`}>
 
         {/* ── "Live demo" label ── */}
-        <div className="transition-all duration-500 ease-in-out" style={{ padding: active ? "1.5rem 2.5rem 0.25rem" : "2.5rem 2.5rem 0" }}>
-          <div className="text-[10px] uppercase tracking-[0.2em] opacity-70">Live demo</div>
+        <div className="transition-all duration-500 ease-in-out" style={{ padding: active ? "1.75rem 2.5rem 0.5rem" : "2.75rem 2.5rem 0" }}>
+          <div className="text-xs uppercase tracking-[0.2em] opacity-70">Live demo</div>
         </div>
 
         {/* ── Mobile (stacked, no slide) ── */}
-        <div className="md:hidden p-6 pt-4 flex flex-col gap-6">
+        <div className="md:hidden p-7 pt-5 flex flex-col gap-7">
           {!active ? (
             <>
               <div>
-                <h2 className="mt-2 font-display text-4xl tracking-tight leading-[1.1]">Hear Khyra before you buy.</h2>
-                <p className="mt-4 text-sm opacity-80 leading-relaxed max-w-sm">Pick a role, pick a language, and have a live conversation with a Khyra agent right now. No sign-up.</p>
+                <h2 className="mt-2 font-display text-5xl tracking-tight leading-[1.1]">Hear Khyra before you buy.</h2>
+                <p className="mt-5 text-base opacity-80 leading-relaxed max-w-sm">Pick a role, pick a language, and have a live conversation with a Khyra agent right now. No sign-up.</p>
               </div>
-              <div className="rounded-3xl bg-white/5 border border-white/10 p-5 flex flex-col gap-5 text-primary-foreground shadow-inner backdrop-blur-xl">
+              <div className="rounded-3xl bg-white/5 border border-white/10 p-6 flex flex-col gap-6 text-primary-foreground shadow-inner backdrop-blur-xl">
                 {configGrid(false)}
                 <div className="pt-2">
-                  <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-3.5 text-sm font-semibold text-primary hover:opacity-90 active:scale-95 transition">
-                    Start conversation <ArrowRight className="h-4 w-4" />
+                  <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary hover:opacity-90 active:scale-95 transition">
+                    Start conversation <ArrowRight className="h-5 w-5" />
                   </button>
-                  <p className="mt-3 text-center text-[10px] opacity-40">This demo does not store any data.</p>
+                  <p className="mt-4 text-center text-xs opacity-50">This demo does not store any data.</p>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-4 py-6">
-              <SiriOrb state={orbState} volumeRef={micVolumeRef} size={160} />
-              <p className={`text-xs font-medium ${sessionState === "error" ? "text-red-500" : "opacity-60"}`}>
+            <div className="flex flex-col items-center gap-5 py-8">
+              <SiriOrb state={orbState} volumeRef={micVolumeRef} size={180} />
+              <p className={`text-sm font-medium ${sessionState === "error" ? "text-red-500" : "opacity-60"}`}>
                 {statusLabel}
               </p>
-              <div className="text-center leading-snug mt-2">
-                <p className="text-sm font-medium opacity-90">{voice.label} · {role.label}</p>
-                <p className="mt-0.5 text-xs opacity-60">{domain.label}</p>
+              <div className="text-center leading-snug mt-3">
+                <p className="text-base font-medium opacity-90">{voice.label} · {role.label}</p>
+                <p className="mt-1 text-sm opacity-60">{domain.label}</p>
               </div>
-              <div className="mt-8 w-full">
+              <div className="mt-10 w-full">
                 {sessionState === "ended" || sessionState === "error" ? (
-                  <button onClick={handleEndConversation} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary/10 py-3.5 text-sm font-semibold hover:bg-primary/20 active:scale-95 transition">
-                    <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
+                  <button onClick={handleEndConversation} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary/10 py-4 text-base font-semibold hover:bg-primary/20 active:scale-95 transition">
+                    <RotateCcw className="h-5 w-5" /> Close &amp; reconfigure
                   </button>
                 ) : (
-                  <button onClick={handleEndConversation} className="flex w-full items-center justify-center gap-2 rounded-full bg-red-500/10 text-red-600 py-3.5 text-sm font-semibold hover:bg-red-500/20 active:scale-95 transition">
+                  <button onClick={handleEndConversation} className="flex w-full items-center justify-center gap-2 rounded-full bg-red-500/10 text-red-600 py-4 text-base font-semibold hover:bg-red-500/20 active:scale-95 transition">
                     End conversation
                   </button>
                 )}
@@ -179,11 +179,11 @@ export function LiveDemoSection() {
         </div>
 
         {/* ── Desktop (sliding panels) ── */}
-        <div className="relative hidden md:block" style={{ minHeight: 460 }}>
+        <div className="relative hidden md:block" style={{ minHeight: 520 }}>
 
           {/* Panel A: Text copy */}
           <div
-            className="absolute inset-y-0 left-0 flex flex-col justify-between py-10 pl-14 pr-8 transition-all duration-500 ease-in-out"
+            className="absolute inset-y-0 left-0 flex flex-col justify-between py-12 pl-16 pr-10 transition-all duration-500 ease-in-out"
             style={{
               width: "50%",
               opacity: active ? 0 : 1,
@@ -192,61 +192,61 @@ export function LiveDemoSection() {
             }}
           >
             <div>
-              <h2 className="mt-2 font-display text-5xl tracking-tight leading-[1.05]">Hear Khyra<br />before you buy.</h2>
-              <p className="mt-5 max-w-sm text-sm opacity-80 leading-relaxed">
+              <h2 className="mt-2 font-display text-6xl tracking-tight leading-[1.05]">Hear Khyra<br />before you buy.</h2>
+              <p className="mt-6 max-w-sm text-base opacity-80 leading-relaxed">
                 Pick a role, pick a language, and have a live conversation with a Khyra agent right now. No sign-up.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3 pb-2 mt-8">
-              <a href="/book-demo" className="inline-flex items-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95">
-                Book a demo <ArrowRight className="h-4 w-4" />
+            <div className="flex flex-wrap gap-4 pb-2 mt-10">
+              <a href="/book-demo" className="inline-flex items-center gap-2 rounded-full bg-primary-foreground px-8 py-4 text-base font-semibold text-primary transition hover:opacity-90 active:scale-95">
+                Book a demo <ArrowRight className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           {/* Panel B: Config card */}
           <div
-            className="absolute inset-y-0 p-6"
+            className="absolute inset-y-0 p-8"
             style={{
               width: "50%",
               left: active ? 0 : "50%",
               transition: "left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
-            <div className="flex h-full flex-col justify-between rounded-3xl bg-primary border border-white/10 p-7 text-primary-foreground shadow-inner backdrop-blur-xl">
+            <div className="flex h-full flex-col justify-between rounded-[2rem] bg-primary border border-white/10 p-9 text-primary-foreground shadow-inner backdrop-blur-xl">
               {configGrid(active)}
               
-              <div className="mt-6">
+              <div className="mt-8">
                 {!active ? (
                   <button
                     onClick={() => setActive(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-3.5 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95 shadow-md"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary transition hover:opacity-90 active:scale-95 shadow-md"
                   >
-                    Start conversation <ArrowRight className="h-4 w-4" />
+                    Start conversation <ArrowRight className="h-5 w-5" />
                   </button>
                 ) : (sessionState === "ended" || sessionState === "error") ? (
                   <button
                     onClick={handleEndConversation}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground/10 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-foreground/20 active:scale-95"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground/10 py-4 text-base font-semibold text-primary-foreground transition hover:bg-primary-foreground/20 active:scale-95"
                   >
-                    <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
+                    <RotateCcw className="h-5 w-5" /> Close &amp; reconfigure
                   </button>
                 ) : (
                   <button
                     onClick={handleEndConversation}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-3.5 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95 shadow-md"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary transition hover:opacity-90 active:scale-95 shadow-md"
                   >
                     End conversation
                   </button>
                 )}
-                <p className="mt-3 text-center text-[10px] opacity-40">This demo does not store any data.</p>
+                <p className="mt-4 text-center text-xs opacity-50">This demo does not store any data.</p>
               </div>
             </div>
           </div>
 
           {/* Panel C: Siri orb */}
           <div
-            className="absolute inset-y-0 right-0 p-6"
+            className="absolute inset-y-0 right-0 p-8"
             style={{
               width: "50%",
               transform: active ? "translateX(0)" : "translateX(100%)",
@@ -254,20 +254,20 @@ export function LiveDemoSection() {
               transition: "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease",
             }}
           >
-            <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-5">
-              <SiriOrb state={orbState} volumeRef={micVolumeRef} size={200} />
+            <div className="flex h-full flex-col items-center justify-center gap-6 px-5 py-6">
+              <SiriOrb state={orbState} volumeRef={micVolumeRef} size={220} />
 
-              <div className="flex flex-col items-center mt-2">
-                <p className={`text-xs font-medium tracking-wide uppercase ${sessionState === "error" ? "text-red-500" : "text-primary/60"}`}>
+              <div className="flex flex-col items-center mt-3">
+                <p className={`text-sm font-medium tracking-wide uppercase ${sessionState === "error" ? "text-red-500" : "text-primary/60"}`}>
                   {statusLabel}
                 </p>
 
-                <div className="text-center leading-snug mt-4">
-                  <p className="text-base font-semibold text-primary/90">
+                <div className="text-center leading-snug mt-5">
+                  <p className="text-lg font-semibold text-primary/90">
                     {voice.label} · {role.label}
                   </p>
                   {domain && (
-                    <p className="mt-1 text-sm text-primary/60">
+                    <p className="mt-1.5 text-base text-primary/60">
                       {domain.label}
                     </p>
                   )}

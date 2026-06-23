@@ -1,0 +1,595 @@
+﻿commit 370ebeb64635140bd54ae1d1d438bd719f864add
+Author: manojmahadevappa <manojmahadevappam@gmail.com>
+Date:   Mon Jun 1 18:14:54 2026 +0530
+
+    feat: switch live demo to auto-listen mode, remove manual mic button
+
+diff --git a/.env b/.env
+index f7c9b72..90c34f3 100644
+--- a/.env
++++ b/.env
+@@ -6,3 +6,6 @@ VITE_FIREBASE_STORAGE_BUCKET=khyraai-web-auth.firebasestorage.app
+ VITE_FIREBASE_MESSAGING_SENDER_ID=206877772307
+ VITE_FIREBASE_APP_ID=1:206877772307:web:780808f01df3dccef18de6
+ VITE_FIREBASE_MEASUREMENT_ID=G-YRF0ZDNYT8
++
++# Live demo backend (ngrok tunnel ΓÇö update when tunnel restarts)
++VITE_DEMO_WS_URL=wss://89b0-2409-40f2-148-aa36-81b3-a85b-4889-8a17.ngrok-free.app/ws
+diff --git a/src/components/live-demo-modal.tsx b/src/components/live-demo-modal.tsx
+index beab4c3..72ba18c 100644
+--- a/src/components/live-demo-modal.tsx
++++ b/src/components/live-demo-modal.tsx
+@@ -1,5 +1,5 @@
+ import { useCallback, useEffect, useRef, useState } from "react";
+-import { X, Mic, MicOff, RotateCcw } from "lucide-react";
++import { X, RotateCcw } from "lucide-react";
+ 
+ // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ Config (mirrors product_demo_voice/src/config.py) ΓöÇΓöÇΓöÇΓöÇΓöÇ
+ 
+@@ -208,6 +208,12 @@ export function int16ToFloat32(buf: ArrayBuffer): Float32Array<ArrayBuffer> {
+ export const WS_URL: string =
+   (import.meta.env as Record<string, string>).VITE_DEMO_WS_URL ?? "ws://localhost:8000/ws";
+ 
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ VAD constants ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const SILENCE_MS       = 1500;          // ms of silence after speech ΓåÆ flush
++const RMS_THRESHOLD    = 0.025;         // RMS level to classify as speech
++const MIN_SPEECH_MS    = 400;           // discard clips shorter than this
++const BUFFER_CAP_BYTES = 5 * 16_000 * 2; // force-flush after 5 s of audio
++
+ export function LiveDemoModal({
+   config,
+   onClose,
+@@ -228,6 +234,11 @@ export function LiveDemoModal({
+   const streamRef        = useRef<MediaStream | null>(null);
+   const messagesEndRef   = useRef<HTMLDivElement>(null);
+   const configRef        = useRef(config);
++  const aiSpeakingRef    = useRef<boolean>(false);
++  const speechStartedRef = useRef<boolean>(false);
++  const silenceTimerRef  = useRef<number | null>(null);
++  const audioBufferRef   = useRef<ArrayBuffer[]>([]);
++  const bufferBytesRef   = useRef<number>(0);
+ 
+   const setState = useCallback((s: SessionState) => {
+     sessionStateRef.current = s;
+@@ -258,8 +269,12 @@ export function LiveDemoModal({
+     nextPlayTimeRef.current = start + abuf.duration;
+   }, []);
+ 
+-  // ΓöÇΓöÇ Recording ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-  const stopRecording = useCallback(() => {
++  // ΓöÇΓöÇ VAD helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  const cleanupMic = useCallback(() => {
++    if (silenceTimerRef.current !== null) {
++      clearTimeout(silenceTimerRef.current);
++      silenceTimerRef.current = null;
++    }
+     processorRef.current?.disconnect();
+     processorRef.current = null;
+     recordCtxRef.current?.close().catch(() => {});
+@@ -268,58 +283,92 @@ export function LiveDemoModal({
+     streamRef.current = null;
+   }, []);
+ 
+-  const startRecording = useCallback(async () => {
+-    try {
+-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+-      streamRef.current  = stream;
++  const startListening = useCallback(() => {
++    speechStartedRef.current = false;
++    audioBufferRef.current   = [];
++    bufferBytesRef.current   = 0;
++    if (silenceTimerRef.current !== null) {
++      clearTimeout(silenceTimerRef.current);
++      silenceTimerRef.current = null;
++    }
++    setState("listening");
++  }, [setState]);
+ 
+-      const nativeCtx    = new AudioContext();
+-      recordCtxRef.current = nativeCtx;
+-      const nativeSR     = nativeCtx.sampleRate;
+-      const TARGET       = 16000;
++  const stopListening = useCallback(() => {
++    if (silenceTimerRef.current !== null) {
++      clearTimeout(silenceTimerRef.current);
++      silenceTimerRef.current = null;
++    }
++    speechStartedRef.current = false;
++    audioBufferRef.current   = [];
++    bufferBytesRef.current   = 0;
++  }, []);
+ 
+-      const source       = nativeCtx.createMediaStreamSource(stream);
++  const flushAudio = useCallback(() => {
++    const buffers = audioBufferRef.current;
++    if (!speechStartedRef.current || buffers.length === 0) return;
++    const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
++    const durationMs = (totalBytes / 2 / 16_000) * 1000;
++    speechStartedRef.current = false;
++    audioBufferRef.current   = [];
++    bufferBytesRef.current   = 0;
++    if (durationMs < MIN_SPEECH_MS) return;
++    setState("thinking");
++    const ws = wsRef.current;
++    if (ws?.readyState === WebSocket.OPEN) {
++      for (const buf of buffers) ws.send(buf);
++      ws.send(JSON.stringify({ type: "audio_end" }));
++    }
++  }, [setState]);
++
++  const startMic = useCallback(async () => {
++    try {
++      const stream = await navigator.mediaDevices.getUserMedia({
++        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
++        video: false,
++      });
++      streamRef.current = stream;
++      const ctx = new AudioContext({ sampleRate: 16_000 });
++      recordCtxRef.current = ctx;
++      if (ctx.state === "suspended") await ctx.resume();
++      const source = ctx.createMediaStreamSource(stream);
+       // eslint-disable-next-line @typescript-eslint/no-deprecated
+-      const processor    = nativeCtx.createScriptProcessor(4096, 1, 1);
++      const processor = ctx.createScriptProcessor(2048, 1, 1);
+       processorRef.current = processor;
+-
+       processor.onaudioprocess = (e) => {
+-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+-        const input  = e.inputBuffer.getChannelData(0);
+-        let samples  = input;
+-
+-        if (nativeSR !== TARGET) {
+-          const ratio  = nativeSR / TARGET;
+-          const len    = Math.round(input.length / ratio);
+-          samples      = new Float32Array(len);
+-          for (let i  = 0; i < len; i++) samples[i] = input[Math.round(i * ratio)];
++        if (aiSpeakingRef.current) return;
++        const floats = e.inputBuffer.getChannelData(0);
++        let sum = 0;
++        for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
++        const rms      = Math.sqrt(sum / floats.length);
++        const isSpeech = rms > RMS_THRESHOLD;
++        const pcm = new Int16Array(floats.length);
++        for (let i = 0; i < floats.length; i++)
++          pcm[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
++        if (isSpeech) {
++          speechStartedRef.current = true;
++          if (silenceTimerRef.current !== null) {
++            clearTimeout(silenceTimerRef.current);
++            silenceTimerRef.current = null;
++          }
++          audioBufferRef.current.push(pcm.buffer.slice(0));
++          bufferBytesRef.current += pcm.buffer.byteLength;
++          if (bufferBytesRef.current >= BUFFER_CAP_BYTES) flushAudio();
++        } else if (speechStartedRef.current && silenceTimerRef.current === null) {
++          silenceTimerRef.current = window.setTimeout(() => {
++            silenceTimerRef.current = null;
++            if (speechStartedRef.current && !aiSpeakingRef.current) flushAudio();
++          }, SILENCE_MS);
+         }
+-
+-        wsRef.current.send(float32ToInt16(samples));
+       };
+-
+       source.connect(processor);
+-      processor.connect(nativeCtx.destination);
+-
+-      setState("listening");
++      processor.connect(ctx.destination);
++      startListening();
+     } catch {
+       setErrorMsg("Microphone access denied.");
+       setState("error");
+     }
+-  }, [setState]);
+-
+-  const handleMicClick = useCallback(async () => {
+-    const s = sessionStateRef.current;
+-    if (s === "listening") {
+-      stopRecording();
+-      if (wsRef.current?.readyState === WebSocket.OPEN) {
+-        wsRef.current.send(JSON.stringify({ type: "audio_end" }));
+-      }
+-      setState("thinking");
+-    } else if (s === "idle") {
+-      await startRecording();
+-    }
+-  }, [startRecording, stopRecording, setState]);
++  }, [setState, startListening, flushAudio]);
+ 
+   // ΓöÇΓöÇ WebSocket lifecycle ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   useEffect(() => {
+@@ -353,10 +402,12 @@ export function LiveDemoModal({
+ 
+       switch (data.type) {
+         case "ready":
+-          setState("connecting");
++          startMic();
+           break;
+         case "response_text":
+           if (data.text) setMessages((p) => [...p, { role: "agent", text: data.text! }]);
++          aiSpeakingRef.current = true;
++          stopListening();
+           setState("speaking");
+           break;
+         case "transcript":
+@@ -370,7 +421,8 @@ export function LiveDemoModal({
+           break;
+         case "audio_end":
+           nextPlayTimeRef.current = 0;
+-          setState("idle");
++          aiSpeakingRef.current   = false;
++          startListening();
+           break;
+         case "error":
+           setErrorMsg(data.message ?? "Unknown error");
+@@ -390,7 +442,7 @@ export function LiveDemoModal({
+ 
+     return () => {
+       ws.close();
+-      stopRecording();
++      cleanupMic();
+       playbackCtxRef.current?.close().catch(() => {});
+     };
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+@@ -407,16 +459,14 @@ export function LiveDemoModal({
+ 
+   const statusLabel = {
+     connecting: "ConnectingΓÇª",
+-    idle:       "Tap mic to speak",
+-    listening:  "ListeningΓÇª tap to send",
++    idle:       "Ready ΓÇö just speak",
++    listening:  "ListeningΓÇª",
+     thinking:   "ThinkingΓÇª",
+     speaking:   "SpeakingΓÇª",
+     error:      errorMsg || "Error",
+     ended:      "Session ended",
+   }[sessionState];
+ 
+-  const canTapMic = sessionState === "idle" || sessionState === "listening";
+-
+   // ΓöÇΓöÇ Render ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   return (
+     <div
+@@ -485,7 +535,7 @@ export function LiveDemoModal({
+           <div ref={messagesEndRef} />
+         </div>
+ 
+-        {/* ΓöÇΓöÇ Mic button ΓöÇΓöÇ */}
++        {/* ΓöÇΓöÇ Controls ΓöÇΓöÇ */}
+         <div className="flex flex-col items-center gap-2 py-5">
+           {sessionState === "ended" || sessionState === "error" ? (
+             <button
+@@ -497,22 +547,11 @@ export function LiveDemoModal({
+             </button>
+           ) : (
+             <button
+-              onClick={handleMicClick}
+-              disabled={!canTapMic}
+-              aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
+-              className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ${
+-                sessionState === "listening"
+-                  ? "scale-110 bg-red-500 shadow-lg shadow-red-500/50"
+-                  : canTapMic
+-                  ? "bg-white/15 hover:bg-white/25 active:scale-95"
+-                  : "cursor-not-allowed bg-white/5 opacity-40"
+-              }`}
++              onClick={onClose}
++              aria-label="End session"
++              className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-400 transition hover:bg-red-500/40 active:scale-95"
+             >
+-              {sessionState === "listening" ? (
+-                <MicOff className="h-7 w-7 text-white" />
+-              ) : (
+-                <Mic className="h-7 w-7 text-white" />
+-              )}
++              <X className="h-6 w-6" />
+             </button>
+           )}
+           <p className="text-[10px] text-white/25">This demo does not store any data.</p>
+diff --git a/src/routes/index.tsx b/src/routes/index.tsx
+index f07278c..cf4cc96 100644
+--- a/src/routes/index.tsx
++++ b/src/routes/index.tsx
+@@ -7,7 +7,6 @@ import {
+   DEMO_LANGUAGES,
+   DEMO_VOICES,
+   WS_URL,
+-  float32ToInt16,
+   int16ToFloat32,
+   type SessionState,
+   type OrbState,
+@@ -20,8 +19,6 @@ import {
+   Check,
+   Minus,
+   Plus,
+-  Mic,
+-  MicOff,
+   RotateCcw,
+   ChevronDown,
+   Globe,
+@@ -123,7 +120,7 @@ function Hero() {
+               href="#demo"
+               className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-7 py-4 text-[15px] font-semibold text-foreground transition hover:bg-secondary"
+             >
+-              <Mic className="h-4 w-4 opacity-70" /> Hear it live
++              Hear it live
+             </a>
+           </div>
+         </div>
+@@ -409,7 +406,7 @@ function Features() {
+       d: "Remembers earlier turns in the call and responds intelligently.",
+     },
+     {
+-      i: Mic,
++      i: Activity,
+       t: "Live interruptions",
+       d: "Callers can talk over the agent; it adapts in real time like a human.",
+     },
+@@ -786,6 +783,11 @@ function DemoCTA() {
+   const recCtxRef      = useRef<AudioContext | null>(null);
+   const procRef        = useRef<ScriptProcessorNode | null>(null);
+   const streamRef      = useRef<MediaStream | null>(null);
++  const aiSpeakRef    = useRef<boolean>(false);
++  const speechRef     = useRef<boolean>(false);
++  const silTimerRef   = useRef<number | null>(null);
++  const audioBufRef   = useRef<ArrayBuffer[]>([]);
++  const bufBytesRef   = useRef<number>(0);
+ 
+   /* ΓöÇΓöÇ Derived config ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+   const selectedRole   = DEMO_ROLES.find((r) => r.id === roleId)!;
+@@ -823,8 +825,9 @@ function DemoCTA() {
+     nextPlayRef.current = t + abuf.duration;
+   }, []);
+ 
+-  /* ΓöÇΓöÇ Recording ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+-  const stopRecording = useCallback(() => {
++  /* ΓöÇΓöÇ VAD helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
++  const cleanupMic = useCallback(() => {
++    if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
+     procRef.current?.disconnect();
+     procRef.current = null;
+     recCtxRef.current?.close().catch(() => {});
+@@ -833,45 +836,83 @@ function DemoCTA() {
+     streamRef.current = null;
+   }, []);
+ 
+-  const startRecording = useCallback(async () => {
++  const startListening = useCallback(() => {
++    speechRef.current   = false;
++    audioBufRef.current = [];
++    bufBytesRef.current = 0;
++    if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
++    setSS("listening");
++  }, [setSS]);
++
++  const stopListening = useCallback(() => {
++    if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
++    speechRef.current   = false;
++    audioBufRef.current = [];
++    bufBytesRef.current = 0;
++  }, []);
++
++  const flushAudio = useCallback(() => {
++    const buffers = audioBufRef.current;
++    if (!speechRef.current || buffers.length === 0) return;
++    const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
++    const durationMs = (totalBytes / 2 / 16_000) * 1000;
++    speechRef.current   = false;
++    audioBufRef.current = [];
++    bufBytesRef.current = 0;
++    if (durationMs < 400) return;
++    setSS("thinking");
++    const ws = wsRef.current;
++    if (ws?.readyState === WebSocket.OPEN) {
++      for (const buf of buffers) ws.send(buf);
++      ws.send(JSON.stringify({ type: "audio_end" }));
++    }
++  }, [setSS]);
++
++  const startMic = useCallback(async () => {
+     try {
+-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
++      const stream = await navigator.mediaDevices.getUserMedia({
++        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
++        video: false,
++      });
+       streamRef.current = stream;
+-      const nCtx   = new AudioContext();
+-      recCtxRef.current = nCtx;
+-      const ratio  = nCtx.sampleRate / 16000;
+-      const src    = nCtx.createMediaStreamSource(stream);
++      const ctx = new AudioContext({ sampleRate: 16_000 });
++      recCtxRef.current = ctx;
++      if (ctx.state === "suspended") await ctx.resume();
++      const source = ctx.createMediaStreamSource(stream);
+       // eslint-disable-next-line @typescript-eslint/no-deprecated
+-      const proc   = nCtx.createScriptProcessor(4096, 1, 1);
++      const proc = ctx.createScriptProcessor(2048, 1, 1);
+       procRef.current = proc;
+       proc.onaudioprocess = (e) => {
+-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+-        const raw  = e.inputBuffer.getChannelData(0);
+-        const len  = Math.round(raw.length / ratio);
+-        const out  = ratio === 1 ? raw : new Float32Array(len);
+-        if (ratio !== 1) for (let i = 0; i < len; i++) out[i] = raw[Math.round(i * ratio)];
+-        wsRef.current.send(float32ToInt16(out));
++        if (aiSpeakRef.current) return;
++        const floats = e.inputBuffer.getChannelData(0);
++        let sum = 0;
++        for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
++        const rms      = Math.sqrt(sum / floats.length);
++        const isSpeech = rms > 0.025;
++        const pcm = new Int16Array(floats.length);
++        for (let i = 0; i < floats.length; i++)
++          pcm[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
++        if (isSpeech) {
++          speechRef.current = true;
++          if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
++          audioBufRef.current.push(pcm.buffer.slice(0));
++          bufBytesRef.current += pcm.buffer.byteLength;
++          if (bufBytesRef.current >= 5 * 16_000 * 2) flushAudio();
++        } else if (speechRef.current && silTimerRef.current === null) {
++          silTimerRef.current = window.setTimeout(() => {
++            silTimerRef.current = null;
++            if (speechRef.current && !aiSpeakRef.current) flushAudio();
++          }, 1500);
++        }
+       };
+-      src.connect(proc);
+-      proc.connect(nCtx.destination);
+-      setSS("listening");
++      source.connect(proc);
++      proc.connect(ctx.destination);
++      startListening();
+     } catch {
+       setErrorMsg("Microphone access denied.");
+       setSS("error");
+     }
+-  }, [setSS]);
+-
+-  const handleMicClick = useCallback(async () => {
+-    const s = ssRef.current;
+-    if (s === "listening") {
+-      stopRecording();
+-      if (wsRef.current?.readyState === WebSocket.OPEN)
+-        wsRef.current.send(JSON.stringify({ type: "audio_end" }));
+-      setSS("thinking");
+-    } else if (s === "idle") {
+-      await startRecording();
+-    }
+-  }, [startRecording, stopRecording, setSS]);
++  }, [setSS, startListening, flushAudio]);
+ 
+   /* ΓöÇΓöÇ WebSocket ΓÇö fires when active flips to true ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+   useEffect(() => {
+@@ -892,9 +933,10 @@ function DemoCTA() {
+       }
+       let d: { type: string; text?: string; message?: string };
+       try { d = JSON.parse(evt.data as string); } catch { return; }
+-      if      (d.type === "ready")     setSS("idle");
+-      else if (d.type === "audio_end") { nextPlayRef.current = 0; setSS("idle"); }
+-      else if (d.type === "error")     { setErrorMsg(d.message ?? "Error"); setSS("error"); }
++      if      (d.type === "ready")          startMic();
++      else if (d.type === "response_text")  { aiSpeakRef.current = true; stopListening(); setSS("speaking"); }
++      else if (d.type === "audio_end")      { nextPlayRef.current = 0; aiSpeakRef.current = false; startListening(); }
++      else if (d.type === "error")          { setErrorMsg(d.message ?? "Error"); setSS("error"); }
+     };
+ 
+     ws.onerror  = () => { setErrorMsg("Cannot reach demo server."); setSS("error"); };
+@@ -902,7 +944,7 @@ function DemoCTA() {
+ 
+     return () => {
+       ws.close();
+-      stopRecording();
++      cleanupMic();
+       playCtxRef.current?.close().catch(() => {});
+     };
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+@@ -910,11 +952,11 @@ function DemoCTA() {
+ 
+   const endConversation = useCallback(() => {
+     wsRef.current?.close();
+-    stopRecording();
++    cleanupMic();
+     playCtxRef.current?.close().catch(() => {});
+     setActive(false);
+     setTimeout(() => { ssRef.current = "connecting"; setSSRaw("connecting"); setErrorMsg(""); }, 520);
+-  }, [stopRecording]);
++  }, [cleanupMic]);
+ 
+   /* ΓöÇΓöÇ Derived UI ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+   const orbState: OrbState =
+@@ -925,15 +967,14 @@ function DemoCTA() {
+ 
+   const statusLabel: Record<SessionState, string> = {
+     connecting: "ConnectingΓÇª",
+-    idle:       "Tap mic to speak",
+-    listening:  "ListeningΓÇª  tap to send",
++    idle:       "Ready ΓÇö just speak",
++    listening:  "ListeningΓÇª",
+     thinking:   "ThinkingΓÇª",
+     speaking:   "SpeakingΓÇª",
+     error:      errorMsg || "Error",
+     ended:      "Session ended",
+   };
+ 
+-  const canTapMic = sessionState === "idle" || sessionState === "listening";
+ 
+   /* ΓöÇΓöÇ Config panel (shared between mobile + desktop) ΓöÇΓöÇΓöÇΓöÇ */
+   const configGrid = (locked: boolean) => (
+@@ -984,7 +1025,7 @@ function DemoCTA() {
+               <div className="rounded-2xl bg-primary p-5 flex flex-col gap-4 text-primary-foreground">
+                 {configGrid(false)}
+                 <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary hover:opacity-90 active:scale-95 transition">
+-                  <Mic className="h-4 w-4" /> Start conversation
++                  Start conversation
+                 </button>
+                 <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
+               </div>
+@@ -997,11 +1038,6 @@ function DemoCTA() {
+                 <p className="text-sm font-medium opacity-75">{selectedVoice.label} ┬╖ {selectedRole.label}</p>
+                 {selectedDomain && <p className="mt-0.5 text-xs opacity-45">{selectedDomain.label}</p>}
+               </div>
+-              {sessionState !== "ended" && sessionState !== "error" && (
+-                <button onClick={handleMicClick} disabled={!canTapMic} className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 ${sessionState === "listening" ? "scale-110 bg-red-500 shadow-lg shadow-red-500/40" : canTapMic ? "bg-primary/10 hover:bg-primary/20 active:scale-95" : "cursor-not-allowed bg-primary/5 opacity-40"}`}>
+-                  {sessionState === "listening" ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+-                </button>
+-              )}
+               {sessionState === "ended" || sessionState === "error" ? (
+                 <button onClick={endConversation} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 active:scale-95 transition">
+                   <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
+@@ -1058,7 +1094,7 @@ function DemoCTA() {
+                   onClick={() => setActive(true)}
+                   className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
+                 >
+-                  <Mic className="h-4 w-4" /> Start conversation
++                  Start conversation
+                 </button>
+               ) : (sessionState === "ended" || sessionState === "error") ? (
+                 <button
+@@ -1067,7 +1103,14 @@ function DemoCTA() {
+                 >
+                   <RotateCcw className="h-4 w-4" /> Close &amp; reconfigure
+                 </button>
+-              ) : null}
++              ) : (
++                <button
++                  onClick={endConversation}
++                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 text-sm font-semibold text-primary transition hover:opacity-90 active:scale-95"
++                >
++                  End conversation
++                </button>
++              )}
+               <p className="text-center text-[10px] opacity-40">This demo does not store any data.</p>
+             </div>
+           </div>
+@@ -1102,25 +1145,9 @@ function DemoCTA() {
+               </div>
+ 
+               {sessionState !== "ended" && sessionState !== "error" && (
+-                <>
+-                  <button
+-                    onClick={handleMicClick}
+-                    disabled={!canTapMic}
+-                    aria-label={sessionState === "listening" ? "Stop recording" : "Start recording"}
+-                    className={`flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200 ${
+-                      sessionState === "listening"
+-                        ? "scale-110 bg-red-500 shadow-xl shadow-red-500/40"
+-                        : canTapMic
+-                        ? "bg-primary/10 hover:bg-primary/20 active:scale-95"
+-                        : "cursor-not-allowed bg-primary/5 opacity-40"
+-                    }`}
+-                  >
+-                    {sessionState === "listening" ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+-                  </button>
+-                  <button onClick={endConversation} className="mt-auto text-[11px] text-primary/40 hover:text-primary/70 transition-colors">
+-                    End conversation
+-                  </button>
+-                </>
++                <button onClick={endConversation} className="mt-auto text-[11px] text-primary/40 hover:text-primary/70 transition-colors">
++                  End conversation
++                </button>
+               )}
+             </div>
+           </div>

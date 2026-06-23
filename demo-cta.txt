@@ -1,0 +1,212 @@
+﻿
+> function DemoCTA() {
+    const reveal = useScrollReveal();
+  
+    /* ΓöÇΓöÇ Config ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö
+ÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    const [roleId,       setRoleId]       = useState("front_desk");
+    const [domainId,     setDomainId]     = useState("dental_clinic");
+    const [languageCode, setLanguageCode] = useState("hi-IN");
+    const [voiceId,      setVoiceId]      = useState("voice_1");
+  
+    /* ΓöÇΓöÇ Session ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓ
+öÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    const [active,       setActive]       = useState(false);
+    const [sessionState, setSSRaw]        = useState<SessionState>("connecting");
+    const [errorMsg,     setErrorMsg]     = useState("");
+  
+    const ssRef          = useRef<SessionState>("connecting");
+    const wsRef          = useRef<WebSocket | null>(null);
+    const playCtxRef     = useRef<AudioContext | null>(null);
+    const nextPlayRef    = useRef(0);
+    const recCtxRef      = useRef<AudioContext | null>(null);
+    const procRef        = useRef<ScriptProcessorNode | null>(null);
+    const streamRef      = useRef<MediaStream | null>(null);
+    const aiSpeakRef    = useRef<boolean>(false);
+    const speechRef     = useRef<boolean>(false);
+    const silTimerRef   = useRef<number | null>(null);
+    const audioBufRef   = useRef<ArrayBuffer[]>([]);
+    const bufBytesRef   = useRef<number>(0);
+  
+    /* ΓöÇΓöÇ Derived config 
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    const selectedRole   = DEMO_ROLES.find((r) => r.id === roleId)!;
+    const selectedDomain = selectedRole.domains.find((d) => d.id === domainId);
+    const selectedLang   = DEMO_LANGUAGES.find((l) => l.code === languageCode)!;
+    const selectedVoice  = DEMO_VOICES.find((v) => v.id === voiceId)!;
+  
+    const handleRoleChange = useCallback((id: string) => {
+      setRoleId(id);
+      const role = DEMO_ROLES.find((r) => r.id === id);
+      if (role) setDomainId(role.domains[0].id);
+    }, []);
+  
+    const setSS = useCallback((s: SessionState) => {
+      ssRef.current = s;
+      setSSRaw(s);
+    }, []);
+  
+    /* ΓöÇΓöÇ Playback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    const playChunk = useCallback((buf: ArrayBuffer) => {
+      if (!playCtxRef.current || playCtxRef.current.state === "closed") {
+        playCtxRef.current = new AudioContext({ sampleRate: 16000 });
+        nextPlayRef.current = 0;
+      }
+      const ctx  = playCtxRef.current;
+      const f32  = int16ToFloat32(buf);
+      const abuf = ctx.createBuffer(1, f32.length, 16000);
+      abuf.copyToChannel(f32, 0);
+      const src  = ctx.createBufferSource();
+      src.buffer = abuf;
+      src.connect(ctx.destination);
+      const now  = ctx.currentTime;
+      const t    = Math.max(now, nextPlayRef.current);
+      src.start(t);
+      nextPlayRef.current = t + abuf.duration;
+    }, []);
+  
+    /* ΓöÇΓöÇ VAD helpers 
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ 
+*/
+    const cleanupMic = useCallback(() => {
+      if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
+      procRef.current?.disconnect();
+      procRef.current = null;
+      recCtxRef.current?.close().catch(() => {});
+      recCtxRef.current = null;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }, []);
+  
+    const startListening = useCallback(() => {
+      speechRef.current   = false;
+      audioBufRef.current = [];
+      bufBytesRef.current = 0;
+      if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
+      setSS("listening");
+    }, [setSS]);
+  
+    const stopListening = useCallback(() => {
+      if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
+      speechRef.current   = false;
+      audioBufRef.current = [];
+      bufBytesRef.current = 0;
+    }, []);
+  
+    const flushAudio = useCallback(() => {
+      const buffers = audioBufRef.current;
+      if (!speechRef.current || buffers.length === 0) return;
+      const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
+      const durationMs = (totalBytes / 2 / 16_000) * 1000;
+      speechRef.current   = false;
+      audioBufRef.current = [];
+      bufBytesRef.current = 0;
+      if (durationMs < 400) return;
+      setSS("thinking");
+      const ws = wsRef.current;
+      if (ws?.readyState === WebSocket.OPEN) {
+        for (const buf of buffers) ws.send(buf);
+        ws.send(JSON.stringify({ type: "audio_end" }));
+      }
+    }, [setSS]);
+  
+    const startMic = useCallback(async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          video: false,
+        });
+        streamRef.current = stream;
+        const ctx = new AudioContext({ sampleRate: 16_000 });
+        recCtxRef.current = ctx;
+        if (ctx.state === "suspended") await ctx.resume();
+        const source = ctx.createMediaStreamSource(stream);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const proc = ctx.createScriptProcessor(2048, 1, 1);
+        procRef.current = proc;
+        proc.onaudioprocess = (e) => {
+          if (aiSpeakRef.current) return;
+          const floats = e.inputBuffer.getChannelData(0);
+          let sum = 0;
+          for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
+          const rms      = Math.sqrt(sum / floats.length);
+          const isSpeech = rms > 0.025;
+          const pcm = new Int16Array(floats.length);
+          for (let i = 0; i < floats.length; i++)
+            pcm[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
+          if (isSpeech) {
+            speechRef.current = true;
+            if (silTimerRef.current !== null) { clearTimeout(silTimerRef.current); silTimerRef.current = null; }
+            audioBufRef.current.push(pcm.buffer.slice(0));
+            bufBytesRef.current += pcm.buffer.byteLength;
+            if (bufBytesRef.current >= 5 * 16_000 * 2) flushAudio();
+          } else if (speechRef.current && silTimerRef.current === null) {
+            silTimerRef.current = window.setTimeout(() => {
+              silTimerRef.current = null;
+              if (speechRef.current && !aiSpeakRef.current) flushAudio();
+            }, 1500);
+          }
+        };
+        source.connect(proc);
+        proc.connect(ctx.destination);
+        startListening();
+      } catch {
+        setErrorMsg("Microphone access denied.");
+        setSS("error");
+      }
+    }, [setSS, startListening, flushAudio]);
+  
+    /* ΓöÇΓöÇ WebSocket ΓÇö fires when active flips to true ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    useEffect(() => {
+      if (!active) return;
+      const ws = new WebSocket(WS_URL);
+      ws.binaryType = "arraybuffer";
+      wsRef.current = ws;
+  
+      ws.onopen = () =>
+        ws.send(JSON.stringify({ type: "init", role: roleId, domain: domainId,
+          language: languageCode, voice_id: voiceId }));
+  
+      ws.onmessage = (evt) => {
+        if (evt.data instanceof ArrayBuffer) {
+          playChunk(evt.data);
+          if (ssRef.current !== "speaking") setSS("speaking");
+          return;
+        }
+        let d: { type: string; text?: string; message?: string };
+        try { d = JSON.parse(evt.data as string); } catch { return; }
+        if      (d.type === "ready")          startMic();
+        else if (d.type === "response_text")  { aiSpeakRef.current = true; stopListening(); setSS("speaking"); }
+        else if (d.type === "audio_end")      { nextPlayRef.current = 0; aiSpeakRef.current = false; startListening(); 
+}
+        else if (d.type === "error")          { setErrorMsg(d.message ?? "Error"); setSS("error"); }
+      };
+  
+      ws.onerror  = () => { setErrorMsg("Cannot reach demo server."); setSS("error"); };
+      ws.onclose  = () => { if (ssRef.current !== "error") setSS("ended"); };
+  
+      return () => {
+        ws.close();
+        cleanupMic();
+        playCtxRef.current?.close().catch(() => {});
+      };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [active]);
+  
+    const endConversation = useCallback(() => {
+      wsRef.current?.close();
+      cleanupMic();
+      playCtxRef.current?.close().catch(() => {});
+      setActive(false);
+      setTimeout(() => { ssRef.current = "connecting"; setSSRaw("connecting"); setErrorMsg(""); }, 520);
+    }, [cleanupMic]);
+  
+    /* ΓöÇΓöÇ Derived UI ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓ
+öÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    const orbState: OrbState =
+      sessionState === "listening"  ? "listening"  :
+      sessionState === "thinking"   ? "thinking"   :
+      sessionState === "speaking"   ? "speaking"   :
+
+

@@ -23,10 +23,10 @@ function AuthActionPage() {
     if (mode === "verifyEmail" && oobCode && auth) {
       applyActionCode(auth, oobCode)
         .then(async () => {
-          await auth.authStateReady();
+          await auth!.authStateReady();
           setStatus("success");
-          if (auth.currentUser) {
-            await auth.currentUser.reload();
+          if (auth!.currentUser) {
+            await auth!.currentUser.reload();
             setTimeout(() => navigate({ to: "/" }), 2500);
           } else {
             setTimeout(() => navigate({ to: "/login" }), 2500);

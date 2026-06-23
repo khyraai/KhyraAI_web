@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Eye, EyeOff } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
@@ -123,13 +123,7 @@ function LoginPage() {
     setAuthError(""); setSubmitting(true);
     try {
       const { user } = await signInWithEmailAndPassword(auth!, data.email, data.password);
-      // Guard: if the user abandoned signup at Step 2, their Firestore profile
-      // will be missing. Redirect them back to finish the registration.
-      const userDoc = await getDoc(doc(db!, "users", user.uid));
-      if (!userDoc.exists()) {
-        navigate({ to: "/signup", search: { incomplete: true, redirect } });
-        return;
-      }
+      // If redirect param exists, go there. Otherwise go home.
       if (redirect) {
         window.location.href = redirect;
       } else {
@@ -161,10 +155,13 @@ function LoginPage() {
       // Check if user has completed registration (Firestore profile exists)
       const userDoc = await getDoc(doc(db!, "users", user.uid));
       if (!userDoc.exists()) {
-        // Keep the user authenticated — signup page will detect auth.currentUser
-        // and auto-jump to Step 2 to complete the mandatory profile form.
-        navigate({ to: "/signup", search: { incomplete: true, redirect } });
-        return;
+        // Create the user profile seamlessly
+        await setDoc(doc(db!, "users", user.uid), {
+          uid: user.uid,
+          name: user.displayName || "User",
+          email: user.email || "",
+          createdAt: serverTimestamp(),
+        });
       }
 
       if (redirect) {
@@ -191,7 +188,7 @@ function LoginPage() {
         <div className="flex items-center justify-end px-8 py-5">
           <p className="text-sm text-muted-foreground">
             Don't have an Account?{" "}
-            <Link to="/signup" className="font-semibold text-primary underline-offset-4 hover:underline">Create an Account</Link>
+            <Link to="/signup" search={redirect ? { redirect } : undefined} className="font-semibold text-primary underline-offset-4 hover:underline">Create an Account</Link>
           </p>
         </div>
 

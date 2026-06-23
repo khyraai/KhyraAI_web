@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TopBanner, SiteNav } from "@/components/site-nav";
+import { FooterSection } from "@/components/landing/sections/FooterSection";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
@@ -17,6 +19,8 @@ export const Route = createFileRoute("/terms")({
 function TermsPage() {
   return (
     <main className="min-h-screen bg-background">
+      <TopBanner />
+      <SiteNav />
       <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="overflow-hidden rounded-[2rem] border border-border bg-background/90 p-10 shadow-[0_40px_120px_-60px_rgba(31,74,63,0.35)]">
           <div className="mb-10 text-center">
@@ -239,6 +243,7 @@ function TermsPage() {
           </div>
         </div>
       </div>
+      <FooterSection />
     </main>
   );
 }

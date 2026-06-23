@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getDoc, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { ArrowRight, Check, Pencil } from "lucide-react";
+import { ArrowRight, Check, Pencil, ChevronDown } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
@@ -20,20 +20,25 @@ export const Route = createFileRoute("/book-demo")({
 });
 
 const LANGUAGE_OPTIONS = [
-  "English",
-  "Hindi",
-  "Bengali",
-  "Gujarati",
-  "Kannada",
-  "Malayalam",
-  "Marathi",
-  "Odia",
-  "Tamil",
-  "Punjabi",
-  "Telugu",
+  "English", "Hindi", "Bengali", "Gujarati", "Kannada",
+  "Malayalam", "Marathi", "Odia", "Tamil", "Punjabi", "Telugu",
 ] as const;
 
+const INDIA_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Andaman & Nicobar Islands", "Chandigarh", "Dadra & Nagar Haveli and Daman & Diu",
+  "Delhi", "Jammu & Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
+];
+
 const schema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
+  phone: z.string().min(7, "Enter a valid phone number"),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
   roleTitle: z.string().min(2, "Role/title is required"),
   teamSize: z.string().min(1, "Team size is required"),
   useCasePainPoints: z.string().min(10, "Please share a little more detail").max(1000, "Please keep this under 1000 characters"),
@@ -41,6 +46,48 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+
+const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
+
+function StateDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function outside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, []);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputCls} flex items-center justify-between`}
+      >
+        <span className={value ? "text-ink" : "text-muted-foreground/60"}>{value || "Select state…"}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full overflow-y-auto rounded-xl border border-border bg-white shadow-lg" style={{ maxHeight: "calc(8 * 2.75rem)" }}>
+          {INDIA_STATES.map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => { onChange(st); setOpen(false); }}
+              className={`w-full px-4 py-2.5 text-left text-[15px] transition-colors hover:bg-secondary ${
+                value === st ? "bg-primary/10 font-medium text-primary" : "text-ink"
+              }`}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function BookDemoPage() {
   const navigate = useNavigate();
@@ -64,7 +111,7 @@ function BookDemoPage() {
   } | null>(null);
   const [editMode, setEditMode] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, reset, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { preferredLanguages: [] },
   });
@@ -73,7 +120,8 @@ function BookDemoPage() {
   useEffect(() => {
     if (loading) return;
     if (!auth?.currentUser) {
-      navigate({ to: "/login" });
+      // Pass the redirect param so login sends us back here
+      navigate({ to: "/login", search: { redirect: "/book-demo" } });
       return;
     }
     setAuthChecked(true);
@@ -83,19 +131,32 @@ function BookDemoPage() {
     const loadProfile = async () => {
       if (!authChecked || !auth?.currentUser || !db) return;
       const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      // If profile is completely missing, there's a systemic error, but we shouldn't hit this
+      // because login/signup always creates it now. Just handle gracefully.
       if (!snap.exists()) {
-        navigate({ to: "/signup", search: { incomplete: true } });
+        navigate({ to: "/" });
         return;
       }
       const data = snap.data();
-      setProfile({
+      const p = {
         name: data.name ?? auth.currentUser.displayName ?? "",
         email: data.email ?? auth.currentUser.email ?? "",
         phone: data.phone ?? "",
         companyName: data.companyName ?? "",
         city: data.city ?? "",
         state: data.state ?? "",
+      };
+      setProfile(p);
+      
+      // Auto-populate the form with existing profile data
+      reset({
+        companyName: p.companyName,
+        phone: p.phone,
+        city: p.city,
+        state: p.state,
+        preferredLanguages: [], // reset languages until we check existingRequest
       });
+
       const latest = data?.latestDemoRequest;
       const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
       if (latest?.submittedAtMs && typeof latest.submittedAtMs === "number" && latest.submittedAtMs >= tenDaysAgoMs) {
@@ -112,18 +173,22 @@ function BookDemoPage() {
       }
     };
     loadProfile().catch(() => setSubmitError("Unable to load your profile. Please try again."));
-  }, [authChecked, navigate]);
+  }, [authChecked, navigate, reset]);
 
   useEffect(() => {
-    if (editMode && existingRequest) {
+    if (editMode && existingRequest && profile) {
       reset({
+        companyName: profile.companyName,
+        phone: profile.phone,
+        city: profile.city,
+        state: profile.state,
         roleTitle: existingRequest.roleTitle,
         teamSize: existingRequest.teamSize,
         useCasePainPoints: existingRequest.useCasePainPoints,
         preferredLanguages: existingRequest.preferredLanguages as FormData["preferredLanguages"],
       });
     }
-  }, [editMode, existingRequest, reset]);
+  }, [editMode, existingRequest, reset, profile]);
 
   const canRenderForm = useMemo(() => !!user && !!profile, [user, profile]);
 
@@ -135,6 +200,24 @@ function BookDemoPage() {
     try {
       const nowMs = Date.now();
       const userRef = doc(db, "users", auth.currentUser.uid);
+
+      // Save the profile updates (companyName, phone, city, state) back to Firestore
+      await updateDoc(userRef, {
+        companyName: data.companyName,
+        phone: data.phone,
+        city: data.city,
+        state: data.state,
+      });
+
+      // We'll pass the updated profile snapshot down
+      const updatedProfileSnapshot = {
+        name: profile.name || auth.currentUser.displayName || "",
+        email: profile.email || auth.currentUser.email || "",
+        phone: data.phone,
+        companyName: data.companyName,
+        city: data.city,
+        state: data.state,
+      };
 
       if (existingRequest) {
         // UPDATE existing request
@@ -170,14 +253,7 @@ function BookDemoPage() {
               useCasePainPoints: data.useCasePainPoints,
               preferredLanguages: data.preferredLanguages,
             },
-            profileSnapshot: {
-              name: profile.name || auth.currentUser.displayName || "",
-              email: profile.email || auth.currentUser.email || "",
-              phone: profile.phone || "",
-              companyName: profile.companyName || "",
-              city: profile.city || "",
-              state: profile.state || "",
-            },
+            profileSnapshot: updatedProfileSnapshot,
           },
         });
         if (!updateRes?.ok) {
@@ -238,14 +314,7 @@ function BookDemoPage() {
               useCasePainPoints: data.useCasePainPoints,
               preferredLanguages: data.preferredLanguages,
             },
-            profileSnapshot: {
-              name: profile.name || auth.currentUser.displayName || "",
-              email: profile.email || auth.currentUser.email || "",
-              phone: profile.phone || "",
-              companyName: profile.companyName || "",
-              city: profile.city || "",
-              state: profile.state || "",
-            },
+            profileSnapshot: updatedProfileSnapshot,
           },
         });
         if (saveRes?.ok && saveRes.docId) {
@@ -269,6 +338,10 @@ function BookDemoPage() {
       if (!emailRes?.ok) {
         setSubmitError("Your demo request was saved, but we could not send the confirmation email right now.");
       }
+      
+      // Update local profile state
+      setProfile((prev) => prev ? { ...prev, ...updatedProfileSnapshot } : null);
+      
       setWasUpdate(!!existingRequest);
       setSubmitted(true);
       setEditMode(false);
@@ -377,25 +450,51 @@ function BookDemoPage() {
 
           {!submitted && canRenderForm && (!existingRequest || editMode) && (
             <form onSubmit={onSubmit} className="space-y-5">
-              {(() => {
-                const profileData = profile!;
-                return (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Info label="Name" value={profileData.name} />
-                    <Info label="Email" value={profileData.email} />
-                    <Info label="Phone" value={profileData.phone} />
-                    <Info label="Company" value={profileData.companyName} />
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Info label="Name" value={profile!.name} />
+                <Info label="Email" value={profile!.email} />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Company name" error={errors.companyName?.message}>
+                  <input {...register("companyName")} className={inputCls} placeholder="XYZ pvt. ltd" />
+                </Field>
+                <Field label="Phone number" error={errors.phone?.message}>
+                  <div className="flex gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-white px-3 text-[15px] text-muted-foreground">
+                      <span className="text-base leading-none">🇮🇳</span>
+                      <span>+91</span>
+                    </div>
+                    <input {...register("phone")} type="tel" placeholder="1234567890" className={inputCls} />
                   </div>
-                );
-              })()}
+                </Field>
+              </div>
 
-              <Field label="Role / Title" error={errors.roleTitle?.message}>
-                <input {...register("roleTitle")} className={inputCls} placeholder="Founder, Ops Manager, Sales Lead..." />
-              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="State/Province" error={errors.state?.message}>
+                  <Controller
+                    control={control}
+                    name="state"
+                    render={({ field }) => (
+                      <StateDropdown value={field.value ?? ""} onChange={field.onChange} />
+                    )}
+                  />
+                </Field>
+                <Field label="City" error={errors.city?.message}>
+                  <input {...register("city")} className={inputCls} placeholder="City" />
+                </Field>
+              </div>
 
-              <Field label="Team size" error={errors.teamSize?.message}>
-                <input {...register("teamSize")} className={inputCls} placeholder="e.g. 5-10, 20, 50+" />
-              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Role / Title" error={errors.roleTitle?.message}>
+                  <input {...register("roleTitle")} className={inputCls} placeholder="Founder, Ops Manager, Sales Lead..." />
+                </Field>
+
+                <Field label="Team size" error={errors.teamSize?.message}>
+                  <input {...register("teamSize")} className={inputCls} placeholder="e.g. 5-10, 20, 50+" />
+                </Field>
+              </div>
 
               <Field label="Use case / pain points" error={errors.useCasePainPoints?.message}>
                 <textarea {...register("useCasePainPoints")} className={`${inputCls} min-h-28 resize-y`} placeholder="Tell us what you want to automate and key challenges today." />
@@ -433,7 +532,17 @@ function BookDemoPage() {
                     type="button"
                     onClick={() => {
                       setEditMode(false);
-                      reset({ preferredLanguages: [] });
+                      // On cancel edit, revert form state back to profile
+                      reset({ 
+                        companyName: profile!.companyName,
+                        phone: profile!.phone,
+                        city: profile!.city,
+                        state: profile!.state,
+                        roleTitle: existingRequest!.roleTitle,
+                        teamSize: existingRequest!.teamSize,
+                        useCasePainPoints: existingRequest!.useCasePainPoints,
+                        preferredLanguages: existingRequest!.preferredLanguages as FormData["preferredLanguages"],
+                      });
                     }}
                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-7 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary"
                   >
@@ -474,5 +583,3 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     </div>
   );
 }
-
-const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";

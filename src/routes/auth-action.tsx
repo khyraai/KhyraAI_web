@@ -22,9 +22,15 @@ function AuthActionPage() {
 
     if (mode === "verifyEmail" && oobCode && auth) {
       applyActionCode(auth, oobCode)
-        .then(() => {
+        .then(async () => {
+          await auth!.authStateReady();
           setStatus("success");
-          setTimeout(() => navigate({ to: "/login" }), 2500);
+          if (auth!.currentUser) {
+            await auth!.currentUser.reload();
+            setTimeout(() => navigate({ to: "/" }), 2500);
+          } else {
+            setTimeout(() => navigate({ to: "/login" }), 2500);
+          }
         })
         .catch((err: { message?: string }) => {
           setStatus("error");
@@ -50,7 +56,9 @@ function AuthActionPage() {
           <>
             <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
             <h1 className="text-xl font-semibold text-foreground">Email verified!</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Redirecting you to login…</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {auth?.currentUser ? "Redirecting to your dashboard…" : "Redirecting you to login…"}
+            </p>
           </>
         )}
         {status === "error" && (

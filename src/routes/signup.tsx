@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState, Fragment, useRef, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useState, useRef, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -8,13 +8,12 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut,
   onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
 import { sendVerificationEmail } from "@/lib/send-verification-email";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { Eye, EyeOff, Check, ArrowRight, ChevronLeft, ChevronDown, Mail } from "lucide-react";
+import { Eye, EyeOff, Check, ArrowRight, Mail, ChevronLeft } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { TopBanner, SiteNav } from "@/components/site-nav";
@@ -47,19 +46,7 @@ const step1Schema = z
   })
   .refine((d) => d.password === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
 
-const step2Schema = z.object({
-  companyName: z.string().min(1, "Company name is required"),
-  phone: z.string().min(7, "Enter a valid phone number"),
-  country: z.string().min(1, "Country is required"),
-  state: z.string().min(1, "State / Province is required"),
-  city: z.string().min(1, "City is required"),
-  zip: z.string().regex(/^[1-9][0-9]{5}$/, "Enter a valid 6-digit PIN code"),
-  streetAddress: z.string().min(1, "Street address is required"),
-  about: z.string().optional(),
-});
-
 type Step1Data = z.infer<typeof step1Schema>;
-type Step2Data = z.infer<typeof step2Schema>;
 
 /* ---------- Helpers ---------- */
 const GOOGLE_ICON = (
@@ -87,7 +74,6 @@ function fbError(code: string) {
 }
 
 const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
-const selectCls = `${inputCls} appearance-none pr-8`;
 
 function F({ label, req, error, children }: { label: string; req?: boolean; error?: string; children: React.ReactNode }) {
   return (
@@ -100,16 +86,6 @@ function F({ label, req, error, children }: { label: string; req?: boolean; erro
     </div>
   );
 }
-
-const INDIA_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
-  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
-  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
-  "Andaman & Nicobar Islands", "Chandigarh", "Dadra & Nagar Haveli and Daman & Diu",
-  "Delhi", "Jammu & Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
-];
 
 function PasswordStrength({ password }: { password: string }) {
   if (!password) return null;
@@ -132,72 +108,6 @@ function PasswordStrength({ password }: { password: string }) {
         ))}
       </div>
       <p className={`mt-1 text-[12px] font-medium ${labelColor}`}>{labels[strength]}</p>
-    </div>
-  );
-}
-
-function StateDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function outside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", outside);
-    return () => document.removeEventListener("mousedown", outside);
-  }, []);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`${inputCls} flex items-center justify-between`}
-      >
-        <span className={value ? "text-ink" : "text-muted-foreground/60"}>{value || "Select state…"}</span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-y-auto rounded-xl border border-border bg-white shadow-lg" style={{ maxHeight: "calc(8 * 2.75rem)" }}>
-          {INDIA_STATES.map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => { onChange(st); setOpen(false); }}
-              className={`w-full px-4 py-2.5 text-left text-[15px] transition-colors hover:bg-secondary ${
-                value === st ? "bg-primary/10 font-medium text-primary" : "text-ink"
-              }`}
-            >
-              {st}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ---------- Stepper ---------- */
-function Stepper({ step }: { step: 1 | 2 | 3 }) {
-  const steps = [{ n: 1, label: "Account" }, { n: 2, label: "Details" }, { n: 3, label: "Verify" }];
-  return (
-    <div className="mb-8 flex w-full items-start">
-      {steps.map((s, i) => (
-        <Fragment key={s.n}>
-          <div className="flex flex-col items-center gap-1.5">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-semibold transition-colors ${
-              step > s.n ? "bg-primary text-primary-foreground" :
-              step === s.n ? "bg-primary text-primary-foreground ring-4 ring-primary/20" :
-              "border-2 border-border text-muted-foreground"
-            }`}>
-              {step > s.n ? <Check className="h-4 w-4" /> : s.n}
-            </div>
-            <span className={`text-[13px] font-medium ${
-              step === s.n ? "text-primary" : step > s.n ? "text-foreground" : "text-muted-foreground"
-            }`}>{s.label}</span>
-          </div>
-          {i < steps.length - 1 && <div className={`mx-3 mt-4 h-px flex-1 transition-colors ${step > s.n ? "bg-primary" : "bg-border"}`} />}
-        </Fragment>
-      ))}
     </div>
   );
 }
@@ -250,77 +160,34 @@ function LeftPanel() {
 /* ---------- Page ---------- */
 function SignupPage() {
   const navigate = useNavigate();
-  const { email: prefillEmail, incomplete, redirect } = useSearch({ from: "/signup" });
+  const { email: prefillEmail, redirect } = useSearch({ from: "/signup" });
   const { refreshProfile } = useAuth();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  
+  // step 1: Account setup
+  // step 2: Verification
+  const [step, setStep] = useState<1 | 2>(1);
+  
   const [authError, setAuthError] = useState("");
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [emailSendIssue, setEmailSendIssue] = useState<"" | "rate_limited" | "failed">("");
-  // Track if user signed in via Google (skips email verification step)
-  const [isGoogleUser, setIsGoogleUser] = useState(false);
 
   const s1 = useForm<Step1Data>({ resolver: zodResolver(step1Schema) });
-  const s2 = useForm<Step2Data>({ resolver: zodResolver(step2Schema), defaultValues: { country: "India" } });
   const pwValue = s1.watch("password") ?? "";
-  const [submitting2, setSubmitting2] = useState(false);
 
-  // Pre-fill email from ?email= query param (set when redirected from login's Google flow)
   useEffect(() => {
     if (prefillEmail) {
       s1.setValue("email", prefillEmail);
     }
   }, [prefillEmail, s1]);
-
-  // Handle returning incomplete users: they're already Firebase-authenticated
-  // (either from a previous abandoned signup or from the login page redirect)
-  // but have no Firestore profile yet. Auto-jump them to Step 2.
-  // Uses onAuthStateChanged to handle the case where auth state hasn't
-  // been restored from storage yet at mount time.
-  useEffect(() => {
-    if (!incomplete || !auth) return;
-
-    const resolve = (currentUser: FirebaseUser | null) => {
-      if (!currentUser) {
-        // Not authenticated at all — send to login
-        navigate({ to: "/login" });
-        return;
-      }
-      getDoc(doc(db!, "users", currentUser.uid)).then((snap) => {
-        if (snap.exists()) {
-          // Already has a complete profile — go home or redirect
-          if (redirect) window.location.href = redirect;
-          else navigate({ to: "/" });
-          return;
-        }
-        const isGoogle = currentUser.providerData.some((p) => p.providerId === "google.com");
-        setFirebaseUser(currentUser);
-        setUserEmail(currentUser.email ?? "");
-        setIsGoogleUser(isGoogle);
-        setStep(2);
-      });
-    };
-
-    // If auth state is already known synchronously, use it immediately.
-    // Otherwise subscribe to onAuthStateChanged and fire once.
-    if (auth.currentUser !== null) {
-      resolve(auth.currentUser);
-    } else {
-      const unsub = onAuthStateChanged(auth, (user) => {
-        unsub(); // one-shot
-        resolve(user);
-      });
-      return () => unsub();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incomplete]);
 
   /* Step 1 → create Firebase user */
   const handleStep1 = s1.handleSubmit(async (data) => {
@@ -329,6 +196,16 @@ function SignupPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth!, data.email, data.password);
       await updateProfile(user, { displayName: data.name });
+      
+      // Immediately create the basic profile document
+      await setDoc(doc(db!, "users", user.uid), {
+        uid: user.uid,
+        name: data.name,
+        email: data.email,
+        createdAt: serverTimestamp(),
+      });
+
+      // Send verification email
       sendVerificationEmail({ data: { email: data.email, displayName: data.name } }).then((res) => {
         if (!res?.ok) {
           setEmailSendIssue(res.error === "rate_limited" ? "rate_limited" : "failed");
@@ -338,6 +215,7 @@ function SignupPage() {
       }).catch(() => {
         setEmailSendIssue("failed");
       });
+      
       setFirebaseUser(user);
       setUserEmail(data.email);
       setStep(2);
@@ -346,46 +224,7 @@ function SignupPage() {
     }
   });
 
-  /* Step 2 → save details to Firestore then advance */
-  const handleStep2 = s2.handleSubmit(async (data) => {
-    setAuthError("");
-
-    // Guard: firebaseUser must be set — if null the session was lost.
-    if (!firebaseUser) {
-      setAuthError("Your session has expired. Please go back and sign in again.");
-      return;
-    }
-
-    setSubmitting2(true);
-    try {
-      await setDoc(doc(db!, "users", firebaseUser.uid), {
-        uid: firebaseUser.uid,
-        name: firebaseUser.displayName,
-        email: userEmail,
-        ...data,
-        createdAt: serverTimestamp(),
-      });
-    } catch (e: unknown) {
-      // Surface real Firestore errors — previously this was silently swallowed
-      // which caused the user to be redirected home as "logged out" with no feedback.
-      const msg = (e as { message?: string })?.message ?? "Unknown error";
-      setAuthError(`Could not save your details: ${msg}. Please try again.`);
-      setSubmitting2(false);
-      return;
-    }
-    setSubmitting2(false);
-
-    // Google users' emails are already verified — skip the email verification step
-    if (isGoogleUser) {
-      await refreshProfile(); // sync auth context before navigating home
-      if (redirect) window.location.href = redirect;
-      else navigate({ to: "/" });
-    } else {
-      setStep(3);
-    }
-  });
-
-  /* Step 3 → check email verified */
+  /* Step 2 (Verification) → check email verified */
   const handleVerify = async () => {
     if (!firebaseUser) return;
     setVerifying(true); setVerifyError("");
@@ -431,24 +270,24 @@ function SignupPage() {
       const result = await signInWithPopup(auth!, new GoogleAuthProvider());
       const { user } = result;
 
-      // Check if this Google user already completed registration
+      // Check if user document exists
       const userDocRef = doc(db!, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
-      if (userDocSnap.exists()) {
-        // Already fully registered — go to dashboard
-        navigate({ to: "/" });
-        return;
+      if (!userDocSnap.exists()) {
+        // Automatically create the user profile
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          name: user.displayName || "User",
+          email: user.email || "",
+          createdAt: serverTimestamp(),
+        });
       }
 
-      // New Google user — they're authenticated but haven't filled out the profile yet.
-      // Pre-fill their info and jump to Step 2 (no password / email verification needed).
-      setFirebaseUser(user);
-      setUserEmail(user.email ?? "");
-      setIsGoogleUser(true);
-      s1.setValue("name", user.displayName ?? "");
-      s1.setValue("email", user.email ?? "");
-      setStep(2);
+      // Already registered or just registered seamlessly — go to dashboard or redirect
+      await refreshProfile();
+      if (redirect) window.location.href = redirect;
+      else navigate({ to: "/" });
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? "";
       if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request")
@@ -472,15 +311,14 @@ function SignupPage() {
           </p>
         </div>
 
-        <div className="flex flex-1 items-start justify-center overflow-y-auto px-8 pb-10 pt-2">
-          <div className="w-full max-w-[620px]">
-            <Stepper step={step} />
+        <div className="flex flex-1 items-center justify-center px-8 pb-10">
+          <div className="w-full max-w-[500px]">
 
             {/* ── STEP 1: Account ── */}
             {step === 1 && (
               <>
                 <div className="mb-6">
-                  <h1 className="font-display text-[1.75rem] text-ink">Create Your Account</h1>
+                  <h1 className="font-display text-[2rem] leading-tight text-ink">Create Your Account</h1>
                   <p className="mt-1 text-[15px] text-muted-foreground">Enter your basic information to get started</p>
                 </div>
                 {authError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{authError}</div>}
@@ -503,12 +341,12 @@ function SignupPage() {
                           </button>
                         </div>
                         <PasswordStrength password={pwValue} />
-                        {!pwValue && <p className="mt-1.5 text-[12px] text-muted-foreground">Min 8 chars · uppercase · lowercase · number · special character</p>}
+                        {!pwValue && <p className="mt-1.5 text-[12px] text-muted-foreground">Min 8 chars · uppercase · lowercase · number · special char</p>}
                       </div>
                     </F>
                     <F label="Confirm Password" req error={s1.formState.errors.confirmPassword?.message}>
                       <div className="relative">
-                        <input {...s1.register("confirmPassword")} type={showConfirm ? "text" : "password"} autoComplete="new-password" placeholder="8 digit Password" className={`${inputCls} pr-11`} />
+                        <input {...s1.register("confirmPassword")} type={showConfirm ? "text" : "password"} autoComplete="new-password" placeholder="Confirm Password" className={`${inputCls} pr-11`} />
                         <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                           {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -527,9 +365,9 @@ function SignupPage() {
 
                   <div className="flex justify-center pt-1">
                     <div className="flex items-center gap-3">
-                      <div className="h-px w-16 bg-border" />
+                      <div className="h-px flex-1 bg-border" />
                       <span className="text-[13px] uppercase tracking-wider text-muted-foreground">or sign up with</span>
-                      <div className="h-px w-16 bg-border" />
+                      <div className="h-px flex-1 bg-border" />
                     </div>
                   </div>
 
@@ -538,115 +376,35 @@ function SignupPage() {
                   </button>
 
                   <div className="flex justify-end pt-2">
-                    <button type="submit" className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98]">
-                      Next <ArrowRight className="h-4 w-4" />
+                    <button type="submit" className="inline-flex w-full justify-center items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98]">
+                      Create Account
                     </button>
                   </div>
                 </form>
               </>
             )}
 
-            {/* ── STEP 2: Details ── */}
+            {/* ── STEP 2: Verify ── */}
             {step === 2 && (
-              <>
-                <div className="mb-6">
-                  <h1 className="font-display text-[1.75rem] text-ink">Additional Information</h1>
-                  <p className="mt-1 text-[15px] text-muted-foreground">Tell us more about yourself. Fields marked <span className="text-red-500">*</span> are required.</p>
-                </div>
-                {authError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{authError}</div>}
-                <form onSubmit={handleStep2} className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <F label="Company name" req error={s2.formState.errors.companyName?.message}>
-                      <input {...s2.register("companyName")} type="text" placeholder="XYZ pvt. ltd" className={inputCls} />
-                    </F>
-                    <F label="Phone number" req error={s2.formState.errors.phone?.message}>
-                      <div className="flex gap-2">
-                        <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-white px-3 text-[15px] text-muted-foreground">
-                          <span className="text-base leading-none">🇮🇳</span>
-                          <span>+91</span>
-                        </div>
-                        <input {...s2.register("phone")} type="tel" placeholder="1234567890" className={inputCls} />
-                      </div>
-                    </F>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <F label="Country" req>
-                      <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink">
-                        <span className="text-base leading-none">🇮🇳</span>
-                        <span>India</span>
-                      </div>
-                      <input {...s2.register("country")} type="hidden" />
-                    </F>
-                    <F label="State/Province" req error={s2.formState.errors.state?.message}>
-                      <Controller
-                        control={s2.control}
-                        name="state"
-                        render={({ field }) => (
-                          <StateDropdown value={field.value ?? ""} onChange={field.onChange} />
-                        )}
-                      />
-                    </F>
-                    <F label="City" req error={s2.formState.errors.city?.message}>
-                      <input {...s2.register("city")} type="text" placeholder="City" className={inputCls} />
-                    </F>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <F label="ZIP/Postal code" req error={s2.formState.errors.zip?.message}>
-                      <input {...s2.register("zip")} type="text" placeholder="ZIP" className={inputCls} />
-                    </F>
-                    <F label="Street Address" req error={s2.formState.errors.streetAddress?.message}>
-                      <input {...s2.register("streetAddress")} type="text" placeholder="Street address" className={inputCls} />
-                    </F>
-                  </div>
-                  <F label="About your account (optional)">
-                    <textarea {...s2.register("about")} rows={3} placeholder="Brief description" className={`${inputCls} resize-none`} />
-                  </F>
-                  <div className="flex items-center justify-between pt-2">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        // If user is already Firebase-authenticated (incomplete/Google flow),
-                        // Back = cancel registration: sign them out and go to login.
-                        if (incomplete || isGoogleUser) {
-                          if (auth) await signOut(auth);
-                          navigate({ to: "/login" });
-                        } else {
-                          setStep(1);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border px-5 py-3 text-[15px] font-medium text-foreground transition hover:bg-secondary"
-                    >
-                      <ChevronLeft className="h-4 w-4" /> Back
-                    </button>
-                    <button type="submit" disabled={submitting2} className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60">
-                      {submitting2 ? "Saving…" : <><span>Next</span><ArrowRight className="h-4 w-4" /></>}
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {/* ── STEP 3: Verify ── */}
-            {step === 3 && (
               <div className="py-4 text-center">
                 <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <Mail className="h-8 w-8 text-primary" />
                 </div>
-                <h1 className="font-display text-[1.75rem] text-ink">Verify Your Email</h1>
+                <h1 className="font-display text-[2rem] leading-tight text-ink">Verify Your Email</h1>
                 <p className="mt-2 text-[15px] text-muted-foreground">We've sent a verification link to</p>
                 <p className="mt-0.5 text-[15px] font-semibold text-primary">{userEmail}</p>
                 {emailSendIssue === "rate_limited" && (
-                  <div className="mx-auto mt-4 max-w-sm rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                  <div className="mx-auto mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                     Verification email is temporarily rate-limited by Firebase for this address. Please wait a while, then use Resend.
                   </div>
                 )}
                 {emailSendIssue === "failed" && (
-                  <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div className="mx-auto mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                     We couldn't send the verification email right now. Please use Resend in a moment.
                   </div>
                 )}
 
-                <div className="mx-auto mt-6 max-w-sm rounded-xl border border-border bg-secondary/40 px-6 py-5 text-left">
+                <div className="mx-auto mt-6 rounded-xl border border-border bg-secondary/40 px-6 py-5 text-left">
                   <p className="text-[15px] font-medium text-foreground">How to verify:</p>
                   <ol className="mt-2 space-y-1.5 text-[15px] text-muted-foreground">
                     <li>1. Open the email from Khyra AI in your inbox</li>
@@ -656,7 +414,7 @@ function SignupPage() {
                 </div>
 
                 {verifyError && (
-                  <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{verifyError}</div>
+                  <div className="mx-auto mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{verifyError}</div>
                 )}
 
                 {resendSent && (
@@ -664,10 +422,7 @@ function SignupPage() {
                 )}
 
                 <div className="mt-6 flex items-center justify-center gap-3">
-                  <button type="button" onClick={() => setStep(2)} className="inline-flex items-center gap-1.5 rounded-xl border border-border px-5 py-3 text-[15px] font-medium text-foreground transition hover:bg-secondary">
-                    <ChevronLeft className="h-4 w-4" /> Back
-                  </button>
-                  <button type="button" onClick={handleVerify} disabled={verifying} className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">
+                  <button type="button" onClick={handleVerify} disabled={verifying} className="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-[15px] font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">
                     {verifying ? "Checking…" : "I've Verified"} {!verifying && <Check className="h-4 w-4" />}
                   </button>
                 </div>
@@ -684,4 +439,3 @@ function SignupPage() {
     </div>
   );
 }
-

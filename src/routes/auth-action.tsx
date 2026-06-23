@@ -23,6 +23,7 @@ function AuthActionPage() {
     if (mode === "verifyEmail" && oobCode && auth) {
       applyActionCode(auth, oobCode)
         .then(async () => {
+          await auth.authStateReady();
           setStatus("success");
           if (auth.currentUser) {
             await auth.currentUser.reload();

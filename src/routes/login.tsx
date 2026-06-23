@@ -249,8 +249,8 @@ function LoginPage() {
 
                 <p className="mt-5 text-center text-[13px] text-muted-foreground">
                   By continuing, you agree to Khyra AI's{" "}
-                  <a href="#" className="text-primary hover:underline">Terms of Service</a> &{" "}
-                  <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+                  <a href="/terms" className="text-primary hover:underline">Terms of Service</a> &{" "}
+                  <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
                 </p>
               </>
             ) : (

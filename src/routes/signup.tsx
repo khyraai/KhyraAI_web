@@ -358,7 +358,7 @@ function SignupPage() {
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-border accent-primary" />
                     <span className="text-[13px] leading-relaxed text-muted-foreground">
                       I agree to the Khyra AI{" "}
-                      <a href="#" className="text-primary hover:underline">Terms of Service &amp; Privacy Policy</a>.{" "}
+                      <a href="/terms" className="text-primary hover:underline">Terms of Service</a> &amp; <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.{" "}
                       By creating an account, you confirm that you have read and accepted these terms.
                     </span>
                   </label>

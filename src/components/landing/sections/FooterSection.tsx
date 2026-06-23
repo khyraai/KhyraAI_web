@@ -64,10 +64,10 @@ export function FooterSection() {
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/60">
           <div>© 2026 Khyra AI. Built in India for Indian businesses.</div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-primary-foreground transition-colors">
+            <a href="/privacy" className="hover:text-primary-foreground transition-colors">
               Privacy
             </a>
-            <a href="#" className="hover:text-primary-foreground transition-colors">
+            <a href="/terms" className="hover:text-primary-foreground transition-colors">
               Terms
             </a>
             <a href="#" className="hover:text-primary-foreground transition-colors">

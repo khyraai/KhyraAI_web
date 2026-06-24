@@ -55,10 +55,10 @@ export const DEMO_LANGUAGES = [
 ] as const;
 
 export const DEMO_VOICES = [
-  { id: "voice_1", label: "Simran", gender: "Female" },
+  { id: "voice_1", label: "Priya", gender: "Female" },
   { id: "voice_2", label: "Kavya", gender: "Female" },
   { id: "voice_3", label: "Neha", gender: "Female" },
-  { id: "voice_4", label: "Priya", gender: "Female" },
+  { id: "voice_4", label: "Simran", gender: "Female" },
   { id: "voice_5", label: "Pooja", gender: "Female" },
   { id: "voice_6", label: "Rahul", gender: "Male" },
   { id: "voice_7", label: "Rohan", gender: "Male" },

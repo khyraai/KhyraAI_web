@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const defaultRoleId = "front_desk";
 const defaultLanguageCode = "en-IN";
-const defaultVoiceId = "voice_1";
+const defaultVoiceId = "voice_4";
 
 function getDefaultDemoConfig(roleId: string, domainId: string, languageCode: string, voiceId: string, voiceLabel: string): DemoConfig {
   return { roleId, domainId, languageCode, voiceId, voiceLabel };

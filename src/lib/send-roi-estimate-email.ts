@@ -4,10 +4,17 @@ export interface ROIEmailPayload {
   email: string;
   name: string;
   // Inputs
+  industryName: string;
+  consultLabel: string;
+  procedureLabel: string;
   agents: number;
   salary: number;
   callsPerDay: number;
   missedPct: number;
+  workingDays: number;
+  openHours: number;
+  consultCharge: number;
+  procedureCharge: number;
   // Computed outputs
   khyraMonthlyCost: number;
   humanMonthlyCost: number;
@@ -130,10 +137,14 @@ function buildROIEmailHtml(p: ROIEmailPayload): string {
               <tr><td style="padding:20px 24px;">
                 <p style="margin:0 0 14px;color:#1a3c34;font-size:15px;font-weight:700;">Your inputs</p>
                 <table cellpadding="0" cellspacing="0" style="width:100%;">
+                  ${row("Industry", p.industryName)}
+                  ${row("Working hours", `${p.openHours} hrs/day, ${p.workingDays} days/wk`)}
                   ${row("Front-desk staff", `${p.agents} ${p.agents === 1 ? "person" : "people"}`)}
                   ${row("Monthly salary / person", fmtINR(p.salary))}
                   ${row("Inbound calls / day", `${fmtNum(p.callsPerDay)} calls`)}
                   ${row("Estimated missed calls", `${p.missedPct}% of total`)}
+                  ${row(p.consultLabel, fmtINR(p.consultCharge))}
+                  ${row(p.procedureLabel, fmtINR(p.procedureCharge))}
                 </table>
               </td></tr>
             </table>
@@ -153,8 +164,7 @@ function buildROIEmailHtml(p: ROIEmailPayload): string {
                 </table>
                 <p style="margin:16px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
                   Assumptions: Khyra handles 92% of calls autonomously. One human kept for escalations.
-                  Avg missed-call revenue opportunity: ₹800. Khyra pricing: ₹12,000/mo base + ₹2.50/call.
-                  These are conservative estimates.
+                  We conservatively assume 40% of recovered missed calls convert to a consultation/inquiry, and 20% of those convert to a main transaction. Khyra pricing: ₹12,000/mo base + ₹2.50/call.
                 </p>
               </td></tr>
             </table>

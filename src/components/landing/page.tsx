@@ -9,6 +9,7 @@ import { HowItWorksSection } from "@/components/landing/sections/HowItWorksSecti
 import { ImpactSection } from "@/components/landing/sections/ImpactSection";
 // import { LiveDemoSection } from "@/components/landing/sections/LiveDemoSection";
 import { PillarsSection } from "@/components/landing/sections/PillarsSection";
+import { ROICalculatorSection } from "@/components/landing/sections/ROICalculatorSection";
 import { TrustStrip } from "@/components/landing/sections/TrustStrip";
 import { UseCasesSection } from "@/components/landing/sections/UseCasesSection";
 import type { UseCaseTab } from "@/data/landing";
@@ -29,6 +30,7 @@ export function Index() {
       <FeaturesSection />
       <UseCasesSection activeTab={activeUseCaseTab} setActiveTab={setActiveUseCaseTab} />
       <ImpactSection />
+      <ROICalculatorSection />
       <FAQSection />
       <FooterSection />
     </main>

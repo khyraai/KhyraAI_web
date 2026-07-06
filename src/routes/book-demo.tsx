@@ -15,7 +15,16 @@ import { updateDemoRequest } from "@/lib/update-demo-request";
 export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
   head: () => ({
-    meta: [{ title: "Book a Demo - Khyra AI" }],
+    meta: [
+      {
+        title: "Book a Demo | Khyra AI",
+      },
+      {
+        name: "description",
+        content:
+          "Book a live demo of Khyra AI and see how our AI voice agents automate calls and appointments.",
+      },
+    ],
   }),
 });
 

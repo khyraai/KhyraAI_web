@@ -23,7 +23,16 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
   validateSearch: loginSearchSchema,
   head: () => ({
-    meta: [{ title: "Sign In — Khyra AI" }],
+      meta: [
+      {
+        title: "Login | Khyra AI",
+      },
+      {
+        name: "description",
+        content:
+          "Sign in to your Khyra AI dashboard.",
+      },
+    ],
   }),
 });
 

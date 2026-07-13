@@ -27,6 +27,8 @@ export function SiteNav() {
           <img
             src={logo}
             alt="Khyra AI logo"
+            width="36"
+            height="36"
             className="h-9 w-9 rounded-full border border-primary/70 object-contain transition-colors group-hover:bg-primary"
           />
           <span className="font-display text-2xl leading-none tracking-tight">

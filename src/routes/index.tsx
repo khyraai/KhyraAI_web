@@ -5,12 +5,15 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Khyra AI — Answers That Act" },
+      { title: "Khyra AI — AI Voice Agents for Indian Businesses | Answers That Act" },
       {
         name: "description",
         content:
-          "AI voice agents for Indian businesses — multilingual, always-on, deployable in hours. Hindi, Kannada, Tamil and 8 more languages.",
+          "Deploy multilingual AI voice agents for your Indian business in hours. Khyra AI handles front desk calls, sales follow-up, and Tier-1 support in Hindi, Kannada, Tamil and 8 more languages.",
       },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.khyraai.com/" },
     ],
   }),
 });

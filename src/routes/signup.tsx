@@ -27,7 +27,17 @@ export const Route = createFileRoute("/signup")({
     redirect: z.string().optional(),
   }),
   head: () => ({
-    meta: [{ title: "Create Account — Khyra AI" }],
+    meta: [
+      { title: "Create a Free Khyra AI Account — Get Started Today" },
+      {
+        name: "description",
+        content:
+          "Create your Khyra AI account and deploy AI voice agents for your business. Multilingual support across 11 Indian languages — free to get started, no credit card required.",
+      },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.khyraai.com/signup" },
+    ],
   }),
 });
 
@@ -129,13 +139,15 @@ function LeftPanel() {
       <div className="relative flex flex-1 items-start justify-center pt-0">
         <img
           src={indiaImg}
-          alt="India market infographic"
+          alt="India market infographic showing Khyra AI coverage"
+          width="420"
+          height="420"
           className="h-full max-h-[420px] w-full object-contain drop-shadow-lg"
         />
       </div>
 
       <div className="relative pt-1">
-        <h2 className="font-display text-2xl leading-snug">Scale your voice business globally.</h2>
+        <p className="font-display text-2xl leading-snug">Scale your voice business globally.</p>
         <p className="mt-2 text-[13px] leading-relaxed text-primary-foreground/65">
           Join forward-thinking businesses using Khyra AI's intelligent voice agents to automate customer interactions in India.
         </p>

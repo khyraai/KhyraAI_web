@@ -74,25 +74,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Khyra AI — Answers That Act" },
+      { title: "Khyra AI — AI Voice Agents for Indian Businesses | Answers That Act" },
       {
         name: "description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra AI deploys intelligent AI voice agents for Indian businesses. Handle front desk, sales follow-up, and Tier-1 support in 11 Indian languages — multilingual, always-on, live in hours.",
       },
-      { property: "og:title", content: "Khyra AI — Answers That Act" },
+      { property: "og:title", content: "Khyra AI — AI Voice Agents for Indian Businesses" },
       {
         property: "og:description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra AI deploys intelligent AI voice agents for Indian businesses. Handle front desk, sales follow-up, and Tier-1 support in 11 Indian languages — multilingual, always-on, live in hours.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.khyraai.com" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Khyra AI — Answers That Act" },
+      { name: "twitter:title", content: "Khyra AI — AI Voice Agents for Indian Businesses" },
       {
         name: "twitter:description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra AI deploys intelligent AI voice agents for Indian businesses. Handle front desk, sales follow-up, and Tier-1 support in 11 Indian languages — multilingual, always-on, live in hours.",
       },
     ],
     links: [

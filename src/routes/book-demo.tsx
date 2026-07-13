@@ -16,14 +16,15 @@ export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
   head: () => ({
     meta: [
-      {
-        title: "Book a Demo | Khyra AI",
-      },
+      { title: "Book a Free Demo — See Khyra AI Voice Agents in Action" },
       {
         name: "description",
         content:
-          "Book a live demo of Khyra AI and see how our AI voice agents automate calls and appointments.",
+          "Schedule a personalized demo of Khyra AI's multilingual voice agents. See how we automate front desk, sales follow-up, and Tier-1 support in 11 Indian languages. Response within 24 hours.",
       },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.khyraai.com/book-demo" },
     ],
   }),
 });

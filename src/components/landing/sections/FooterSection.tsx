@@ -17,6 +17,8 @@ export function FooterSection() {
               <img
                 src={logo}
                 alt="Khyra AI logo"
+                width="36"
+                height="36"
                 className="h-9 w-9 rounded-full border border-primary-foreground/30 object-contain"
               />
               <span className="font-display text-2xl">Khyra AI</span>

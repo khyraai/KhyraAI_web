@@ -6,12 +6,15 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Khyra AI" },
+      { title: "Privacy Policy — Khyra AI Data Protection & Your Rights" },
       {
         name: "description",
         content:
           "Review the Khyra AI Privacy Policy for data collection, use, storage, AI processing, and your rights.",
       },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.khyraai.com/privacy" },
     ],
   }),
 });

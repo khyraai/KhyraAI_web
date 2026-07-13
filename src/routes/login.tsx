@@ -23,15 +23,16 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
   validateSearch: loginSearchSchema,
   head: () => ({
-      meta: [
-      {
-        title: "Login | Khyra AI",
-      },
+    meta: [
+      { title: "Sign In to Khyra AI — Your AI Voice Agent Dashboard" },
       {
         name: "description",
         content:
-          "Sign in to your Khyra AI dashboard.",
+          "Sign in to your Khyra AI account to manage your AI voice agents, monitor call performance, and configure multilingual automations for your business.",
       },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.khyraai.com/login" },
     ],
   }),
 });
@@ -85,13 +86,15 @@ function LeftPanel() {
       <div className="relative flex flex-1 items-start justify-center pt-4">
         <img
           src={robotImg}
-          alt="Khyra AI"
+          alt="Khyra AI mascot"
+          width="400"
+          height="480"
           className="w-full max-w-[400px] object-contain drop-shadow-2xl"
         />
       </div>
 
       <div className="relative pt-4">
-        <h2 className="font-display text-2xl leading-snug">AI-First Voice Platform<br />for India</h2>
+        <p className="font-display text-2xl leading-snug">AI-First Voice Platform<br />for India</p>
         <p className="mt-2 text-sm leading-relaxed text-primary-foreground/65">
           Deploy intelligent voice agents for Indian businesses — multilingual, always-on, up and running in hours.
         </p>

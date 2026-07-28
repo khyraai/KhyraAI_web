@@ -119,7 +119,7 @@ Raw Google Calendar data and aggregated or anonymized data derived from Google C
               <p className="text-base leading-8 text-foreground/90">
 Khyra AI's use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements.
 
-Google Workspace user data is never sold or transferred for the purpose of developing, improving, or training generalized artificial intelligence or machine learning models.            </section>
+Google Workspace user data is never sold or transferred for the purpose of developing, improving, or training generalized artificial intelligence or machine learning models.      </p>      </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">8. Communications and Recordings</h2>

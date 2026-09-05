@@ -20,7 +20,6 @@ import { Route as IndustriesIndexRouteImport } from './routes/industries/index'
 import { Route as IndustriesVeterinaryRouteImport } from './routes/industries/veterinary'
 import { Route as IndustriesSalonsWellnessRouteImport } from './routes/industries/salons-wellness'
 import { Route as IndustriesRealEstateRouteImport } from './routes/industries/real-estate'
-import { Route as IndustriesItServicesRouteImport } from './routes/industries/it-services'
 import { Route as IndustriesHotelsHospitalityRouteImport } from './routes/industries/hotels-hospitality'
 import { Route as IndustriesHealthcareRouteImport } from './routes/industries/healthcare'
 import { Route as IndustriesEducationRouteImport } from './routes/industries/education'
@@ -82,11 +81,6 @@ const IndustriesRealEstateRoute = IndustriesRealEstateRouteImport.update({
   path: '/industries/real-estate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndustriesItServicesRoute = IndustriesItServicesRouteImport.update({
-  id: '/industries/it-services',
-  path: '/industries/it-services',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndustriesHotelsHospitalityRoute =
   IndustriesHotelsHospitalityRouteImport.update({
     id: '/industries/hotels-hospitality',
@@ -122,7 +116,6 @@ export interface FileRoutesByFullPath {
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
-  '/industries/it-services': typeof IndustriesItServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -140,7 +133,6 @@ export interface FileRoutesByTo {
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
-  '/industries/it-services': typeof IndustriesItServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -159,7 +151,6 @@ export interface FileRoutesById {
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
-  '/industries/it-services': typeof IndustriesItServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -179,7 +170,6 @@ export interface FileRouteTypes {
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
-    | '/industries/it-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -197,7 +187,6 @@ export interface FileRouteTypes {
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
-    | '/industries/it-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -215,7 +204,6 @@ export interface FileRouteTypes {
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
-    | '/industries/it-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -234,7 +222,6 @@ export interface RootRouteChildren {
   IndustriesEducationRoute: typeof IndustriesEducationRoute
   IndustriesHealthcareRoute: typeof IndustriesHealthcareRoute
   IndustriesHotelsHospitalityRoute: typeof IndustriesHotelsHospitalityRoute
-  IndustriesItServicesRoute: typeof IndustriesItServicesRoute
   IndustriesRealEstateRoute: typeof IndustriesRealEstateRoute
   IndustriesSalonsWellnessRoute: typeof IndustriesSalonsWellnessRoute
   IndustriesVeterinaryRoute: typeof IndustriesVeterinaryRoute
@@ -320,13 +307,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndustriesRealEstateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/industries/it-services': {
-      id: '/industries/it-services'
-      path: '/industries/it-services'
-      fullPath: '/industries/it-services'
-      preLoaderRoute: typeof IndustriesItServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/industries/hotels-hospitality': {
       id: '/industries/hotels-hospitality'
       path: '/industries/hotels-hospitality'
@@ -370,7 +350,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndustriesEducationRoute: IndustriesEducationRoute,
   IndustriesHealthcareRoute: IndustriesHealthcareRoute,
   IndustriesHotelsHospitalityRoute: IndustriesHotelsHospitalityRoute,
-  IndustriesItServicesRoute: IndustriesItServicesRoute,
   IndustriesRealEstateRoute: IndustriesRealEstateRoute,
   IndustriesSalonsWellnessRoute: IndustriesSalonsWellnessRoute,
   IndustriesVeterinaryRoute: IndustriesVeterinaryRoute,

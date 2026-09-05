@@ -19,7 +19,6 @@ const INDUSTRIES_NAV = [
   { label: "Hotels & Hospitality", slug: "hotels-hospitality", Icon: Hotel, color: "#f59e0b" },
   { label: "Veterinary", slug: "veterinary", Icon: PawPrint, color: "#0f9b8e" },
   { label: "Education", slug: "education", Icon: GraduationCap, color: "#4f46e5" },
-  { label: "IT Services", slug: "it-services", Icon: Server, color: "#0891b2" },
   { label: "Cosmetic Clinics", slug: "cosmetic-clinics", Icon: Sparkles, color: "#9333ea" },
 ];
 
@@ -117,7 +116,7 @@ export function SiteNav() {
                     to="/industries"
                     className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5"
                   >
-                    View all 8 verticals <ArrowRight className="h-3.5 w-3.5" />
+                    View all 7 verticals <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>

@@ -59,15 +59,6 @@ const INDUSTRIES = [
     accentHex: "#4f46e5",
   },
   {
-    slug: "it-services",
-    name: "IT Services & Support",
-    outcome: "Resolve Tier-1 voice tickets without technician time.",
-    detail: "Collects ticket symptoms, runs initial diagnostic scripts via voice, and routes complex issues to the right engineer.",
-    metric: "50% lower average handle time for voice tickets",
-    Icon: Server,
-    accentHex: "#0891b2",
-  },
-  {
     slug: "cosmetic-clinics",
     name: "Cosmetic & Aesthetics",
     outcome: "Convert high-intent aesthetic leads into paid consults.",
@@ -105,7 +96,7 @@ export function IndustryShowcaseSection() {
           to="/industries"
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:translate-x-1"
         >
-          View all 8 verticals <ArrowRight className="h-4 w-4" />
+          View all 7 verticals <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
@@ -212,7 +203,7 @@ export function IndustryShowcaseSection() {
               </Link>
 
               <span className="text-xs text-muted-foreground font-mono">
-                {INDUSTRIES.findIndex((i) => i.slug === activeSlug) + 1} / 8
+                {INDUSTRIES.findIndex((i) => i.slug === activeSlug) + 1} / 7
               </span>
             </div>
           </div>

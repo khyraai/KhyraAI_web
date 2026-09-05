@@ -236,7 +236,7 @@ export function NumberedIndustryList() {
             Vertical Implementations
           </span>
           <h2 className="mt-3 font-display text-4xl text-ink md:text-5xl">
-            8 Verticals. <span className="italic text-primary">Pre-trained out of the box.</span>
+            7 Verticals. <span className="italic text-primary">Pre-trained out of the box.</span>
           </h2>
         </div>
         <span className="text-xs font-mono text-muted-foreground">
@@ -339,7 +339,6 @@ const MATRIX_DATA = [
   { industry: "Hotels & Hospitality", intent: "Guest Requests & Check-In", software: "Oracle Opera, Cloudbeds, PMS", latency: "< 790ms" },
   { industry: "Veterinary Clinics", intent: "Emergency Triage & Visit Lock", software: "Vetport, ClinicHQ", latency: "< 810ms" },
   { industry: "Education", intent: "Applicant Inquiry & Counseling", software: "ExtraaEdge, LeadSquared CRM", latency: "< 830ms" },
-  { industry: "IT Services", intent: "Tier-1 Voice Diagnostics", software: "Zendesk, ServiceNow, Jira", latency: "< 760ms" },
   { industry: "Cosmetic Clinics", intent: "Consult Deposit & Booking", software: "Aesthetic Record, Zenoti", latency: "< 840ms" },
 ];
 

@@ -240,7 +240,7 @@ const realEstate: Industry = {
     { question: "What if the caller wants to negotiate pricing?", answer: "Khyra provides the listed price and routes pricing conversations to the appropriate agent for follow-up." },
     { question: "Does it work for rental property inquiries too?", answer: "Yes. Khyra can be configured for rental listings, commercial property, and land inquiries." },
   ],
-  relatedSlugs: ["education", "it-services", "hotels-hospitality"],
+  relatedSlugs: ["education", "cosmetic-clinics", "hotels-hospitality"],
   liveDemo: { roleId: "lead_followup", domainId: "real_estate" },
 };
 
@@ -565,88 +565,7 @@ const education: Industry = {
     { question: "Can it follow up with students who didn't respond?", answer: "Yes. Khyra makes automated outbound follow-up calls to prospective students who enquired but didn't take the next step." },
     { question: "Can it handle regional language inquiries?", answer: "Yes. Khyra supports 11 Indian languages and automatically responds in the caller's preferred language." },
   ],
-  relatedSlugs: ["it-services", "real-estate", "healthcare"],
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 7. IT Services / Support
-// ─────────────────────────────────────────────────────────────────────────────
-const itServices: Industry = {
-  slug: "it-services",
-  name: "IT Services & Support",
-  shortName: "IT Services",
-  accentColor: "198 93% 42%",
-  accentHex: "#0891b2",
-  icon: "Server",
-  heroHeadline: "Resolve routine IT requests before they reach your support team.",
-  heroSubhead:
-    "Khyra handles Tier-1 support calls, checks ticket status, routes access requests, and escalates intelligently — so your engineers spend time on what actually matters.",
-  heroBadge: "IT Services & Support",
-  callFlowSteps: [
-    { title: "User calls", detail: "Support issue or incident reported" },
-    { title: "Issue categorised", detail: "Tier-1 vs. escalation determined instantly" },
-    { title: "Details collected", detail: "System, error type, and impact scope captured" },
-    { title: "Action triggered", detail: "Auto-resolve or ticket raised in helpdesk" },
-    { title: "Engineer briefed", detail: "Full transcript and summary sent with the escalation" },
-  ],
-  painPoints: [
-    { title: "Tier-1 tickets flood support queues", description: "Password resets, access issues, and status checks don't need an engineer. Khyra handles them automatically." },
-    { title: "Callers don't know who to call", description: "Khyra identifies the nature of the issue and routes it to the right team without any hold time." },
-    { title: "Support teams can't cover 24×7", description: "Khyra provides round-the-clock Tier-1 support coverage, escalating only true emergencies." },
-    { title: "No visibility on ticket status for callers", description: "Khyra looks up ticket status in real time and provides accurate updates without agent involvement." },
-    { title: "Incident calls lack structured intake", description: "Khyra follows a structured intake script — collecting system, issue, severity — before escalating." },
-    { title: "Escalations arrive without context", description: "When Khyra transfers a call, it sends a complete transcript and summary to the receiving engineer." },
-  ],
-  capabilities: [
-    { title: "Tier-1 issue resolution", description: "Handles password resets, access issues, and basic troubleshooting without human escalation." },
-    { title: "Ticket status lookup", description: "Provides real-time ticket status from your helpdesk without agent involvement." },
-    { title: "Structured incident intake", description: "Collects system, issue type, severity, and impact before routing." },
-    { title: "Intelligent escalation", description: "Routes complex issues to the right team with a full summary transcript." },
-    { title: "24×7 support coverage", description: "Handles calls at any hour — no on-call engineer woken for a password reset." },
-    { title: "SLA-aware routing", description: "Prioritises and escalates calls based on contract SLA and ticket severity." },
-  ],
-  workflows: [
-    {
-      label: "Ticket Status",
-      callerQ: "What's the status of my support ticket? The ticket number is #4821.",
-      khyraReply: "Ticket #4821 is assigned to the infrastructure team and is currently in progress. Expected resolution by 5 PM today.",
-      actions: ["Ticket retrieved", "Status communicated", "Call logged"],
-    },
-    {
-      label: "Password / Access",
-      callerQ: "I'm locked out of my account and have an important meeting in 20 minutes.",
-      khyraReply: "I can process a password reset. Can you confirm your employee ID and registered email?",
-      actions: ["Identity verified", "Reset initiated", "Ticket created"],
-    },
-    {
-      label: "Incident Escalation",
-      callerQ: "Our entire office network is down. No one can access the internet.",
-      khyraReply: "This sounds like a P1 incident. I'm escalating to your network team right now and creating an incident ticket.",
-      actions: ["P1 incident raised", "Network team notified", "Transcript sent"],
-    },
-  ],
-  convoDemo: {
-    callerLine: "What's happening with my support ticket #4821?",
-    khyraLine: "Ticket #4821 is in progress — expected resolution by 5 PM today.",
-    actions: [
-      { label: "Ticket retrieved" },
-      { label: "Status explained" },
-      { label: "Escalation available" },
-    ],
-  },
-  metrics: [
-    { value: "70%", label: "Tier-1 calls resolved", sublabel: "without human escalation" },
-    { value: "< 30s", label: "Incident intake time", sublabel: "vs 4 min manual average" },
-    { value: "24×7", label: "Support coverage", sublabel: "at no extra staffing cost" },
-  ],
-  faqs: [
-    { question: "Which helpdesk platforms does Khyra integrate with?", answer: "Khyra integrates with Freshdesk, Zendesk, Jira Service Management, and any helpdesk with a REST API." },
-    { question: "Can it handle identity verification before processing requests?", answer: "Yes. Khyra can verify callers using employee ID, OTP, or callback number before processing sensitive requests like password resets." },
-    { question: "Can it handle multi-level support routing?", answer: "Yes. Khyra routes based on issue type, system, severity, and SLA tier — sending calls to Tier-1, Tier-2, or specific teams." },
-    { question: "Does it create tickets automatically?", answer: "Yes. Khyra creates structured tickets in your helpdesk with full call details, collected information, and a transcript." },
-    { question: "What happens when Khyra escalates a call?", answer: "It sends the receiving engineer a complete transcript, a structured summary of the issue, and the caller's contact details before transferring." },
-  ],
-  relatedSlugs: ["education", "real-estate", "healthcare"],
+  relatedSlugs: ["real-estate", "healthcare", "cosmetic-clinics"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -731,11 +650,11 @@ const cosmeticClinics: Industry = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Master registry (8 verticals)
+// Master registry (7 verticals)
 // ─────────────────────────────────────────────────────────────────────────────
 export const INDUSTRIES: Industry[] = [
   healthcare, realEstate, salonsWellness, hotelsHospitality,
-  veterinary, education, itServices, cosmeticClinics,
+  veterinary, education, cosmeticClinics,
 ];
 
 export const INDUSTRY_MAP: Record<string, Industry> = Object.fromEntries(

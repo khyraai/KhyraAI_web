@@ -64,18 +64,6 @@ const VERTICAL_PROFILES = [
     systemAction: "Khyra details fee breakdown, qualifies student candidate profile, and schedules admissions interview in LeadSquared.",
     software: "ExtraaEdge, LeadSquared CRM",
   },
-  {
-    id: "it-services",
-    name: "IT Services & Support Desk",
-    badge: "IT Service Desk & Ticketing",
-    Icon: Server,
-    slug: "it-services",
-    accentHex: "#0891b2",
-    question: "“Will Khyra resolve Tier-1 voice tickets without technician time?”",
-    exampleCall: "“My VPN connection keeps timing out when accessing the internal staging server.”",
-    systemAction: "Khyra runs automated voice diagnostic checklist, creates Tier-1 ticket in ServiceNow, and alerts on-call engineer.",
-    software: "Zendesk, ServiceNow, Jira",
-  },
 ];
 
 export function VerticalFinderSection() {
@@ -150,7 +138,7 @@ export function VerticalFinderSection() {
               to="/industries"
               className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-primary transition hover:translate-x-1"
             >
-              <span>Explore all 8 verticals & software integrations</span>
+              <span>Explore all 7 verticals & software integrations</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

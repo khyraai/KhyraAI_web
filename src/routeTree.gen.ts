@@ -16,6 +16,16 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as BookDemoRouteImport } from './routes/book-demo'
 import { Route as AuthActionRouteImport } from './routes/auth-action'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IndustriesIndexRouteImport } from './routes/industries/index'
+import { Route as IndustriesVeterinaryRouteImport } from './routes/industries/veterinary'
+import { Route as IndustriesSalonsWellnessRouteImport } from './routes/industries/salons-wellness'
+import { Route as IndustriesRealEstateRouteImport } from './routes/industries/real-estate'
+import { Route as IndustriesItServicesRouteImport } from './routes/industries/it-services'
+import { Route as IndustriesHotelsHospitalityRouteImport } from './routes/industries/hotels-hospitality'
+import { Route as IndustriesHealthcareRouteImport } from './routes/industries/healthcare'
+import { Route as IndustriesEducationRouteImport } from './routes/industries/education'
+import { Route as IndustriesDentalRouteImport } from './routes/industries/dental'
+import { Route as IndustriesCosmeticClinicsRouteImport } from './routes/industries/cosmetic-clinics'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -52,6 +62,59 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndustriesIndexRoute = IndustriesIndexRouteImport.update({
+  id: '/industries/',
+  path: '/industries/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesVeterinaryRoute = IndustriesVeterinaryRouteImport.update({
+  id: '/industries/veterinary',
+  path: '/industries/veterinary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesSalonsWellnessRoute =
+  IndustriesSalonsWellnessRouteImport.update({
+    id: '/industries/salons-wellness',
+    path: '/industries/salons-wellness',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const IndustriesRealEstateRoute = IndustriesRealEstateRouteImport.update({
+  id: '/industries/real-estate',
+  path: '/industries/real-estate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesItServicesRoute = IndustriesItServicesRouteImport.update({
+  id: '/industries/it-services',
+  path: '/industries/it-services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesHotelsHospitalityRoute =
+  IndustriesHotelsHospitalityRouteImport.update({
+    id: '/industries/hotels-hospitality',
+    path: '/industries/hotels-hospitality',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const IndustriesHealthcareRoute = IndustriesHealthcareRouteImport.update({
+  id: '/industries/healthcare',
+  path: '/industries/healthcare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesEducationRoute = IndustriesEducationRouteImport.update({
+  id: '/industries/education',
+  path: '/industries/education',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesDentalRoute = IndustriesDentalRouteImport.update({
+  id: '/industries/dental',
+  path: '/industries/dental',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesCosmeticClinicsRoute =
+  IndustriesCosmeticClinicsRouteImport.update({
+    id: '/industries/cosmetic-clinics',
+    path: '/industries/cosmetic-clinics',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +124,16 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
+  '/industries/dental': typeof IndustriesDentalRoute
+  '/industries/education': typeof IndustriesEducationRoute
+  '/industries/healthcare': typeof IndustriesHealthcareRoute
+  '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/it-services': typeof IndustriesItServicesRoute
+  '/industries/real-estate': typeof IndustriesRealEstateRoute
+  '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
+  '/industries/veterinary': typeof IndustriesVeterinaryRoute
+  '/industries/': typeof IndustriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +143,16 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
+  '/industries/dental': typeof IndustriesDentalRoute
+  '/industries/education': typeof IndustriesEducationRoute
+  '/industries/healthcare': typeof IndustriesHealthcareRoute
+  '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/it-services': typeof IndustriesItServicesRoute
+  '/industries/real-estate': typeof IndustriesRealEstateRoute
+  '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
+  '/industries/veterinary': typeof IndustriesVeterinaryRoute
+  '/industries': typeof IndustriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +163,16 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
+  '/industries/dental': typeof IndustriesDentalRoute
+  '/industries/education': typeof IndustriesEducationRoute
+  '/industries/healthcare': typeof IndustriesHealthcareRoute
+  '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/it-services': typeof IndustriesItServicesRoute
+  '/industries/real-estate': typeof IndustriesRealEstateRoute
+  '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
+  '/industries/veterinary': typeof IndustriesVeterinaryRoute
+  '/industries/': typeof IndustriesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +184,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/industries/cosmetic-clinics'
+    | '/industries/dental'
+    | '/industries/education'
+    | '/industries/healthcare'
+    | '/industries/hotels-hospitality'
+    | '/industries/it-services'
+    | '/industries/real-estate'
+    | '/industries/salons-wellness'
+    | '/industries/veterinary'
+    | '/industries/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +203,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/industries/cosmetic-clinics'
+    | '/industries/dental'
+    | '/industries/education'
+    | '/industries/healthcare'
+    | '/industries/hotels-hospitality'
+    | '/industries/it-services'
+    | '/industries/real-estate'
+    | '/industries/salons-wellness'
+    | '/industries/veterinary'
+    | '/industries'
   id:
     | '__root__'
     | '/'
@@ -109,6 +222,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/industries/cosmetic-clinics'
+    | '/industries/dental'
+    | '/industries/education'
+    | '/industries/healthcare'
+    | '/industries/hotels-hospitality'
+    | '/industries/it-services'
+    | '/industries/real-estate'
+    | '/industries/salons-wellness'
+    | '/industries/veterinary'
+    | '/industries/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +242,16 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
+  IndustriesCosmeticClinicsRoute: typeof IndustriesCosmeticClinicsRoute
+  IndustriesDentalRoute: typeof IndustriesDentalRoute
+  IndustriesEducationRoute: typeof IndustriesEducationRoute
+  IndustriesHealthcareRoute: typeof IndustriesHealthcareRoute
+  IndustriesHotelsHospitalityRoute: typeof IndustriesHotelsHospitalityRoute
+  IndustriesItServicesRoute: typeof IndustriesItServicesRoute
+  IndustriesRealEstateRoute: typeof IndustriesRealEstateRoute
+  IndustriesSalonsWellnessRoute: typeof IndustriesSalonsWellnessRoute
+  IndustriesVeterinaryRoute: typeof IndustriesVeterinaryRoute
+  IndustriesIndexRoute: typeof IndustriesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +305,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/industries/': {
+      id: '/industries/'
+      path: '/industries'
+      fullPath: '/industries/'
+      preLoaderRoute: typeof IndustriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/veterinary': {
+      id: '/industries/veterinary'
+      path: '/industries/veterinary'
+      fullPath: '/industries/veterinary'
+      preLoaderRoute: typeof IndustriesVeterinaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/salons-wellness': {
+      id: '/industries/salons-wellness'
+      path: '/industries/salons-wellness'
+      fullPath: '/industries/salons-wellness'
+      preLoaderRoute: typeof IndustriesSalonsWellnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/real-estate': {
+      id: '/industries/real-estate'
+      path: '/industries/real-estate'
+      fullPath: '/industries/real-estate'
+      preLoaderRoute: typeof IndustriesRealEstateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/it-services': {
+      id: '/industries/it-services'
+      path: '/industries/it-services'
+      fullPath: '/industries/it-services'
+      preLoaderRoute: typeof IndustriesItServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/hotels-hospitality': {
+      id: '/industries/hotels-hospitality'
+      path: '/industries/hotels-hospitality'
+      fullPath: '/industries/hotels-hospitality'
+      preLoaderRoute: typeof IndustriesHotelsHospitalityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/healthcare': {
+      id: '/industries/healthcare'
+      path: '/industries/healthcare'
+      fullPath: '/industries/healthcare'
+      preLoaderRoute: typeof IndustriesHealthcareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/education': {
+      id: '/industries/education'
+      path: '/industries/education'
+      fullPath: '/industries/education'
+      preLoaderRoute: typeof IndustriesEducationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/dental': {
+      id: '/industries/dental'
+      path: '/industries/dental'
+      fullPath: '/industries/dental'
+      preLoaderRoute: typeof IndustriesDentalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/cosmetic-clinics': {
+      id: '/industries/cosmetic-clinics'
+      path: '/industries/cosmetic-clinics'
+      fullPath: '/industries/cosmetic-clinics'
+      preLoaderRoute: typeof IndustriesCosmeticClinicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +386,16 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
+  IndustriesCosmeticClinicsRoute: IndustriesCosmeticClinicsRoute,
+  IndustriesDentalRoute: IndustriesDentalRoute,
+  IndustriesEducationRoute: IndustriesEducationRoute,
+  IndustriesHealthcareRoute: IndustriesHealthcareRoute,
+  IndustriesHotelsHospitalityRoute: IndustriesHotelsHospitalityRoute,
+  IndustriesItServicesRoute: IndustriesItServicesRoute,
+  IndustriesRealEstateRoute: IndustriesRealEstateRoute,
+  IndustriesSalonsWellnessRoute: IndustriesSalonsWellnessRoute,
+  IndustriesVeterinaryRoute: IndustriesVeterinaryRoute,
+  IndustriesIndexRoute: IndustriesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

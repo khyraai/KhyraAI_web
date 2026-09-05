@@ -42,7 +42,7 @@ function IndustriesHubPage() {
           {/* Right Hero CTA & Stats (4 cols) */}
           <div className="lg:col-span-4 space-y-6 lg:border-l lg:border-border/60 lg:pl-8">
             <div className="space-y-1">
-              <div className="font-mono text-2xl font-bold text-ink">9 Verticals</div>
+              <div className="font-mono text-2xl font-bold text-ink">8 Verticals</div>
               <div className="text-xs text-muted-foreground">Pre-trained on 150,000+ domain calls</div>
             </div>
             <div className="space-y-1">

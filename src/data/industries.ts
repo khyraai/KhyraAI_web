@@ -727,96 +727,15 @@ const cosmeticClinics: Industry = {
     { question: "What if a client has medical questions about a procedure?", answer: "Khyra answers general procedural questions and routes clinical or medical questions to the doctor for a consultation." },
     { question: "Does it support multiple doctors at the same clinic?", answer: "Yes. Khyra manages separate schedules for each doctor and routes bookings accordingly." },
   ],
-  relatedSlugs: ["healthcare", "salons-wellness", "dental"],
+  relatedSlugs: ["healthcare", "salons-wellness", "cosmetic-clinics"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. Dental Clinics
-// ─────────────────────────────────────────────────────────────────────────────
-const dental: Industry = {
-  slug: "dental",
-  name: "Dental Clinics",
-  shortName: "Dental",
-  accentColor: "201 96% 43%",
-  accentHex: "#0284c7",
-  icon: "Activity",
-  heroHeadline: "Your dental clinic, available even between patients.",
-  heroSubhead:
-    "Khyra answers patient calls, books cleanings and consultations, handles treatment FAQs, and sends appointment reminders — so your team focuses on care, not calls.",
-  heroBadge: "Dental Clinics",
-  callFlowSteps: [
-    { title: "Patient calls", detail: "Appointment or emergency request received" },
-    { title: "Urgency assessed", detail: "Routine vs. urgent vs. emergency identified" },
-    { title: "Dentist matched", detail: "Correct doctor selected for the procedure" },
-    { title: "Slot confirmed", detail: "Appointment booked and confirmed with the patient" },
-    { title: "Instructions sent", detail: "Pre-procedure guidance sent via SMS" },
-  ],
-  painPoints: [
-    { title: "Missed calls when dentist is with a patient", description: "Khyra answers every call while your team is chairside — no patient left unanswered." },
-    { title: "Emergency calls need immediate routing", description: "Tooth pain, broken teeth, abscesses — Khyra identifies dental emergencies and routes them instantly." },
-    { title: "Procedure cost questions handled inefficiently", description: "Khyra answers questions on cleaning, fillings, RCT, and implant costs instantly." },
-    { title: "Patients don't know what to do before a procedure", description: "Khyra provides pre-procedure instructions — fasting, medication, arrival time — on the call." },
-    { title: "No-show rates drain revenue", description: "Automated reminder calls and rescheduling reduce no-shows and keep your chair utilised." },
-    { title: "Insurance and payment queries overwhelm staff", description: "Khyra handles standard insurance and payment plan FAQs without involving reception." },
-  ],
-  capabilities: [
-    { title: "Appointment booking", description: "Books consultations, cleanings, and procedures across all dentists in real time." },
-    { title: "Emergency routing", description: "Identifies dental emergencies and routes to the on-call dentist immediately." },
-    { title: "Procedure & cost FAQs", description: "Answers questions on treatments, duration, costs, and insurance." },
-    { title: "Pre-procedure instructions", description: "Provides fasting instructions, medication guidelines, and arrival guidance." },
-    { title: "Reminder & recall calls", description: "Automated reminders for upcoming appointments and 6-month recall calls." },
-    { title: "Multi-dentist scheduling", description: "Manages separate calendars for every dentist in your practice." },
-  ],
-  workflows: [
-    {
-      label: "Appointment Booking",
-      callerQ: "I'd like to book a dental cleaning. Do you have any slots this week?",
-      khyraReply: "Yes, Dr. Kapoor has Thursday at 10 AM and Friday at 3 PM. Which works for you?",
-      actions: ["Appointment booked", "SMS confirmation", "Pre-care instructions sent"],
-    },
-    {
-      label: "Emergency",
-      callerQ: "I have severe tooth pain and my face is swelling. I need to see a dentist now.",
-      khyraReply: "This sounds urgent. I'm connecting you to our on-call dentist right now. Please hold.",
-      actions: ["Emergency flagged", "On-call notified", "Call transferred"],
-    },
-    {
-      label: "Treatment FAQ",
-      callerQ: "How much does a root canal treatment cost and how many visits does it need?",
-      khyraReply: "A root canal typically costs ₹3,000–₹6,000 depending on the tooth and takes 2–3 visits. Would you like to book a consultation?",
-      actions: ["Cost explained", "Consultation offered", "Appointment booked"],
-    },
-  ],
-  convoDemo: {
-    callerLine: "I need to book a dental cleaning this week.",
-    khyraLine: "Dr. Kapoor has Thursday 10 AM. Confirm the booking?",
-    actions: [
-      { label: "Appointment booked" },
-      { label: "SMS sent" },
-      { label: "Pre-care info shared" },
-    ],
-  },
-  metrics: [
-    { value: "35%", label: "Fewer no-shows", sublabel: "with automated reminders" },
-    { value: "3×", label: "More bookings captured", sublabel: "including after-hours calls" },
-    { value: "< 1s", label: "Every call answered", sublabel: "even during patient sessions" },
-  ],
-  faqs: [
-    { question: "Can Khyra handle dental emergency calls?", answer: "Yes. Khyra identifies emergency situations and routes them to your on-call dentist immediately." },
-    { question: "Can it manage multiple dentists' schedules?", answer: "Yes. Khyra manages separate calendars for each dentist and books based on patient preference or availability." },
-    { question: "Can it answer questions about dental insurance?", answer: "Khyra answers standard insurance FAQs and routes detailed insurance queries to your billing team." },
-    { question: "Does it support 6-month recall calls?", answer: "Yes. Khyra can make automated recall calls to patients due for their 6-month check-up." },
-    { question: "How quickly can a dental clinic go live?", answer: "Most dental clinics are live within 24–48 hours. Our team handles the setup including telephony and calendar integration." },
-  ],
-  relatedSlugs: ["healthcare", "veterinary", "cosmetic-clinics"],
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Master registry
+// Master registry (8 verticals)
 // ─────────────────────────────────────────────────────────────────────────────
 export const INDUSTRIES: Industry[] = [
   healthcare, realEstate, salonsWellness, hotelsHospitality,
-  veterinary, education, itServices, cosmeticClinics, dental,
+  veterinary, education, itServices, cosmeticClinics,
 ];
 
 export const INDUSTRY_MAP: Record<string, Industry> = Object.fromEntries(

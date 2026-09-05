@@ -76,15 +76,6 @@ const INDUSTRIES = [
     Icon: Sparkles,
     accentHex: "#9333ea",
   },
-  {
-    slug: "dental",
-    name: "Dental Practices",
-    outcome: "Your practice front desk, available between patients.",
-    detail: "Schedules hygiene & emergency appointments, handles insurance questions, and sends automated SMS confirmations.",
-    metric: "0 missed emergency dental calls during procedures",
-    Icon: Activity,
-    accentHex: "#0284c7",
-  },
 ];
 
 export function IndustryShowcaseSection() {
@@ -114,7 +105,7 @@ export function IndustryShowcaseSection() {
           to="/industries"
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:translate-x-1"
         >
-          View all 9 verticals <ArrowRight className="h-4 w-4" />
+          View all 8 verticals <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
@@ -221,7 +212,7 @@ export function IndustryShowcaseSection() {
               </Link>
 
               <span className="text-xs text-muted-foreground font-mono">
-                {INDUSTRIES.findIndex((i) => i.slug === activeSlug) + 1} / 9
+                {INDUSTRIES.findIndex((i) => i.slug === activeSlug) + 1} / 8
               </span>
             </div>
           </div>

@@ -24,7 +24,6 @@ import { Route as IndustriesItServicesRouteImport } from './routes/industries/it
 import { Route as IndustriesHotelsHospitalityRouteImport } from './routes/industries/hotels-hospitality'
 import { Route as IndustriesHealthcareRouteImport } from './routes/industries/healthcare'
 import { Route as IndustriesEducationRouteImport } from './routes/industries/education'
-import { Route as IndustriesDentalRouteImport } from './routes/industries/dental'
 import { Route as IndustriesCosmeticClinicsRouteImport } from './routes/industries/cosmetic-clinics'
 
 const TermsRoute = TermsRouteImport.update({
@@ -104,11 +103,6 @@ const IndustriesEducationRoute = IndustriesEducationRouteImport.update({
   path: '/industries/education',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndustriesDentalRoute = IndustriesDentalRouteImport.update({
-  id: '/industries/dental',
-  path: '/industries/dental',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndustriesCosmeticClinicsRoute =
   IndustriesCosmeticClinicsRouteImport.update({
     id: '/industries/cosmetic-clinics',
@@ -125,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
-  '/industries/dental': typeof IndustriesDentalRoute
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
@@ -144,7 +137,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
-  '/industries/dental': typeof IndustriesDentalRoute
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
@@ -164,7 +156,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
-  '/industries/dental': typeof IndustriesDentalRoute
   '/industries/education': typeof IndustriesEducationRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
@@ -185,7 +176,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/industries/cosmetic-clinics'
-    | '/industries/dental'
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
@@ -204,7 +194,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/industries/cosmetic-clinics'
-    | '/industries/dental'
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
@@ -223,7 +212,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/industries/cosmetic-clinics'
-    | '/industries/dental'
     | '/industries/education'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
@@ -243,7 +231,6 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   IndustriesCosmeticClinicsRoute: typeof IndustriesCosmeticClinicsRoute
-  IndustriesDentalRoute: typeof IndustriesDentalRoute
   IndustriesEducationRoute: typeof IndustriesEducationRoute
   IndustriesHealthcareRoute: typeof IndustriesHealthcareRoute
   IndustriesHotelsHospitalityRoute: typeof IndustriesHotelsHospitalityRoute
@@ -361,13 +348,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndustriesEducationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/industries/dental': {
-      id: '/industries/dental'
-      path: '/industries/dental'
-      fullPath: '/industries/dental'
-      preLoaderRoute: typeof IndustriesDentalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/industries/cosmetic-clinics': {
       id: '/industries/cosmetic-clinics'
       path: '/industries/cosmetic-clinics'
@@ -387,7 +367,6 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   IndustriesCosmeticClinicsRoute: IndustriesCosmeticClinicsRoute,
-  IndustriesDentalRoute: IndustriesDentalRoute,
   IndustriesEducationRoute: IndustriesEducationRoute,
   IndustriesHealthcareRoute: IndustriesHealthcareRoute,
   IndustriesHotelsHospitalityRoute: IndustriesHotelsHospitalityRoute,

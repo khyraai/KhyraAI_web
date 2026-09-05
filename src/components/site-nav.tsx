@@ -39,7 +39,6 @@ const INDUSTRIES_NAV = [
   { label: "Education", slug: "education", Icon: GraduationCap, color: "#4f46e5" },
   { label: "IT Services", slug: "it-services", Icon: Server, color: "#0891b2" },
   { label: "Cosmetic Clinics", slug: "cosmetic-clinics", Icon: Sparkles, color: "#9333ea" },
-  { label: "Dental Clinics", slug: "dental", Icon: Activity, color: "#0284c7" },
 ];
 
 function Dropdown({

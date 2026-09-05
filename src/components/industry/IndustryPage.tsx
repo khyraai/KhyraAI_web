@@ -15,6 +15,7 @@ import { INDUSTRY_MAP } from "@/data/industries";
 import { TopBanner, SiteNav } from "@/components/site-nav";
 import { FooterSection } from "@/components/landing/sections/FooterSection";
 import { BookDemoButton } from "@/components/landing/ui/BookDemoButton";
+import { MobileAppShowcase } from "@/components/industry/MobileAppShowcase";
 import {
   Stethoscope, Building2, Sparkles, Hotel, PawPrint,
   GraduationCap, Server, Activity,
@@ -824,7 +825,7 @@ export function IndustryPage({ slug }: { slug: string }) {
       <PainPointsSection industry={industry} />
       <CapabilitiesSection industry={industry} />
       <WorkflowSection industry={industry} />
-      {industry.slug === "healthcare" && <ClinicAppShowcaseSection industry={industry} />}
+      {industry.slug === "healthcare" && <MobileAppShowcase accentHex={industry.accentHex} />}
       <MetricsSection industry={industry} />
       <FAQSection industry={industry} />
       <CTASection industry={industry} />

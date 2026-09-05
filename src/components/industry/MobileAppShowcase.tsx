@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle2, ShieldCheck, Pause, Play, ChevronRight } from "lucide-react";
+import { Sparkles, CheckCircle2, ShieldCheck, Pause, Play } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 const MOBILE_SCREENS = [
@@ -82,10 +82,10 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
     <section
       ref={reveal.ref}
       data-visible={reveal.visible}
-      className="mx-auto max-w-7xl px-6 py-24 border-t border-border/60 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
+      className="mx-auto max-w-7xl px-6 py-20 border-t border-border/60 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
     >
       {/* Header */}
-      <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="section-label" style={{ color: accentHex }}>
@@ -93,7 +93,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Mobile App Mockups
+              Live Mobile Integration
             </span>
           </div>
           <h2 className="font-display text-3xl text-ink md:text-5xl leading-tight">
@@ -123,7 +123,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
       </div>
 
       {/* Slide Progress Bar Indicator */}
-      <div className="mb-12 grid grid-cols-4 gap-3">
+      <div className="mb-10 grid grid-cols-4 gap-3">
         {MOBILE_SCREENS.map((sc, idx) => {
           const isActive = activeTab === idx;
           return (
@@ -147,7 +147,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
                 <span className={`font-mono ${isActive ? "font-bold text-ink" : "text-muted-foreground"}`}>
                   0{idx + 1}
                 </span>
-                <span className={`hidden sm:inline text-[11px] truncate max-w-[120px] ${isActive ? "font-semibold text-ink" : "text-muted-foreground/70"}`}>
+                <span className={`hidden sm:inline text-[11px] truncate max-w-[140px] ${isActive ? "font-semibold text-ink" : "text-muted-foreground/70"}`}>
                   {sc.title}
                 </span>
               </div>
@@ -157,7 +157,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
       </div>
 
       {/* Main Interactive Stage */}
-      <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+      <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
         {/* Left Column: Sequential Animated Feature Points (6 cols) */}
         <div className="lg:col-span-6 space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20">
@@ -169,71 +169,54 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
             {current.title}
           </h3>
 
-          <p className="text-base leading-relaxed text-muted-foreground">
+          <p className="text-base leading-relaxed text-muted-foreground max-w-xl">
             {current.desc}
           </p>
 
           {/* Points Revealed One by One */}
-          <div className="space-y-4 pt-6 border-t border-border/60">
+          <div className="space-y-3.5 pt-4 border-t border-border/60">
             {current.features.map((feat, fIdx) => (
               <div
                 key={feat}
                 style={{
-                  transitionDelay: `${fIdx * 150}ms`,
+                  transitionDelay: `${fIdx * 120}ms`,
                 }}
                 className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border/40 bg-background/80 shadow-sm transition-all duration-500"
               >
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 pt-0.5" />
-                <div>
-                  <span className="text-sm font-semibold text-ink tracking-tight block">
-                    {feat}
-                  </span>
-                </div>
+                <span className="text-sm font-semibold text-ink tracking-tight block">
+                  {feat}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right Column: Realistic iPhone Mobile Mockup Frame (6 cols) */}
-        <div className="lg:col-span-6 flex justify-center">
+        {/* Right Column: Direct Image Display (No Outer Mockup Shell) */}
+        <div className="lg:col-span-6 flex justify-center items-center py-2">
           <div
             onMouseEnter={() => setIsPlaying(false)}
             onMouseLeave={() => setIsPlaying(true)}
-            className="relative w-full max-w-[340px] sm:max-w-[360px]"
+            className="relative flex justify-center items-center w-full"
           >
-            {/* iPhone Device Shell */}
-            <div className="relative rounded-[48px] border-[10px] border-zinc-900 bg-zinc-900 shadow-2xl p-2 ring-1 ring-white/10">
-              {/* Dynamic Island Notch */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 h-5 w-24 rounded-full bg-black flex items-center justify-center">
-                <div className="h-2.5 w-2.5 rounded-full bg-zinc-900/80 mr-3" />
-                <div className="h-2 w-2 rounded-full bg-indigo-900/60" />
-              </div>
-
-              {/* Mobile Screen Display Viewport */}
-              <div className="relative overflow-hidden rounded-[38px] bg-background aspect-[9/19.5] shadow-inner">
-                <img
-                  key={current.id}
-                  src={imgError[activeTab] ? current.fallbackImage : current.image}
-                  onError={() => setImgError((prev) => ({ ...prev, [activeTab]: true }))}
-                  alt={current.title}
-                  className="w-full h-full object-cover object-top transition-opacity duration-700 ease-in-out"
-                />
-
-                {/* Subtle Glass Highlight */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
-              </div>
-
-              {/* Phone Home Bar Indicator */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-1 w-32 rounded-full bg-white/30" />
+            {/* Direct Image Render (Compact max-height so it fits inside screen viewport) */}
+            <div className="relative overflow-hidden rounded-2xl drop-shadow-2xl transition-all duration-500">
+              <img
+                key={current.id}
+                src={imgError[activeTab] ? current.fallbackImage : current.image}
+                onError={() => setImgError((prev) => ({ ...prev, [activeTab]: true }))}
+                alt={current.title}
+                className="h-auto w-auto max-h-[440px] sm:max-h-[480px] object-contain rounded-2xl transition-opacity duration-700 ease-in-out"
+              />
             </div>
 
-            {/* Floating Live Badge */}
-            <div className="absolute -bottom-6 -right-4 sm:-right-6 z-20 rounded-2xl border border-border/80 bg-background/95 p-4 shadow-2xl backdrop-blur-xl max-w-[220px]">
+            {/* Floating Live Sync Badge */}
+            <div className="absolute -bottom-4 -right-2 sm:-right-4 z-20 rounded-2xl border border-border/80 bg-background/95 p-3.5 shadow-2xl backdrop-blur-xl max-w-[210px]">
               <div className="flex items-center gap-2 text-xs font-bold text-ink">
                 <Sparkles className="h-4 w-4 text-emerald-600 animate-pulse" />
                 <span>Khyra EHR Sync</span>
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground leading-tight">
+              <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
                 Live mobile clinic records updated automatically.
               </p>
             </div>

@@ -10,6 +10,7 @@ import { LiveDemoSection } from "@/components/landing/sections/LiveDemoSection";
 import { PillarsSection } from "@/components/landing/sections/PillarsSection";
 import { TrustStrip } from "@/components/landing/sections/TrustStrip";
 import { IndustryShowcaseSection } from "@/components/landing/sections/IndustryShowcaseSection";
+import { VerticalFinderSection } from "@/components/landing/sections/VerticalFinderSection";
 
 export function Index() {
   return (
@@ -21,6 +22,7 @@ export function Index() {
       <PillarsSection setActiveTab={() => {}} />
       <HowItWorksSection />
       <IndustryShowcaseSection />
+      <VerticalFinderSection />
       <LiveDemoSection />
       <FinalCTASection />
       <FeaturesSection />

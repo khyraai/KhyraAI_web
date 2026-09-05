@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, ChevronDown, Stethoscope, Building2, Sparkles, Hotel, PawPrint, GraduationCap, Server, Activity } from "lucide-react";
+import { ArrowRight, ChevronDown, Stethoscope, Building2, Sparkles, Hotel, PawPrint, GraduationCap, Server } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import logo from "@/assets/Khyra.svg";
 
@@ -11,24 +11,6 @@ export function TopBanner() {
     </div>
   );
 }
-
-const SOLUTIONS = [
-  {
-    title: "AI Front Desk",
-    description: "Answer calls, book appointments, handle FAQs — around the clock.",
-    href: "/#features",
-  },
-  {
-    title: "AI Lead Follow-Up",
-    description: "Qualify inbound leads, book meetings, and follow up on warm prospects.",
-    href: "/#features",
-  },
-  {
-    title: "AI Support Line",
-    description: "Resolve Tier-1 tickets, check status, and escalate intelligently.",
-    href: "/#features",
-  },
-];
 
 const INDUSTRIES_NAV = [
   { label: "Healthcare & Clinics", slug: "healthcare", Icon: Stethoscope, color: "#22c55e" },
@@ -106,29 +88,11 @@ export function SiteNav() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-foreground/70 md:flex">
-          {/* Solutions dropdown */}
-          <Dropdown label="Solutions">
-            <div className="w-72 p-2">
-              {SOLUTIONS.map((s) => (
-                <a
-                  key={s.title}
-                  href={s.href}
-                  className="block rounded-xl px-4 py-3 transition hover:bg-secondary"
-                >
-                  <div className="font-semibold text-foreground">{s.title}</div>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                    {s.description}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </Dropdown>
-
           {/* Industries dropdown */}
           <Dropdown label="Industries">
             <div className="w-80 p-3">
               <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                All Industries
+                All Verticals
               </div>
               <div className="grid grid-cols-1 gap-0.5">
                 {INDUSTRIES_NAV.map(({ label, slug, Icon, color }) => (
@@ -153,12 +117,20 @@ export function SiteNav() {
                     to="/industries"
                     className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5"
                   >
-                    View all industries <ArrowRight className="h-3.5 w-3.5" />
+                    View all 8 verticals <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>
             </div>
           </Dropdown>
+
+          <a href="/#how-it-works" className="transition-colors hover:text-foreground">
+            How It Works
+          </a>
+
+          <a href="/#features" className="transition-colors hover:text-foreground">
+            Features
+          </a>
 
           <a href="/#faq" className="transition-colors hover:text-foreground">
             FAQ

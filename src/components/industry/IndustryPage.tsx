@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ChevronRight, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import type { Industry } from "@/data/industries";
 import { INDUSTRY_MAP } from "@/data/industries";
@@ -432,6 +432,168 @@ function WorkflowSection({ industry }: { industry: Industry }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Section 5.5 — Clinic App Showcase (Healthcare Only)
+// Displays live screenshots of the Clinic Management System & Mobile App
+// ─────────────────────────────────────────────────────────────────────────────
+function ClinicAppShowcaseSection({ industry }: { industry: Industry }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const reveal = useScrollReveal();
+
+  const screens = [
+    {
+      id: "patients-list",
+      title: "Patient Directory & Search",
+      subtitle: "Instant lookup & visit history tracking",
+      desc: "Khyra searches existing patients by phone number (+91 98765 43210) before every booking, preventing duplicate records in your clinic management software.",
+      image: "/images/healthcare-app/patients-list.png",
+      badge: "Real-Time Directory Sync",
+      features: [
+        "Instant phone number search & matching",
+        "Tracks total patient visits & last visit date",
+        "Direct integration with clinic management database",
+      ],
+    },
+    {
+      id: "create-appointment",
+      title: "1-Click Appointment Creation",
+      subtitle: "Automated booking & doctor assignment",
+      desc: "When a patient calls, Khyra automatically fills out patient details, selects available time slots (e.g. 03:30 PM), assigns the doctor, and locks the appointment.",
+      image: "/images/healthcare-app/create-appointment.png",
+      badge: "Automated Booking Engine",
+      features: [
+        "Selects doctor (e.g., Dr. Naga Deepti) & treatment type",
+        "Live slot locking prevents double bookings",
+        "Sends instant SMS confirmation to patient",
+      ],
+    },
+    {
+      id: "patient-history",
+      title: "Patient Visit Timeline",
+      subtitle: "Complete medical & billing audit trail",
+      desc: "Every completed call and procedure is automatically logged into the patient's timeline, including procedure costs (Root Canal ₹3,500) and payment status.",
+      image: "/images/healthcare-app/patient-history.png",
+      badge: "Live Medical Timeline",
+      features: [
+        "Timelines for Today, Yesterday, and past visits",
+        "Fee status tracking (Paid / Pending)",
+        "Prescription and follow-up date logging",
+      ],
+    },
+    {
+      id: "patient-details",
+      title: "Detailed EHR & Treatment Files",
+      subtitle: "Comprehensive health profile management",
+      desc: "Access complete patient profiles including DOB, Blood Group, Address, and past procedures (Root Canal, Tooth Extraction) updated automatically.",
+      image: "/images/healthcare-app/patient-details.png",
+      badge: "EHR Record Management",
+      features: [
+        "Blood group, address, and emergency contact storage",
+        "Categorized treatment history (Hygiene, Emergency, Consult)",
+        "Zero manual data entry for front desk staff",
+      ],
+    },
+  ];
+
+  const current = screens[activeTab];
+
+  return (
+    <section
+      ref={reveal.ref}
+      data-visible={reveal.visible}
+      className="mx-auto max-w-7xl px-6 py-24 border-t border-border/60 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
+    >
+      {/* Header */}
+      <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+        <div>
+          <div className="section-label mb-3" style={{ color: industry.accentHex }}>
+            Clinic Software Integration
+          </div>
+          <h2 className="font-display text-3xl text-ink md:text-4xl">
+            Direct sync with your <span className="italic text-primary">Clinic Management App</span>.
+          </h2>
+        </div>
+        <p className="max-w-md text-[14px] leading-relaxed text-muted-foreground">
+          Khyra doesn't sit in isolation. Every voice call updates patient records, books calendar slots, and logs treatment history in real time.
+        </p>
+      </div>
+
+      {/* Tab Controls */}
+      <div className="mb-12 flex flex-wrap gap-2 border-b border-border/60 pb-4">
+        {screens.map((screen, idx) => (
+          <button
+            key={screen.id}
+            onClick={() => setActiveTab(idx)}
+            className={`flex items-center gap-2.5 rounded-full px-5 py-2.5 text-xs font-semibold transition-all ${
+              activeTab === idx
+                ? "bg-ink text-white shadow-sm"
+                : "text-muted-foreground hover:bg-secondary hover:text-ink"
+            }`}
+          >
+            <span className="font-mono opacity-60">0{idx + 1}</span>
+            <span>{screen.title}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Interactive Showcase Stage */}
+      <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+        {/* Left Column: Context & Bullet Points (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {current.badge}
+          </div>
+
+          <h3 className="font-display text-3xl text-ink leading-tight">
+            {current.title}
+          </h3>
+
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {current.desc}
+          </p>
+
+          <div className="space-y-3 pt-4 border-t border-border/60">
+            {current.features.map((feat) => (
+              <div key={feat} className="flex items-start gap-3 text-xs font-medium text-ink">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 pt-0.5" />
+                <span>{feat}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Device Frame Showcase (7 cols) */}
+        <div className="lg:col-span-7 flex justify-center">
+          <div className="relative w-full max-w-md lg:max-w-lg">
+            {/* Device Container */}
+            <div className="relative rounded-3xl border border-border/60 bg-secondary/30 p-4 sm:p-6 shadow-2xl backdrop-blur-md">
+              <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-background shadow-inner">
+                <img
+                  src={current.image}
+                  alt={current.title}
+                  className="w-full h-auto object-contain max-h-[580px] rounded-xl transition-all duration-500"
+                />
+              </div>
+
+              {/* Floating Sync Badge */}
+              <div className="absolute -bottom-4 -right-2 sm:-right-4 rounded-xl border border-border/80 bg-background/95 p-3.5 shadow-xl backdrop-blur-md max-w-[240px]">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-ink">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Khyra Voice AI Sync</span>
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
+                  Updated in real time without front desk effort.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Section 6 — Metrics: dark background, massive typography, no cards
 // Layout: completely different (dark, full-bleed, huge numbers)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -662,6 +824,7 @@ export function IndustryPage({ slug }: { slug: string }) {
       <PainPointsSection industry={industry} />
       <CapabilitiesSection industry={industry} />
       <WorkflowSection industry={industry} />
+      {industry.slug === "healthcare" && <ClinicAppShowcaseSection industry={industry} />}
       <MetricsSection industry={industry} />
       <FAQSection industry={industry} />
       <CTASection industry={industry} />

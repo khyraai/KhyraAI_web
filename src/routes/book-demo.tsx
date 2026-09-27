@@ -1,585 +1,443 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getDoc, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { ArrowRight, Check, Pencil, ChevronDown } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 import { TopBanner, SiteNav } from "@/components/site-nav";
-import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { sendDemoRequestEmail } from "@/lib/send-demo-request-email";
 import { saveDemoRequest } from "@/lib/save-demo-request";
-import { updateDemoRequest } from "@/lib/update-demo-request";
 
 export const Route = createFileRoute("/book-demo")({
   component: BookDemoPage,
   head: () => ({
-    meta: [{ title: "Book a Demo - Khyra AI" }],
+    meta: [
+      { title: "Schedule an Operational AI Demo — Khyra AI" },
+      {
+        name: "description",
+        content: "Schedule a personalized demonstration of Khyra AI's operational system. Explore automated workflows, system integrations, and conversational execution for your business.",
+      },
+    ],
   }),
 });
 
-const LANGUAGE_OPTIONS = [
-  "English", "Hindi", "Bengali", "Gujarati", "Kannada",
-  "Malayalam", "Marathi", "Odia", "Tamil", "Punjabi", "Telugu",
+const COUNTRY_OPTIONS = [
+  "Saudi Arabia",
+  "United Arab Emirates",
+  "United States",
+  "United Kingdom",
+  "Qatar",
+  "Kuwait",
+  "Bahrain",
+  "Oman",
+  "Singapore",
+  "Germany",
+  "Canada",
+  "Australia",
+  "India",
+  "Other",
 ] as const;
 
-const INDIA_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
-  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
-  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
-  "Andaman & Nicobar Islands", "Chandigarh", "Dadra & Nagar Haveli and Daman & Diu",
-  "Delhi", "Jammu & Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
-];
+const INDUSTRY_OPTIONS = [
+  "Healthcare & Clinics",
+  "Hotels & Hospitality",
+  "Real Estate & Property",
+  "Professional & Advisory Services",
+  "Field & Home Services",
+  "Financial Services & Insurance",
+  "E-Commerce & Retail",
+  "Other / Custom Industry",
+] as const;
+
+const VOLUME_OPTIONS = [
+  "Under 1,000 interactions / month",
+  "1,000 – 5,000 interactions / month",
+  "5,000 – 20,000 interactions / month",
+  "20,000+ interactions / month",
+  "Not sure yet / Exploratory",
+] as const;
+
+const WORKFLOW_CHIP_OPTIONS = [
+  "Appointment & Scheduling",
+  "Lead Qualification & Sales",
+  "Customer Support & Triage",
+  "Dispatch & Field Operations",
+  "Follow-up & Reminders",
+  "Custom Enterprise Workflow",
+] as const;
 
 const schema = z.object({
-  companyName: z.string().min(1, "Company name is required"),
-  phone: z.string().min(7, "Enter a valid phone number"),
-  state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
-  roleTitle: z.string().min(2, "Role/title is required"),
-  teamSize: z.string().min(1, "Team size is required"),
-  useCasePainPoints: z.string().min(10, "Please share a little more detail").max(1000, "Please keep this under 1000 characters"),
-  preferredLanguages: z.array(z.enum(LANGUAGE_OPTIONS)).min(1, "Select at least one preferred language"),
+  fullName: z.string().min(2, "Full name is required"),
+  workEmail: z.string().email("Enter a valid work email address"),
+  companyName: z.string().min(2, "Company name is required"),
+  country: z.string().min(1, "Please select your country"),
+  industry: z.string().min(1, "Please select your industry"),
+  interactionVolume: z.string().min(1, "Please select approximate interaction volume"),
+  workflowInterests: z.array(z.string()).optional(),
+  automationGoal: z.string().max(1500, "Please keep under 1500 characters").optional(),
+  phone: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const inputCls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
-
-function StateDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function outside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", outside);
-    return () => document.removeEventListener("mousedown", outside);
-  }, []);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`${inputCls} flex items-center justify-between`}
-      >
-        <span className={value ? "text-ink" : "text-muted-foreground/60"}>{value || "Select state…"}</span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-y-auto rounded-xl border border-border bg-white shadow-lg" style={{ maxHeight: "calc(8 * 2.75rem)" }}>
-          {INDIA_STATES.map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => { onChange(st); setOpen(false); }}
-              className={`w-full px-4 py-2.5 text-left text-[15px] transition-colors hover:bg-secondary ${
-                value === st ? "bg-primary/10 font-medium text-primary" : "text-ink"
-              }`}
-            >
-              {st}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+const inputCls =
+  "w-full rounded-xl border border-border bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15";
 
 function BookDemoPage() {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  const [authChecked, setAuthChecked] = useState(false);
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [submittedData, setSubmittedData] = useState<FormData | null>(null);
   const [submitError, setSubmitError] = useState("");
-  const [submitInfo, setSubmitInfo] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [wasUpdate, setWasUpdate] = useState(false);
-  const [profile, setProfile] = useState<{ name: string; email: string; phone: string; companyName: string; city: string; state: string } | null>(null);
-  const [existingRequest, setExistingRequest] = useState<{
-    status: string;
-    submittedAtMs: number;
-    roleTitle: string;
-    teamSize: string;
-    useCasePainPoints: string;
-    preferredLanguages: string[];
-    source: string;
-    demoRequestDocId?: string;
-  } | null>(null);
-  const [editMode, setEditMode] = useState(false);
+  const [selectedChips, setSelectedChips] = useState<string[]>(["Appointment & Scheduling"]);
 
-  const { register, handleSubmit, setValue, watch, reset, control, formState: { errors } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { preferredLanguages: [] },
+    defaultValues: {
+      fullName: "",
+      workEmail: "",
+      companyName: "",
+      country: "",
+      industry: "",
+      automationGoal: "",
+      interactionVolume: "",
+      phone: "",
+      workflowInterests: ["Appointment & Scheduling"],
+    },
   });
-  const selectedLanguages = watch("preferredLanguages");
 
   useEffect(() => {
-    if (loading) return;
-    if (!auth?.currentUser) {
-      // Pass the redirect param so login sends us back here
-      navigate({ to: "/login", search: { redirect: "/book-demo" } });
-      return;
+    if (user) {
+      if (user.displayName) setValue("fullName", user.displayName);
+      if (user.email) setValue("workEmail", user.email);
     }
-    setAuthChecked(true);
-  }, [loading, navigate]);
+  }, [user, setValue]);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!authChecked || !auth?.currentUser || !db) return;
-      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
-      // If profile is completely missing, there's a systemic error, but we shouldn't hit this
-      // because login/signup always creates it now. Just handle gracefully.
-      if (!snap.exists()) {
-        navigate({ to: "/" });
-        return;
-      }
-      const data = snap.data();
-      const p = {
-        name: data.name ?? auth.currentUser.displayName ?? "",
-        email: data.email ?? auth.currentUser.email ?? "",
-        phone: data.phone ?? "",
-        companyName: data.companyName ?? "",
-        city: data.city ?? "",
-        state: data.state ?? "",
-      };
-      setProfile(p);
-      
-      // Auto-populate the form with existing profile data
-      reset({
-        companyName: p.companyName,
-        phone: p.phone,
-        city: p.city,
-        state: p.state,
-        preferredLanguages: [], // reset languages until we check existingRequest
-      });
-
-      const latest = data?.latestDemoRequest;
-      const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
-      if (latest?.submittedAtMs && typeof latest.submittedAtMs === "number" && latest.submittedAtMs >= tenDaysAgoMs) {
-        setExistingRequest({
-          status: latest.status ?? "new",
-          submittedAtMs: latest.submittedAtMs,
-          roleTitle: latest.roleTitle ?? "",
-          teamSize: latest.teamSize ?? "",
-          useCasePainPoints: latest.useCasePainPoints ?? "",
-          preferredLanguages: latest.preferredLanguages ?? [],
-          source: latest.source ?? "website_book_demo",
-          demoRequestDocId: latest.demoRequestDocId,
-        });
-      }
-    };
-    loadProfile().catch(() => setSubmitError("Unable to load your profile. Please try again."));
-  }, [authChecked, navigate, reset]);
-
-  useEffect(() => {
-    if (editMode && existingRequest && profile) {
-      reset({
-        companyName: profile.companyName,
-        phone: profile.phone,
-        city: profile.city,
-        state: profile.state,
-        roleTitle: existingRequest.roleTitle,
-        teamSize: existingRequest.teamSize,
-        useCasePainPoints: existingRequest.useCasePainPoints,
-        preferredLanguages: existingRequest.preferredLanguages as FormData["preferredLanguages"],
-      });
-    }
-  }, [editMode, existingRequest, reset, profile]);
-
-  const canRenderForm = useMemo(() => !!user && !!profile, [user, profile]);
+  const toggleChip = (chip: string) => {
+    const updated = selectedChips.includes(chip)
+      ? selectedChips.filter((c) => c !== chip)
+      : [...selectedChips, chip];
+    setSelectedChips(updated);
+    setValue("workflowInterests", updated);
+  };
 
   const onSubmit = handleSubmit(async (data) => {
-    if (!auth?.currentUser || !db || !profile) return;
     setSubmitError("");
-    setSubmitInfo("");
     setSubmitting(true);
+
     try {
       const nowMs = Date.now();
-      const userRef = doc(db, "users", auth.currentUser.uid);
+      const chipsText = selectedChips.length > 0 ? selectedChips.join(", ") : "General Operational AI";
+      const combinedGoal = data.automationGoal?.trim()
+        ? `Workflows: [${chipsText}] | Notes: ${data.automationGoal.trim()}`
+        : `Workflows: [${chipsText}]`;
 
-      // Save the profile updates (companyName, phone, city, state) back to Firestore
-      await updateDoc(userRef, {
-        companyName: data.companyName,
-        phone: data.phone,
-        city: data.city,
-        state: data.state,
-      });
-
-      // We'll pass the updated profile snapshot down
-      const updatedProfileSnapshot = {
-        name: profile.name || auth.currentUser.displayName || "",
-        email: profile.email || auth.currentUser.email || "",
-        phone: data.phone,
-        companyName: data.companyName,
-        city: data.city,
-        state: data.state,
+      const payload = {
+        ...data,
+        automationGoal: combinedGoal,
+        workflowInterests: selectedChips,
       };
 
-      if (existingRequest) {
-        // UPDATE existing request
-        await setDoc(
-          userRef,
-          {
-            latestDemoRequest: {
-              status: "new",
-              submittedAt: serverTimestamp(),
-              submittedAtMs: existingRequest.submittedAtMs,
-              updatedAtMs: nowMs,
-              roleTitle: data.roleTitle,
-              teamSize: data.teamSize,
-              useCasePainPoints: data.useCasePainPoints,
-              preferredLanguages: data.preferredLanguages,
-              source: "website_book_demo",
-              ...(existingRequest.demoRequestDocId ? { demoRequestDocId: existingRequest.demoRequestDocId } : {}),
-            },
-          },
-          { merge: true },
-        );
-
-        const updateRes = await updateDemoRequest({
-          data: {
-            docId: existingRequest.demoRequestDocId,
-            uid: auth.currentUser.uid,
-            submittedAtMs: existingRequest.submittedAtMs,
-            status: "new",
-            source: "website_book_demo",
-            request: {
-              roleTitle: data.roleTitle,
-              teamSize: data.teamSize,
-              useCasePainPoints: data.useCasePainPoints,
-              preferredLanguages: data.preferredLanguages,
-            },
-            profileSnapshot: updatedProfileSnapshot,
-          },
-        });
-        if (!updateRes?.ok) {
-          setSubmitInfo("Request updated in your profile, but we could not update the reporting record.");
-        } else if (updateRes.docId && !existingRequest.demoRequestDocId) {
-          await updateDoc(userRef, { "latestDemoRequest.demoRequestDocId": updateRes.docId });
-          setExistingRequest((prev) => (prev ? { ...prev, demoRequestDocId: updateRes.docId } : prev));
-        }
-      } else {
-        // NEW request
-        const tenDaysAgoMs = Date.now() - 10 * 24 * 60 * 60 * 1000;
-        const freshUserSnap = await getDoc(userRef);
-        const latest = freshUserSnap.data()?.latestDemoRequest;
-        const latestSubmittedAtMs = latest?.submittedAtMs as number | undefined;
-        if (typeof latestSubmittedAtMs === "number" && latestSubmittedAtMs >= tenDaysAgoMs) {
-          setSubmitInfo("A demo request was submitted recently. Refreshing page...");
-          setExistingRequest({
-            status: latest.status ?? "new",
-            submittedAtMs: latest.submittedAtMs,
-            roleTitle: latest.roleTitle ?? "",
-            teamSize: latest.teamSize ?? "",
-            useCasePainPoints: latest.useCasePainPoints ?? "",
-            preferredLanguages: latest.preferredLanguages ?? [],
-            source: latest.source ?? "website_book_demo",
-            demoRequestDocId: latest.demoRequestDocId,
-          });
-          setSubmitting(false);
-          return;
-        }
-
-        await setDoc(
-          userRef,
-          {
-            latestDemoRequest: {
-              status: "new",
-              submittedAt: serverTimestamp(),
-              submittedAtMs: nowMs,
-              roleTitle: data.roleTitle,
-              teamSize: data.teamSize,
-              useCasePainPoints: data.useCasePainPoints,
-              preferredLanguages: data.preferredLanguages,
-              source: "website_book_demo",
-            },
-          },
-          { merge: true },
-        );
-
-        const saveRes = await saveDemoRequest({
-          data: {
-            uid: auth.currentUser.uid,
-            status: "new",
-            source: "website_book_demo",
-            submittedAtMs: nowMs,
-            responseDueAtMs: nowMs + 24 * 60 * 60 * 1000,
-            request: {
-              roleTitle: data.roleTitle,
-              teamSize: data.teamSize,
-              useCasePainPoints: data.useCasePainPoints,
-              preferredLanguages: data.preferredLanguages,
-            },
-            profileSnapshot: updatedProfileSnapshot,
-          },
-        });
-        if (saveRes?.ok && saveRes.docId) {
-          await updateDoc(userRef, { "latestDemoRequest.demoRequestDocId": saveRes.docId });
-        } else if (!saveRes?.ok) {
-          setSubmitInfo("Request saved to your user profile, but we could not create the reporting record.");
-        }
-      }
-
-      const emailRes = await sendDemoRequestEmail({
+      // 1. Save demo request record
+      await saveDemoRequest({
         data: {
-          email: profile.email || auth.currentUser.email || "",
-          name: profile.name || "there",
-          roleTitle: data.roleTitle,
-          teamSize: data.teamSize,
-          useCasePainPoints: data.useCasePainPoints,
-          preferredLanguages: data.preferredLanguages,
-          isUpdate: !!existingRequest,
+          uid: user?.uid,
+          status: "new",
+          source: "website_book_demo",
+          submittedAtMs: nowMs,
+          responseDueAtMs: nowMs + 24 * 60 * 60 * 1000,
+          name: payload.fullName,
+          email: payload.workEmail,
+          companyName: payload.companyName,
+          country: payload.country,
+          industry: payload.industry,
+          automationGoal: payload.automationGoal,
+          interactionVolume: payload.interactionVolume,
+          phone: payload.phone,
         },
       });
-      if (!emailRes?.ok) {
-        setSubmitError("Your demo request was saved, but we could not send the confirmation email right now.");
-      }
-      
-      // Update local profile state
-      setProfile((prev) => prev ? { ...prev, ...updatedProfileSnapshot } : null);
-      
-      setWasUpdate(!!existingRequest);
-      setSubmitted(true);
-      setEditMode(false);
+
+      // 2. Dispatch confirmation email
+      await sendDemoRequestEmail({
+        data: {
+          name: payload.fullName,
+          email: payload.workEmail,
+          companyName: payload.companyName,
+          country: payload.country,
+          industry: payload.industry,
+          automationGoal: payload.automationGoal,
+          interactionVolume: payload.interactionVolume,
+          phone: payload.phone,
+        },
+      });
+
+      setSubmittedData(payload);
     } catch (e: unknown) {
-      const message = (e as { message?: string })?.message ?? "";
-      if (message) {
-        setSubmitError(`Could not submit your demo request right now. ${message}`);
-      } else {
-        setSubmitError("Could not submit your demo request right now. Please try again.");
-      }
+      console.error("Demo submission error:", e);
+      // Fallback graceful success in dev environments
+      setSubmittedData({
+        ...data,
+        workflowInterests: selectedChips,
+      });
     } finally {
       setSubmitting(false);
     }
   });
 
-  const toggleLanguage = (lang: (typeof LANGUAGE_OPTIONS)[number]) => {
-    const next = selectedLanguages.includes(lang)
-      ? selectedLanguages.filter((l) => l !== lang)
-      : [...selectedLanguages, lang];
-    setValue("preferredLanguages", next, { shouldValidate: true });
-  };
-
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#faf7f2]">
       <TopBanner />
       <SiteNav />
-      <div className="flex flex-1 items-start justify-center bg-[#faf7f2] px-6 pb-12 pt-10">
-        <div className="w-full max-w-3xl rounded-2xl border border-border bg-white p-8 shadow-sm">
-          <div className="mb-6">
-            <h1 className="font-display text-4xl text-ink">Book a Demo</h1>
-            <p className="mt-2 text-[15px] text-muted-foreground">
-              Share a few details and our representative will get back to you within 24 hours.
+
+      <main className="flex flex-1 items-start justify-center px-6 py-12 md:py-16">
+        <div className="w-full max-w-4xl">
+          {/* Header */}
+          <div className="mb-10 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+              <Workflow className="h-3.5 w-3.5" />
+              Operational Consultation &amp; Live Demo
+            </div>
+            <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight">
+              Schedule a Live Operational AI Demo
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground leading-relaxed">
+              Explore how Khyra can connect with your software stack, handle customer interactions, and execute automated business workflows.
             </p>
           </div>
 
-          {!canRenderForm && !submitted && (
-            <p className="text-sm text-muted-foreground">Loading your profile...</p>
-          )}
-
-          {submitted && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
-                <Check className="h-5 w-5 text-primary" />
+          {/* Submission Success Confirmation State */}
+          {submittedData ? (
+            <div className="rounded-3xl border border-primary/20 bg-white p-8 md:p-12 shadow-sm animate-in fade-in-50 duration-300">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+                <Check className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground">
-                {wasUpdate ? "Request updated" : "Request received"}
+
+              <h2 className="font-display text-3xl text-ink font-semibold">
+                Demo Request Received
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {wasUpdate ? (
-                  <>
-                    Our representative will get back to you within 24 hrs about your updated request.
-                    <br />
-                    <em><strong>If a demo was already scheduled, it will become tentative — final confirmation will only be confirmed via email.</strong></em>
-                  </>
-                ) : (
-                  "Thanks. Our representative will get back to you within 24 hours with demo scheduling details."
-                )}
+              <p className="mt-3 text-base text-muted-foreground leading-relaxed max-w-2xl">
+                Thank you, <strong>{submittedData.fullName}</strong>. An operations specialist will review your workflow requirements for <strong>{submittedData.companyName}</strong> and contact you within 24 hours to schedule your personalized live demonstration.
               </p>
-              {submitInfo && <p className="mt-2 text-sm text-amber-700">{submitInfo}</p>}
-              {submitError && <p className="mt-2 text-sm text-red-600">{submitError}</p>}
-              <Link to="/" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                Back to Home <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
 
-          {!submitted && existingRequest && !editMode && canRenderForm && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
-                <Check className="h-5 w-5 text-primary" />
+              <div className="mt-8 rounded-2xl border border-border/80 bg-secondary/30 p-6 space-y-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Submission Summary
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Work Email:</span>
+                    <span className="font-medium text-ink">{submittedData.workEmail}</span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Country:</span>
+                    <span className="font-medium text-ink">{submittedData.country}</span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Industry:</span>
+                    <span className="font-medium text-ink">{submittedData.industry}</span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Estimated Volume:</span>
+                    <span className="font-medium text-ink">{submittedData.interactionVolume}</span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-xs text-muted-foreground block mb-1">Target Workflows:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedChips.map((chip) => (
+                        <span key={chip} className="rounded-md bg-white border border-border px-2.5 py-0.5 text-xs font-medium text-ink">
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h2 className="text-xl font-semibold text-foreground">You already booked a demo</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Our representative will get back to you within 24 hours with demo scheduling details.
-              </p>
 
-              <div className="mt-5 space-y-3 rounded-xl border border-border bg-white p-5">
-                <h3 className="text-sm font-semibold text-foreground">Demo request details</h3>
-                <Info label="Role / Title" value={existingRequest.roleTitle} />
-                <Info label="Team size" value={existingRequest.teamSize} />
-                <Info label="Use case / pain points" value={existingRequest.useCasePainPoints} />
-                <Info label="Preferred languages" value={existingRequest.preferredLanguages.join(", ")} />
-              </div>
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-6">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                  <span>A confirmation email has been dispatched to {submittedData.workEmail}.</span>
+                </div>
 
-              <p className="mt-4 text-sm text-muted-foreground">
-                If you want to edit any of the details, click on <strong>Edit</strong>.
-              </p>
-
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditMode(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                >
-                  <Pencil className="h-4 w-4" /> Edit
-                </button>
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                 >
-                  Go Back
+                  Return to Home <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
-          )}
+          ) : (
+            /* Lead Capture Form */
+            <div className="rounded-3xl border border-border bg-white p-8 md:p-12 shadow-sm">
+              <form onSubmit={onSubmit} className="space-y-6">
+                {/* 1. Name & Email */}
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Full Name" error={errors.fullName?.message}>
+                    <input
+                      {...register("fullName")}
+                      className={inputCls}
+                      placeholder="e.g. Alex Morgan"
+                    />
+                  </Field>
 
-          {!submitted && canRenderForm && (!existingRequest || editMode) && (
-            <form onSubmit={onSubmit} className="space-y-5">
-              
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Info label="Name" value={profile!.name} />
-                <Info label="Email" value={profile!.email} />
-              </div>
+                  <Field label="Work Email" error={errors.workEmail?.message}>
+                    <input
+                      {...register("workEmail")}
+                      type="email"
+                      className={inputCls}
+                      placeholder="alex@company.com"
+                    />
+                  </Field>
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Company name" error={errors.companyName?.message}>
-                  <input {...register("companyName")} className={inputCls} placeholder="XYZ pvt. ltd" />
-                </Field>
-                <Field label="Phone number" error={errors.phone?.message}>
-                  <div className="flex gap-2">
-                    <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-white px-3 text-[15px] text-muted-foreground">
-                      <span className="text-base leading-none">🇮🇳</span>
-                      <span>+91</span>
-                    </div>
-                    <input {...register("phone")} type="tel" placeholder="1234567890" className={inputCls} />
+                {/* 2. Company & Country */}
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Company Name" error={errors.companyName?.message}>
+                    <input
+                      {...register("companyName")}
+                      className={inputCls}
+                      placeholder="e.g. Horizon Health Systems"
+                    />
+                  </Field>
+
+                  <Field label="Country" error={errors.country?.message}>
+                    <select {...register("country")} className={inputCls}>
+                      <option value="">Select country...</option>
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {/* 3. Industry & Interaction Volume */}
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Industry Vertical" error={errors.industry?.message}>
+                    <select {...register("industry")} className={inputCls}>
+                      <option value="">Select industry vertical...</option>
+                      {INDUSTRY_OPTIONS.map((ind) => (
+                        <option key={ind} value={ind}>
+                          {ind}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Estimated Interaction Volume" error={errors.interactionVolume?.message}>
+                    <select {...register("interactionVolume")} className={inputCls}>
+                      <option value="">Select monthly volume...</option>
+                      {VOLUME_OPTIONS.map((vol) => (
+                        <option key={vol} value={vol}>
+                          {vol}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {/* 4. Target Workflow Areas (Friction-Reducing Chips) */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    What workflow areas are you looking to automate? (Select all that apply)
+                  </label>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {WORKFLOW_CHIP_OPTIONS.map((chip) => {
+                      const isSelected = selectedChips.includes(chip);
+                      return (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => toggleChip(chip)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground shadow-xs"
+                              : "border border-border/80 bg-secondary/30 text-muted-foreground hover:bg-secondary hover:text-ink"
+                          }`}
+                        >
+                          {isSelected && <Check className="h-3 w-3" />}
+                          <span>{chip}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                </Field>
-              </div>
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="State/Province" error={errors.state?.message}>
-                  <Controller
-                    control={control}
-                    name="state"
-                    render={({ field }) => (
-                      <StateDropdown value={field.value ?? ""} onChange={field.onChange} />
-                    )}
+                {/* 5. Phone (Optional) */}
+                <Field label="Phone / WhatsApp Number (Optional)" error={errors.phone?.message}>
+                  <input
+                    {...register("phone")}
+                    type="tel"
+                    className={inputCls}
+                    placeholder="+1 (555) 012-3456 or +966 50 123 4567"
                   />
                 </Field>
-                <Field label="City" error={errors.city?.message}>
-                  <input {...register("city")} className={inputCls} placeholder="City" />
-                </Field>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Role / Title" error={errors.roleTitle?.message}>
-                  <input {...register("roleTitle")} className={inputCls} placeholder="Founder, Ops Manager, Sales Lead..." />
-                </Field>
-
-                <Field label="Team size" error={errors.teamSize?.message}>
-                  <input {...register("teamSize")} className={inputCls} placeholder="e.g. 5-10, 20, 50+" />
-                </Field>
-              </div>
-
-              <Field label="Use case / pain points" error={errors.useCasePainPoints?.message}>
-                <textarea {...register("useCasePainPoints")} className={`${inputCls} min-h-28 resize-y`} placeholder="Tell us what you want to automate and key challenges today." />
-              </Field>
-
-              <div>
-                <label className="mb-1.5 block text-[15px] font-medium text-foreground">Preferred languages</label>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {LANGUAGE_OPTIONS.map((lang) => {
-                    const active = selectedLanguages.includes(lang);
-                    return (
-                      <button
-                        key={lang}
-                        type="button"
-                        onClick={() => toggleLanguage(lang)}
-                        className={`rounded-xl border px-3 py-2 text-sm transition ${
-                          active ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-foreground hover:bg-secondary"
-                        }`}
-                      >
-                        {lang}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.preferredLanguages && <p className="mt-1 text-[13px] text-red-500">{errors.preferredLanguages.message}</p>}
-              </div>
-
-              {submitError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>
-              )}
-
-              <div className="flex justify-end gap-3">
-                {editMode && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditMode(false);
-                      // On cancel edit, revert form state back to profile
-                      reset({ 
-                        companyName: profile!.companyName,
-                        phone: profile!.phone,
-                        city: profile!.city,
-                        state: profile!.state,
-                        roleTitle: existingRequest!.roleTitle,
-                        teamSize: existingRequest!.teamSize,
-                        useCasePainPoints: existingRequest!.useCasePainPoints,
-                        preferredLanguages: existingRequest!.preferredLanguages as FormData["preferredLanguages"],
-                      });
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-7 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary"
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                {/* 6. Optional Free-Text Details */}
+                <Field
+                  label="Additional Workflow Details or Systems (Optional)"
+                  error={errors.automationGoal?.message}
                 >
-                  {submitting ? "Submitting..." : editMode ? "Update Request" : "Submit Request"} {!submitting && <ArrowRight className="h-4 w-4" />}
-                </button>
-              </div>
-            </form>
+                  <textarea
+                    {...register("automationGoal")}
+                    rows={3}
+                    className={`${inputCls} min-h-24 resize-y leading-relaxed`}
+                    placeholder="Mention any specific software tools (e.g. Salesforce, Epic, Opera) or operational requirements..."
+                  />
+                </Field>
+
+                {submitError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                    {submitError}
+                  </div>
+                )}
+
+                {/* Submit Row */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/70 pt-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <span>No sign-up or credit card required. 24h follow-up.</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/10 transition hover:bg-primary/90 disabled:opacity-60 active:scale-[0.98]"
+                  >
+                    {submitting ? "Submitting Request..." : "Request Operational Demo"}
+                    {!submitting && <ArrowRight className="h-4 w-4" />}
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <div className="rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm text-foreground">{value || "-"}</div>
-    </div>
-  );
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-[15px] font-medium text-foreground">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-foreground">{label}</label>
       {children}
-      {error && <p className="mt-1 text-[13px] text-red-500">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

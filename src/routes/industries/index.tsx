@@ -32,26 +32,26 @@ function IndustriesHubPage() {
             </span>
             <h1 className="mt-4 font-display text-5xl leading-[1.05] text-ink sm:text-7xl">
               Built for your industry. <br />
-              <span className="italic text-primary">Powered by voice action.</span>
+              <span className="italic text-primary">Engineered for execution.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg font-light leading-relaxed text-muted-foreground">
-              Khyra adapts to the exact way your business operates — understanding industry terminology, triaging customer requests, and executing backend system actions in real time.
+              Khyra adapts to the exact way your organization operates — understanding domain terminology, navigating complex business rules, and executing backend system actions in real time.
             </p>
           </div>
 
-          {/* Right Hero CTA & Stats (4 cols) */}
+          {/* Right Hero CTA & Features (4 cols) */}
           <div className="lg:col-span-4 space-y-6 lg:border-l lg:border-border/60 lg:pl-8">
             <div className="space-y-1">
-              <div className="font-mono text-2xl font-bold text-ink">7 Verticals</div>
-              <div className="text-xs text-muted-foreground">Pre-trained on 150,000+ domain calls</div>
+              <div className="font-display text-xl font-bold text-ink">End-to-End System Action</div>
+              <div className="text-xs text-muted-foreground">Directly syncs with your CRM, EHR, PMS &amp; scheduling tools</div>
             </div>
             <div className="space-y-1">
-              <div className="font-mono text-2xl font-bold text-emerald-600">&lt; 800ms Latency</div>
-              <div className="text-xs text-muted-foreground">Sub-second real-time speech response</div>
+              <div className="font-display text-xl font-bold text-primary">Human Escalation Protocol</div>
+              <div className="text-xs text-muted-foreground">Seamless warm handoffs with real-time situational briefs</div>
             </div>
             <div className="pt-2">
               <BookDemoButton className="group inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-ink/90 active:scale-[0.98]">
-                Book an industry demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Schedule an industry demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </BookDemoButton>
             </div>
           </div>

@@ -82,9 +82,9 @@ function LeftPanel() {
       </div>
 
       <div className="relative pt-4">
-        <h2 className="font-display text-2xl leading-snug">AI-First Voice Platform<br />for India</h2>
+        <h2 className="font-display text-2xl leading-snug">Operational AI Platform<br />for Business Workflows</h2>
         <p className="mt-2 text-sm leading-relaxed text-primary-foreground/65">
-          Deploy intelligent voice agents for Indian businesses — multilingual, always-on, up and running in hours.
+          Deploy intelligent AI operators that communicate, reason within defined rules, and execute backend tasks across your systems.
         </p>
       </div>
     </div>
@@ -198,9 +198,9 @@ function LoginPage() {
               <>
                 <div className="mb-7">
                   <h1 className="font-display text-[2.15rem] leading-tight text-ink">Welcome to Khyra AI</h1>
-                  <p className="mt-0.5 text-base font-semibold text-foreground/80">Smarter Voice Infrastructure</p>
+                  <p className="mt-0.5 text-base font-semibold text-foreground/80">Operational AI Platform</p>
                   <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">
-                    Access secure, AI-first voice agents to build, manage, and scale intelligent voice applications across India effortlessly.
+                    Access Khyra to configure, manage, and scale conversation-driven operational workflows across your business.
                   </p>
                 </div>
 

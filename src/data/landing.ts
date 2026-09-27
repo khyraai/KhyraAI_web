@@ -2,220 +2,362 @@ import type { ElementType } from "react";
 import {
   Activity,
   Building2,
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
+  Compass,
+  Database,
+  FileCheck,
   Globe,
   Headphones,
   Hotel,
-  PawPrint,
-  Server,
+  Layers,
+  MessageSquare,
+  Network,
+  Phone,
+  PhoneCall,
+  PhoneForwarded,
+  ShieldCheck,
   Sparkles,
   Stethoscope,
   Target,
-  Phone,
+  Truck,
+  Users,
+  Workflow,
   Wrench,
   Zap,
-  ShieldCheck,
-  Workflow,
-  Mic,
 } from "lucide-react";
 
-export type UseCaseTab = "Front Desk" | "Lead Follow-Up" | "Support Line";
+export type UseCaseTab =
+  | "Customer Support"
+  | "Front Desk & Reception"
+  | "Sales & Lead Qualification"
+  | "Scheduling & Coordination"
+  | "Service Operations";
 
-export const heroConversationByLanguage = {
-  EN: [
-    { who: "caller", text: "Hello, can I book an appointment for tomorrow evening?" },
-    { who: "khyra", text: "Sure. Dr. Mehta has a 6:30 PM slot available — should I confirm?" },
-    { who: "caller", text: "Yes, please confirm." },
-    { who: "khyra", text: "Done. Confirmation SMS has been sent. Anything else I can help with?" },
-  ],
-  KN: [
-    { who: "caller", text: "ನಮಸ್ಕಾರ, ನಾನು ನಾಳೆ ಸಂಜೆ ಅಪಾಯಿಂಟ್ಮೆಂಟ್ ಬುಕ್ ಮಾಡಬಹುದೆ?" },
-    { who: "khyra", text: "ಖಂಡಿತ. ಡಾ. ಮೆಹ್ತಾಗೆ ನಾಳೆ 6:30 PM ಗೆ ಸ್ಲಾಟ್ ಲಭ್ಯವಿದೆ — ದೃಢೀಕರಿಸಬೇಕಾ?" },
-    { who: "caller", text: "ಹೌದು, ದಯವಿಟ್ಟು ದೃಢೀಕರಿಸಿ." },
-    { who: "khyra", text: "ಸರಿಯಾಗಿದೆ. ದೃಢೀಕರಣ SMS ಕಳುಹಿಸಲಾಗಿದೆ. ಇನ್ನೇನು ಸಹಾಯ ಬೇಕೇ?" },
-  ],
-  HN: [
-    { who: "caller", text: "नमस्ते, क्या मैं कल शाम का appointment book कर सकती हूँ?" },
-    { who: "khyra", text: "बिल्कुल। Dr. Mehta के साथ कल 6:30 PM का slot available है — confirm कर दूँ?" },
-    { who: "caller", text: "Haan, please confirm." },
-    { who: "khyra", text: "Done. Confirmation SMS भेज दिया है. कुछ और मदद चाहिए?" },
-  ],
-} as const;
-
-export const heroConversation = heroConversationByLanguage.HN;
+export const heroConversation = [
+  { who: "caller", text: "Hi, I need to reschedule my consultation to tomorrow afternoon." },
+  { who: "khyra", text: "I can help with that. Dr. Lawrence has an open slot tomorrow at 3:30 PM. Would you like me to lock that in?" },
+  { who: "caller", text: "Yes, 3:30 PM works perfectly." },
+  { who: "khyra", text: "Confirmed. I've updated your appointment in our clinic system and sent a confirmation SMS to your number." },
+] as const;
 
 export const trustIndustries = [
-  { Icon: Stethoscope as ElementType, label: "Healthcare" },
-  { Icon: Hotel as ElementType, label: "Hospitality" },
-  { Icon: Building2 as ElementType, label: "Real Estate" },
-  { Icon: Server as ElementType, label: "IT Services" },
-  { Icon: Sparkles as ElementType, label: "Wellness" },
-  { Icon: PawPrint as ElementType, label: "Veterinary" },
+  { Icon: Stethoscope as ElementType, label: "Healthcare & Clinics" },
+  { Icon: Hotel as ElementType, label: "Hospitality & Hotels" },
+  { Icon: Building2 as ElementType, label: "Real Estate & Property" },
+  { Icon: Users as ElementType, label: "Professional Services" },
+  { Icon: Truck as ElementType, label: "Field & Home Services" },
 ] as const;
 
 export const trustStats = [
-  { value: "11+", label: "Indian languages" },
-  { value: "1200ms", label: "Avg response latency" },
-  { value: "99.9%", label: "Uptime SLA" },
-  { value: "24×7", label: "No breaks. No sick days." },
+  { value: "Understand → Act", label: "End-to-end operational execution", sublabel: "Conversations turn directly into business actions" },
+  { value: "Zero Rip-and-Replace", label: "Connects to your existing software", sublabel: "CRM, ERP, calendars, EHR & custom APIs" },
+  { value: "24/7 Availability", label: "Autonomous task handling", sublabel: "Never leave high-intent callers waiting" },
+  { value: "Human Safeguard", label: "Contextual escalation protocol", sublabel: "Warm transfer with real-time call summary" },
+] as const;
+
+export const impactStats = [
+  { value: "< 1s", label: "Average response time to inbound calls — no hold queue" },
+  { value: "24/7", label: "Autonomous operational coverage across voice and digital channels" },
+  { value: "92%+", label: "First-contact resolution rate for Tier-1 workflow execution" },
+] as const;
+
+export const executionPipeline = [
+  {
+    step: "01",
+    phase: "Understand",
+    title: "Conversational Intake",
+    description: "Khyra listens, transcribes, and extracts intent, parameters, and customer identifiers in real time across phone or digital channels.",
+    badge: "Intent & Entity Extraction",
+  },
+  {
+    step: "02",
+    phase: "Decide",
+    title: "Business Rule Logic",
+    description: "Evaluates your company's operational rules, availability schedules, customer tiers, and compliance requirements before acting.",
+    badge: "Rule Engine & Policy Check",
+  },
+  {
+    step: "03",
+    phase: "Execute",
+    title: "System Action",
+    description: "Communicates directly with your backend systems via APIs or webhooks: booking slots, updating records, or dispatching services.",
+    badge: "Direct API / System Sync",
+  },
+  {
+    step: "04",
+    phase: "Update",
+    title: "Confirmation & Logging",
+    description: "Dispatches multi-channel confirmation to the customer (SMS/WhatsApp/Email) and updates internal audit logs and team dashboards.",
+    badge: "Multi-Channel Delivery",
+  },
+  {
+    step: "05",
+    phase: "Escalate",
+    title: "Human Escalation Safeguard",
+    description: "If an exception arises or complex human judgment is needed, Khyra routes to a staff member with a full brief of the conversation so far.",
+    badge: "Warm Transfer with Context",
+  },
 ] as const;
 
 export const pillars = [
   {
+    Icon: Headphones as ElementType,
+    title: "Customer Support Operator",
+    description: "Resolves tier-1 customer inquiries, answers status questions, troubleshoots known issues, and generates tickets in your helpdesk.",
+    tab: "Customer Support" as const,
+    outcomes: ["Instant triage without wait queues", "Automatic CRM / ticketing sync", "Intelligent escalation with full summary"],
+  },
+  {
     Icon: Phone as ElementType,
-    title: "Front Desk Agent",
-    description: "Answers calls, books appointments, handles cancellations — around the clock.",
-    tab: "Front Desk" as const,
+    title: "Front Desk & Reception",
+    description: "Answers inbound calls 24/7, books appointments, coordinates reschedules, handles cancellations, and answers common facility questions.",
+    tab: "Front Desk & Reception" as const,
+    outcomes: ["Zero missed calls during peak hours", "Live calendar validation & booking", "Automatic confirmation dispatch"],
   },
   {
     Icon: Target as ElementType,
-    title: "Lead Follow-Up Agent",
-    description: "Calls back warm leads, qualifies prospects, and schedules meetings automatically.",
-    tab: "Lead Follow-Up" as const,
+    title: "Sales & Lead Qualification",
+    description: "Engages high-intent inbound prospects instantly, qualifies budget and timeline, collects requirements, and schedules discovery meetings.",
+    tab: "Sales & Lead Qualification" as const,
+    outcomes: ["Sub-minute response to inbound leads", "Strict qualification rubric scoring", "Warm handoff to sales reps"],
   },
   {
-    Icon: Wrench as ElementType,
-    title: "Support Line Agent",
-    description: "Resolves Tier-1 support tickets, resets access, and escalates intelligently.",
-    tab: "Support Line" as const,
+    Icon: CalendarCheck as ElementType,
+    title: "Scheduling & Coordination",
+    description: "Manages complex multi-party appointments, reservation modifications, reminders, and confirmations directly inside your calendar or PMS.",
+    tab: "Scheduling & Coordination" as const,
+    outcomes: ["Two-way calendar & booking sync", "Automated reschedule workflows", "Significant reduction in no-shows"],
+  },
+  {
+    Icon: Truck as ElementType,
+    title: "Field & Service Operations",
+    description: "Handles emergency service dispatch, work-order status requests, customer arrival updates, and technician routing coordination.",
+    tab: "Service Operations" as const,
+    outcomes: ["Real-time case and job creation", "Emergency triage & priority routing", "Customer arrival notifications"],
   },
 ] as const;
 
 export const howItWorksSteps = [
   {
     number: "01",
-    title: "Book a demo with us",
+    title: "Understand the workflow",
     description:
-      "We walk you through a personalised demo tailored to your use case and answer your questions.",
+      "We map the conversations, business logic, validation rules, and backend actions your organization wants automated.",
   },
   {
     number: "02",
-    title: "We set up your systems",
+    title: "Connect existing systems",
     description:
-      "Our experts collect your credentials and configure everything — telephony, calendars, CRM — for you.",
+      "We securely connect your telephony and business systems (CRM, calendar, EHR, ticketing) through supported APIs and webhooks.",
   },
   {
     number: "03",
+    title: "Configure operational workflows",
+    description:
+      "Khyra's reasoning and execution engine is configured around your specific processes, business rules, and escalation paths.",
+  },
+  {
+    number: "04",
+    title: "Test & validate",
+    description:
+      "Workflows are rigorously tested against realistic scenarios, edge cases, background noise, interruptions, and system errors.",
+  },
+  {
+    number: "05",
     title: "Go live",
-    description: "Khyra starts answering calls immediately. Monitor every conversation in real time.",
+    description:
+      "Khyra begins handling live interactions with real-time monitoring and built-in human escalation safeguards.",
+  },
+  {
+    number: "06",
+    title: "Monitor and refine",
+    description:
+      "Interaction logs, operational outcomes, and escalation rates are continuously monitored to optimize accuracy and workflow speed.",
   },
 ] as const;
 
-export const featureCards = [
+export const platformCapabilities = [
   {
-    Icon: Globe as ElementType,
-    title: "11 Indian languages",
-    description:
-      "Hindi, English, Kannada, Tamil, Telugu, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia.",
+    Icon: Workflow as ElementType,
+    title: "Workflow Execution Engine",
+    description: "Khyra does not just reply with text; it evaluates rules, validates parameters, and triggers transactions in your backend software.",
   },
   {
-    Icon: Zap as ElementType,
-    title: "Sub-second latency",
-    description: "Groq-powered LPU inference delivers end-to-end voice response under 800ms.",
+    Icon: Database as ElementType,
+    title: "Enterprise Systems Integration",
+    description: "Native and webhook connectors for CRMs, EHRs, calendar systems, ERPs, ticketing tools, and custom business databases.",
   },
   {
-    Icon: Headphones as ElementType,
-    title: "Natural voice personas",
-    description: "Multiple male and female voices, tuned for Indian accents.",
+    Icon: PhoneForwarded as ElementType,
+    title: "Telephony & Digital Ingestion",
+    description: "Connect via your existing business telephone numbers, SIP trunking, WebSockets, or embedded web-based calling.",
   },
   {
     Icon: Activity as ElementType,
-    title: "Context-aware",
-    description: "Remembers earlier turns in the call and responds intelligently.",
-  },
-  {
-    Icon: Mic as ElementType,
-    title: "Live interruptions",
-    description: "Callers can talk over the agent; it adapts in real time like a human.",
-  },
-  {
-    Icon: Workflow as ElementType,
-    title: "Domain intelligence",
-    description: "Pre-trained on 15+ verticals — not a generic chatbot you retrain.",
+    title: "Context-Aware Multi-Turn Reasoning",
+    description: "Maintains situational memory across lengthy interactions, effortlessly handling interruptions, corrections, and clarifications.",
   },
   {
     Icon: ShieldCheck as ElementType,
-    title: "India data residency",
-    description: "Hosted in India. Encrypted at rest and in transit. RBAC throughout.",
+    title: "Enterprise Governance & Security",
+    description: "Role-based access control, TLS 1.3 encryption in transit, AES-256 encryption at rest, and comprehensive operational audit trails.",
   },
   {
-    Icon: Phone as ElementType,
-    title: "Telephony agnostic",
-    description: "Works with your existing number via SIP / WebSocket bridge.",
+    Icon: Globe as ElementType,
+    title: "Global Multilingual Capability",
+    description: "Built for international deployment with English as the primary operational layer, adaptable to regional languages as required.",
+  },
+  {
+    Icon: Users as ElementType,
+    title: "Human Escalation Safeguard",
+    description: "Configurable confidence thresholds trigger warm handoffs to human operators, accompanied by structured context summaries.",
+  },
+  {
+    Icon: Layers as ElementType,
+    title: "Adaptable Architecture",
+    description: "One unified operational AI foundation configured to support distinct operational roles across different departments.",
   },
 ] as const;
 
 export const useCases: Record<UseCaseTab, readonly [string, string][]> = {
-  "Front Desk": [
-    ["Dental clinic", "Booking, rescheduling, FAQ on procedures and timings."],
-    ["Veterinary", "Pet appointments, emergency triage routing, vaccination reminders."],
-    ["Spa & salon", "Bookings, pricing queries, real-time slot availability."],
-    ["Hotel & resort", "Reservations, room queries, check-in / check-out info."],
-    ["Therapist & wellness", "Empathetic intake calls with full privacy."],
-    ["Cosmetic clinic", "Consultation bookings, procedure FAQs, follow-ups."],
+  "Customer Support": [
+    ["Inbound Triage & FAQ", "Answers routine service questions, verifies customer identity, and provides instantaneous answers."],
+    ["Ticket Generation", "Creates structured support tickets in Zendesk, Freshdesk, or Jira with categorized priority and tags."],
+    ["Status Inquiries", "Looks up real-time order, shipment, or service claim status directly from internal databases."],
+    ["Intelligent Human Escalation", "Transfers critical or high-frustration cases to senior support personnel with live context."],
   ],
-  "Lead Follow-Up": [
-    ["Real estate", "Follow up on enquiries, qualify buyers, schedule site visits."],
-    ["IT services", "Follow up RFQs, qualify scope, route to sales engineers."],
-    ["Voice AI agency", "Pitch solutions, qualify prospects, book discovery calls."],
+  "Front Desk & Reception": [
+    ["24/7 Call Answering", "Ensures zero missed calls after hours, on weekends, or during peak front desk rush periods."],
+    ["Appointment Scheduling", "Checks live provider calendars, confirms open slots, and books appointments in real time."],
+    ["Rescheduling & Cancellations", "Modifies existing appointments and frees up slots without requiring receptionist involvement."],
+    ["Direction & Facility Queries", "Provides location directions, prep instructions, and parking information accurately."],
   ],
-  "Support Line": [
-    ["DevOps & infra", "Tier-1 incident intake, basic runbooks, on-call escalation."],
-    ["Access management", "Password resets, account unlocks, 2FA issues — resolved."],
-    ["SaaS support", "Answer FAQs, guide users, raise tickets for Tier-2."],
+  "Sales & Lead Qualification": [
+    ["Immediate Inbound Response", "Engages prospects within seconds of their call or web inquiry while interest is highest."],
+    ["Rubric-Based Qualification", "Gathers budget, timeline, authority, and requirement details systematically."],
+    ["Meeting Booking", "Schedules discovery consultations directly on account executives' calendars."],
+    ["CRM Record Enrichment", "Logs the full qualification transcript, tags, and summary into Salesforce or HubSpot."],
+  ],
+  "Scheduling & Coordination": [
+    ["Calendar Synchronization", "Coordinates multi-practitioner or multi-facility availability dynamically."],
+    ["Automated Reminder Workflows", "Dispatches multi-channel confirmation and reminder messages to reduce no-shows."],
+    ["Waitlist Management", "Notifies waitlisted clients when a cancellation occurs to maximize utilization."],
+    ["Multi-Party Coordination", "Handles complex scheduling requirements involving multiple staff or resources."],
+  ],
+  "Service Operations": [
+    ["Emergency Service Triage", "Identifies urgent breakdowns or leaks and routes immediate alerts to on-call managers."],
+    ["Field Dispatch Scheduling", "Assigns service windows and dispatches field technicians based on territory and skills."],
+    ["Work Order Status Updates", "Provides customers with accurate updates on technician arrival and job progress."],
+    ["Case Resolution Logging", "Updates field management software when service calls are completed."],
   ],
 };
 
-export const impactStats = [
-  { value: "40%", label: "Reduction in front desk staffing costs" },
-  { value: "1200ms", label: "End-to-end voice latency" },
-  { value: "11", label: "Indian languages supported" },
-  { value: "99.9%", label: "Production uptime SLA" },
-  { value: "15+", label: "Verticals out of the box" },
-  { value: "20", label: "Concurrent calls per deployment" },
+export const focusedIndustries = [
+  {
+    slug: "healthcare",
+    name: "Healthcare & Clinics",
+    role: "Patient Intake & Coordination",
+    headline: "Automate patient scheduling, triage routing, and appointment workflows.",
+    workflowExample: {
+      caller: "“I need to reschedule my consultation with Dr. Lawrence for Thursday afternoon.”",
+      systemAction: "Khyra queries clinic calendar, locks Thursday 3:30 PM slot, updates patient record, and sends SMS confirmation.",
+    },
+    software: "Epic, Cerner, Practo, Custom EHR",
+  },
+  {
+    slug: "hospitality",
+    name: "Hospitality & Hotels",
+    role: "Guest Services & Reservations",
+    headline: "Handle reservation changes, guest requests, and concierge inquiries 24/7.",
+    workflowExample: {
+      caller: "“Can we arrange late checkout at 2 PM for room 408 tomorrow?”",
+      systemAction: "Khyra looks up reservation in Opera PMS, authorizes late checkout, alerts housekeeping, and sends digital pass.",
+    },
+    software: "Oracle Opera, Cloudbeds, FrontDesk",
+  },
+  {
+    slug: "real-estate",
+    name: "Real Estate & Property",
+    role: "Inbound Lead Qualification",
+    headline: "Qualify prospective buyers and tenants, answer property specs, and book viewings.",
+    workflowExample: {
+      caller: "“I'm calling about the 3-bedroom downtown penthouse listed yesterday.”",
+      systemAction: "Khyra captures buyer criteria, verifies pre-qualification, creates CRM lead, and schedules private tour.",
+    },
+    software: "Salesforce, HubSpot, LeadSquared",
+  },
+  {
+    slug: "professional-services",
+    name: "Professional & Financial Services",
+    role: "Client Intake & Advisory Scheduling",
+    headline: "Streamline client intake, consultation bookings, and status inquiries.",
+    workflowExample: {
+      caller: "“We are seeking an operational compliance audit proposal for our 200-person firm.”",
+      systemAction: "Khyra collects firm scope, logs requirement brief in CRM, and books discovery call with practice lead.",
+    },
+    software: "Salesforce, Clio, Calendly, Microsoft 365",
+  },
+  {
+    slug: "field-services",
+    name: "Field & Home Services",
+    role: "Dispatch & Service Operations",
+    headline: "Coordinate emergency dispatch, job scheduling, and technician status updates.",
+    workflowExample: {
+      caller: "“Our commercial HVAC system is leaking water and stopped cooling.”",
+      systemAction: "Khyra logs high-priority service ticket, dispatches available technician, and sends live ETA tracker.",
+    },
+    software: "ServiceTitan, Jobber, FieldEdge",
+  },
 ] as const;
 
 export const faqItems = [
   {
-    question: "How long does it take to go live?",
+    question: "What makes Khyra different from a traditional chatbot or voice bot?",
     answer:
-      "Most customers are live within 24–48 hours. Complex enterprise integrations may take up to a week.",
+      "Traditional chatbots and voice bots are designed only for conversation: they answer frequently asked questions with script-based replies. Khyra is an operational AI system: it understands conversational context and executes real workflows inside your business systems — booking appointments, updating CRMs, querying databases, dispatching work orders, and escalating exceptions with complete context.",
   },
   {
-    question: "Which languages does Khyra support?",
+    question: "Is voice the only interface Khyra supports?",
     answer:
-      "English, Hindi, Kannada, Tamil, Telugu, Malayalam, Bengali, Gujarati, Marathi, Punjabi and Odia — with more on the way.",
+      "No. Voice is one primary interface because a large percentage of high-value business interactions begin with a phone call. However, Khyra's operational engine is multi-channel: it can power voice telephony, browser-based voice calls, digital chat, and messaging workflows, executing the exact same backend business logic regardless of how the customer initiates contact.",
   },
   {
-    question: "Do I need to train the AI on my business data?",
+    question: "Can Khyra connect with our existing CRM, calendar, or EHR systems?",
     answer:
-      "No. Agents come pre-trained on your industry vertical. You provide basic config and Khyra handles the rest.",
+      "Yes. Khyra is engineered to integrate with the systems you already use rather than requiring you to overhaul your stack. We connect via secure REST APIs, webhooks, and database connectors to major platforms (such as Salesforce, HubSpot, Google Calendar, Microsoft Outlook, EHRs, and ticketing tools) as well as proprietary in-house systems.",
   },
   {
-    question: "Can I keep my existing phone number?",
-    answer: "Yes. Khyra works with your existing DID via a SIP bridge. No porting required.",
-  },
-  {
-    question: "What happens when the AI can't handle a call?",
+    question: "What happens when an interaction requires human judgment or escalation?",
     answer:
-      "It gracefully escalates to a human, sends a summary transcript, and routes the caller appropriately.",
+      "Khyra includes robust, configurable human-in-the-loop safeguards. When an inquiry falls outside predefined business policies, involves complex emotional or clinical nuances, or requires manual override, Khyra performs a seamless warm transfer to your human team, accompanied by a real-time summary transcript and extracted details.",
   },
   {
-    question: "Is my call data stored in India?",
-    answer: "Yes. All data is stored on Indian cloud infrastructure, encrypted at rest and in transit.",
+    question: "How long does deployment take and what does implementation involve?",
+    answer:
+      "We follow a disciplined 6-step implementation methodology: mapping your workflow, connecting your systems securely via APIs, configuring business rules, rigorous testing across realistic scenarios, going live with monitoring, and continuous refinement. Most standard deployments are live in days, while complex multi-system enterprise integrations typically take one to two weeks.",
   },
   {
-    question: "Do you integrate with our CRM / calendar / helpdesk?",
-    answer: "Webhook-based integration with any system, plus native connectors on the roadmap.",
+    question: "Which languages and geographic regions does Khyra support?",
+    answer:
+      "Khyra is built for global deployment with polished English as its default operational layer. The system is designed to serve businesses across international markets, including Saudi Arabia and the GCC, Europe, North America, and Asia, with support for multilingual interaction configured according to your customer requirements.",
   },
   {
-    question: "What telephony providers do you support?",
-    answer: "Vobiz today, plus any SIP-compatible provider. WebRTC supported for demo and internal use.",
+    question: "How does Khyra handle data privacy and system security?",
+    answer:
+      "Khyra enforces enterprise security best practices: all communication is encrypted in transit via TLS 1.3 and at rest with AES-256 encryption. We utilize strict role-based access controls (RBAC) and scoped API tokens, and we never ask clients to share sensitive administrative passwords or raw master credentials.",
+  },
+  {
+    question: "Do we need to change our existing phone numbers?",
+    answer:
+      "No. Khyra is telephony agnostic. It connects to your existing phone numbers through standard SIP trunking, call forwarding, or cloud telephony bridges. You maintain full ownership of your numbers with zero disruption to your existing communications.",
   },
 ] as const;
 
 export const demoFields = [
-  { label: "Agent role", value: "Front Desk" },
-  { label: "Industry", value: "Dental Clinic" },
-  { label: "Language", value: "Hindi" },
-  { label: "Voice", value: "Meera · Female" },
+  { label: "AI Operator Role", value: "Operational AI Layer" },
+  { label: "Core Execution", value: "Workflow & System Integration" },
+  { label: "Deployment", value: "Enterprise Cloud" },
+  { label: "Interface", value: "Voice & Multi-Channel" },
 ] as const;

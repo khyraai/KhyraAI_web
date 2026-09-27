@@ -13,17 +13,17 @@ const SCENARIOS = [
   {
     id: "healthcare",
     industry: "Healthcare & Clinics",
-    callerPrompt: "“Hi, I need to reschedule my root canal consult with Dr. Jacob to Wednesday afternoon.”",
+    callerPrompt: "“Hi, I need to reschedule Alex Morgan's consultation with Dr. Lawrence at Horizon Health to Thursday afternoon.”",
     understanding: {
       intent: "RescheduleAppointment",
-      caller: "John Smith (+91 98765 43210)",
-      targetDoctor: "Dr. Jacob",
-      requestedSlot: "Wednesday 03:30 PM",
+      caller: "Alex Morgan (+1 555 019 2834)",
+      targetDoctor: "Dr. Lawrence (Horizon Health)",
+      requestedSlot: "Thursday 03:30 PM",
     },
     actionExecuted: [
-      "Searched patient record in EHR database",
-      "Locked 03:30 PM slot for Dr. Jacob (#8942)",
-      "Dispatched DLT SMS confirmation to patient",
+      "Searched patient record in Horizon Health EHR",
+      "Locked 03:30 PM slot for Dr. Lawrence (#8942)",
+      "Dispatched automated SMS confirmation with clinic instructions",
     ],
     softwareBadge: "Clinic EHR & Calendar Sync",
     accentHex: "#16a34a",
@@ -31,17 +31,17 @@ const SCENARIOS = [
   {
     id: "real-estate",
     industry: "Real Estate",
-    callerPrompt: "“Looking for a 3BHK in Koramangala under ₹2.5 Cr with ready possession.”",
+    callerPrompt: "“Looking for a 3-bedroom property in Central District under $1.5M / SAR 5.5M with immediate occupancy.”",
     understanding: {
       intent: "PropertyLeadQualification",
-      caller: "Priya Sharma (+91 98123 45678)",
-      budget: "₹2.5 Cr",
-      specs: "3BHK, Koramangala, Ready Possession",
+      caller: "Faisal Al-Rashid (+966 50 234 5678)",
+      budget: "$1.5M / SAR 5.5M",
+      specs: "3-Bed, Central District, Ready Possession",
     },
     actionExecuted: [
       "Qualified lead score (92/100 High Intent)",
-      "Created lead profile in Salesforce CRM",
-      "Sent site tour booking calendar via WhatsApp",
+      "Created verified lead profile in Salesforce CRM",
+      "Dispatched private showing calendar invite to buyer",
     ],
     softwareBadge: "Salesforce CRM Integration",
     accentHex: "#1d4ed8",
@@ -49,17 +49,17 @@ const SCENARIOS = [
   {
     id: "hotels-hospitality",
     industry: "Hotels & Hospitality",
-    callerPrompt: "“Can we request an early check-in at 11 AM for Reservation #HK-4091 tomorrow?”",
+    callerPrompt: "“Can we request an early check-in at 11:30 AM for Reservation #HK-4091 tomorrow?”",
     understanding: {
       intent: "EarlyCheckInRequest",
-      caller: "Rahul Verma (+91 99887 66554)",
+      caller: "Olivia Hayes (+44 20 7946 0123)",
       resId: "HK-4091",
-      requestedTime: "11:00 AM Tomorrow",
+      requestedTime: "11:30 AM Tomorrow",
     },
     actionExecuted: [
       "Looked up reservation status in Opera PMS",
-      "Flagged Room #304 for priority housekeeping",
-      "Sent instant SMS confirmation with early check-in pass",
+      "Flagged Executive Suite for priority housekeeping",
+      "Dispatched instant digital pass and arrival confirmation",
     ],
     softwareBadge: "Opera PMS Live Bridge",
     accentHex: "#d97706",
@@ -129,7 +129,7 @@ export function VoiceToActionStage() {
             </p>
           </div>
           <div className="mt-8 pt-4 border-t border-border/40 text-[11px] font-mono text-muted-foreground">
-            Latency: &lt; 800ms • Audio Stream Input
+            Low-Latency Audio Streaming • Real-Time Voice Input
           </div>
         </div>
 
@@ -171,7 +171,7 @@ export function VoiceToActionStage() {
           </div>
 
           <div className="mt-8 pt-4 border-t border-border/40 text-[11px] font-mono text-muted-foreground">
-            Zero-Shot Domain Engine • 11 Languages
+            Zero-Shot Domain Engine • Multi-Language Support
           </div>
         </div>
 
@@ -236,7 +236,7 @@ export function NumberedIndustryList() {
             Vertical Implementations
           </span>
           <h2 className="mt-3 font-display text-4xl text-ink md:text-5xl">
-            7 Verticals. <span className="italic text-primary">Pre-trained out of the box.</span>
+            {INDUSTRIES.length} Core Verticals. <span className="italic text-primary">Pre-configured operational blueprints.</span>
           </h2>
         </div>
         <span className="text-xs font-mono text-muted-foreground">
@@ -298,7 +298,7 @@ export function NumberedIndustryList() {
                 {/* Right Call-to-Action Workflow Story (5 cols) */}
                 <div className="md:col-span-5 border-l border-border/40 pl-4 space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-ink">Call Prompt:</span>
+                    <span className="font-semibold text-ink">Interaction:</span>
                     <span className="text-muted-foreground italic truncate max-w-[200px]">{step1.detail}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -333,13 +333,11 @@ export function NumberedIndustryList() {
 // Editorial table comparing Intent vs Software Systems across industries
 // ─────────────────────────────────────────────────────────────────────────────
 const MATRIX_DATA = [
-  { industry: "Healthcare & Clinics", intent: "Triage & Appointment Booking", software: "Practo, Hospital EHR, Custom HIS", latency: "< 800ms" },
-  { industry: "Real Estate", intent: "Lead Qualification & Site Tour", software: "Salesforce, HubSpot, LeadSquared", latency: "< 750ms" },
-  { industry: "Salons & Wellness", intent: "Service Booking & Reschedule", software: "Vagaro, Fresha, Zenith", latency: "< 820ms" },
-  { industry: "Hotels & Hospitality", intent: "Guest Requests & Check-In", software: "Oracle Opera, Cloudbeds, PMS", latency: "< 790ms" },
-  { industry: "Veterinary Clinics", intent: "Emergency Triage & Visit Lock", software: "Vetport, ClinicHQ", latency: "< 810ms" },
-  { industry: "Education", intent: "Applicant Inquiry & Counseling", software: "ExtraaEdge, LeadSquared CRM", latency: "< 830ms" },
-  { industry: "Cosmetic Clinics", intent: "Consult Deposit & Booking", software: "Aesthetic Record, Zenoti", latency: "< 840ms" },
+  { industry: "Healthcare & Clinics", intent: "Triage & Patient Scheduling", software: "Epic, Cerner, Practo, Custom EHR", outcome: "Live EHR Sync & Calendar Block" },
+  { industry: "Hotels & Hospitality", intent: "Guest Requests & Check-In", software: "Oracle Opera, Cloudbeds, Custom PMS", outcome: "PMS Folio Update & Work Order" },
+  { industry: "Real Estate", intent: "Lead Qualification & Site Tour", software: "Salesforce, HubSpot, LeadSquared", outcome: "CRM Record & Agent Calendar Lock" },
+  { industry: "Professional Services", intent: "Client Intake & Consult Scheduling", software: "Clio, HubSpot, Calendly, Microsoft 365", outcome: "Consultation Booked & Intake Form Logged" },
+  { industry: "Field Services", intent: "Emergency Dispatch & Service Booking", software: "ServiceTitan, Jobber, Housecall Pro", outcome: "Work Order Dispatched & Window Confirmed" },
 ];
 
 export function VerticalMatrixSection() {
@@ -365,9 +363,9 @@ export function VerticalMatrixSection() {
           <thead>
             <tr className="border-b border-border/80 text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-4 pr-6">Vertical</th>
-              <th className="py-4 px-6">Primary Voice Intent</th>
-              <th className="py-4 px-6">Software & EHR Stack</th>
-              <th className="py-4 pl-6 text-right">Voice Response Latency</th>
+              <th className="py-4 px-6">Primary Operational Intent</th>
+              <th className="py-4 px-6">Software & System Stack</th>
+              <th className="py-4 pl-6 text-right">Workflow Execution Outcome</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40 font-medium">
@@ -376,7 +374,7 @@ export function VerticalMatrixSection() {
                 <td className="py-5 pr-6 font-semibold text-ink">{row.industry}</td>
                 <td className="py-5 px-6 text-muted-foreground">{row.intent}</td>
                 <td className="py-5 px-6 text-ink font-mono text-xs">{row.software}</td>
-                <td className="py-5 pl-6 text-right font-mono text-xs text-emerald-600 font-semibold">{row.latency}</td>
+                <td className="py-5 pl-6 text-right font-mono text-xs text-emerald-600 font-semibold">{row.outcome}</td>
               </tr>
             ))}
           </tbody>
@@ -403,10 +401,10 @@ export function CustomVerticalCTA() {
           </span>
           <h2 className="mt-4 font-display text-4xl text-white md:text-5xl leading-tight">
             Don't see your vertical? <br />
-            <span className="italic text-white/70">Trained on your workflow in 48 hours.</span>
+            <span className="italic text-white/70">Configured around your operating guidelines and system stack.</span>
           </h2>
           <p className="mt-6 text-base leading-relaxed text-white/60">
-            Khyra's zero-shot conversational architecture configures to any appointment-driven, lead-qualification, or customer-coordination operational workflow.
+            Khyra's operational AI architecture adapts to any appointment-driven, lead-qualification, dispatch, or customer-coordination workflow with pre-built workflow blueprints.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <BookDemoButton className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-semibold text-ink transition hover:bg-white/90 active:scale-[0.98]">

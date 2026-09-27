@@ -1,70 +1,61 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, RotateCcw } from "lucide-react";
 
-// ─────────────────────────── Config (mirrors product_demo_voice/src/config.py) ─────
+// ─────────────────────────── Config ─────────────────────────────────────────
 
 export const DEMO_ROLES = [
   {
-    id: "front_desk",
-    label: "Front Desk",
-    description: "Reception & appointment management",
+    id: "support_line",
+    label: "Customer Support & Operations",
+    description: "Enterprise operational support & ticket resolution",
     domains: [
-      { id: "dental_clinic", label: "Dental Clinic" },
-      { id: "veterinary_clinic", label: "Veterinary Clinic" },
-      { id: "spa_salon", label: "Spa & Salon" },
-      { id: "therapist_clinic", label: "Therapist & Wellness" },
-      { id: "hotel_resort", label: "Hotel & Resort" },
-      { id: "cosmetic_clinic", label: "Cosmetic Clinic" },
-      { id: "general_clinic", label: "General Clinic" },
+      { id: "saas_product_support", label: "Business Operations & SaaS" },
+      { id: "access_management_support", label: "Account & Access Services" },
+      { id: "devops_support", label: "Technical Operations Support" },
     ],
   },
   {
     id: "lead_followup",
-    label: "Lead Follow-Up",
-    description: "Consultative outbound sales",
+    label: "Lead Qualification & Sales",
+    description: "Inbound qualification, prospect scoring & meeting booking",
     domains: [
-      { id: "ai_voice_services", label: "AI Voice Services" },
-      { id: "real_estate", label: "Real Estate" },
-      { id: "it_projects", label: "IT Projects" },
+      { id: "real_estate", label: "Commercial & Residential Property" },
+      { id: "it_projects", label: "Enterprise Technology Projects" },
+      { id: "ai_voice_services", label: "Operational AI Services" },
     ],
   },
   {
-    id: "support_line",
-    label: "Support Line",
-    description: "Enterprise technical support desk",
+    id: "front_desk",
+    label: "Front Desk & Coordination",
+    description: "Inbound call triage, appointment coordination & reception",
     domains: [
-      { id: "devops_support", label: "DevOps Support" },
-      { id: "access_management_support", label: "Access Management" },
-      { id: "saas_product_support", label: "SaaS Product Support" },
+      { id: "general_clinic", label: "Medical & Healthcare Center" },
+      { id: "hotel_resort", label: "Hotels & Hospitality" },
+      { id: "dental_clinic", label: "Dental Clinic" },
+      { id: "veterinary_clinic", label: "Veterinary Clinic" },
+      { id: "spa_salon", label: "Spa & Wellness" },
+      { id: "cosmetic_clinic", label: "Aesthetic Clinic" },
+      { id: "therapist_clinic", label: "Consultation & Therapy" },
     ],
   },
 ] as const;
 
 export const DEMO_LANGUAGES = [
-  { code: "en-IN", label: "English" },
-  { code: "hi-IN", label: "Hindi" },
-  { code: "kn-IN", label: "Kannada" },
-  { code: "ta-IN", label: "Tamil" },
-  { code: "te-IN", label: "Telugu" },
-  { code: "ml-IN", label: "Malayalam" },
-  { code: "bn-IN", label: "Bengali" },
-  { code: "gu-IN", label: "Gujarati" },
-  { code: "mr-IN", label: "Marathi" },
-  { code: "pa-IN", label: "Punjabi" },
-  { code: "od-IN", label: "Odia" },
+  { code: "en", label: "English (Global)" },
+  { code: "en-US", label: "English (US)" },
+  { code: "en-GB", label: "English (UK)" },
 ] as const;
 
 export const DEMO_VOICES = [
-  { id: "voice_1", label: "Priya", gender: "Female" },
-  { id: "voice_2", label: "Kavya", gender: "Female" },
-  { id: "voice_3", label: "Neha", gender: "Female" },
-  { id: "voice_4", label: "Simran", gender: "Female" },
-  { id: "voice_5", label: "Pooja", gender: "Female" },
-  { id: "voice_6", label: "Rahul", gender: "Male" },
-  { id: "voice_7", label: "Rohan", gender: "Male" },
-  { id: "voice_8", label: "Aditya", gender: "Male" },
-  { id: "voice_9", label: "Amit", gender: "Male" },
-  { id: "voice_10", label: "Ratan", gender: "Male" },
+  { id: "voice_1", label: "Voice 01 (Professional)", gender: "Female" },
+  { id: "voice_2", label: "Voice 02 (Warm)", gender: "Female" },
+  { id: "voice_3", label: "Voice 03 (Direct)", gender: "Female" },
+  { id: "voice_4", label: "Voice 04 (Balanced)", gender: "Female" },
+  { id: "voice_5", label: "Voice 05 (Calm)", gender: "Female" },
+  { id: "voice_6", label: "Voice 06 (Executive)", gender: "Male" },
+  { id: "voice_7", label: "Voice 07 (Warm)", gender: "Male" },
+  { id: "voice_8", label: "Voice 08 (Neutral)", gender: "Male" },
+  { id: "voice_9", label: "Voice 09 (Authoritative)", gender: "Male" },
+  { id: "voice_10", label: "Voice 10 (Conversational)", gender: "Male" },
 ] as const;
 
 // ─────────────────────────── Types ───────────────────────────────────────────
@@ -109,11 +100,10 @@ export function SiriOrb({ state, size = 240, volumeRef }: { state: OrbState; siz
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const W = 400; // fixed internal resolution — blobs never clip
+    const W = 400;
     const H = 400;
     const cx = 200;
     const cy = 200;
-    const sc = 1;   // draw at natural scale; CSS handles visual sizing
     let smoothVol = 0;
 
     function drawBlob(
@@ -136,7 +126,6 @@ export function SiriOrb({ state, size = 240, volumeRef }: { state: OrbState; siz
     const animate = (ts: number) => {
       ctx.clearRect(0, 0, W, H);
 
-      // Voice-reactive volume — EMA-smoothed so there are no jittery jumps
       const rawVol = volumeRef?.current ?? 0;
       smoothVol = smoothVol * 0.88 + rawVol * 0.12;
       const normVol = Math.min(1, Math.max(0, (smoothVol - 0.01) / 0.14));
@@ -144,17 +133,15 @@ export function SiriOrb({ state, size = 240, volumeRef }: { state: OrbState; siz
       const s = stateRef.current;
       const speed = s === "speaking" ? 1.8 : s === "listening" ? 1.4 : s === "thinking" ? 1.0 : 0.45;
       const t = ts * 0.001 * speed;
-      const colors = ORB_PALETTES[s];
+      const colors = ORB_PALETTES[s] || ORB_PALETTES.idle;
       const volBoost = s === "listening" ? normVol * 48 : 0;
       const spread = (s === "speaking" ? 95 : s === "listening" ? 82 : s === "thinking" ? 68 : 55) + volBoost;
       const alpha = s === "idle" || s === "connecting" ? 0.60 : 0.76 + (s === "listening" ? normVol * 0.14 : 0);
 
-      // Subtle wobble movement when user speaks
       const wobble = s === "listening" ? normVol * 9 : 0;
       const wobX = cx + Math.sin(ts * 0.0037) * wobble;
       const wobY = cy + Math.cos(ts * 0.0029) * wobble;
 
-      // Rotating coloured blobs
       for (let i = 0; i < colors.length; i++) {
         const phase = (i * Math.PI * 2) / colors.length;
         const angle = t * (0.6 + i * 0.28) + phase;
@@ -165,7 +152,6 @@ export function SiriOrb({ state, size = 240, volumeRef }: { state: OrbState; siz
         drawBlob(bx, by, br, colors[i], alpha, 32);
       }
 
-      // Soft diffuse centre glow — no harsh dot
       const pulse = Math.sin(t * 2.5) * 12;
       const coreR = (s === "speaking" ? 115 : s === "listening" ? 98 : 82) + pulse + volBoost * 0.6;
       const cg = ctx.createRadialGradient(wobX, wobY, 0, wobX, wobY, coreR);
@@ -215,16 +201,15 @@ export function int16ToFloat32(buf: ArrayBuffer): Float32Array<ArrayBuffer> {
   return f32;
 }
 
-// ─────────────────────────── LiveDemoModal ───────────────────────────────────
+// ─────────────────────────── WebSocket URL & VAD ─────────────────────────────
 
 export const WS_URL: string =
   (import.meta.env as Record<string, string>).VITE_DEMO_WS_URL ?? "ws://localhost:8000/ws";
 
-// ─────────────────────────── VAD constants ───────────────────────────────────
-const SILENCE_MS = 1500;          // ms of silence after speech → flush
-const RMS_THRESHOLD = 0.025;         // RMS level to classify as speech
-const MIN_SPEECH_MS = 400;           // discard clips shorter than this
-const BUFFER_CAP_BYTES = 5 * 16_000 * 2; // force-flush after 5 s of audio
+const SILENCE_MS = 1500;
+const RMS_THRESHOLD = 0.025;
+const MIN_SPEECH_MS = 400;
+const BUFFER_CAP_BYTES = 5 * 16_000 * 2;
 
 export function useLiveDemoSession(config: DemoConfig, active: boolean) {
   const [sessionState, setSessionState] = useState<SessionState>("connecting");
@@ -244,8 +229,8 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
   const audioBufferRef = useRef<ArrayBuffer[]>([]);
   const bufferBytesRef = useRef<number>(0);
   const micVolumeRef = useRef<number>(0);
+  const connectTimeoutRef = useRef<number | null>(null);
 
-  // Update configRef if config changes (though usually active is false when config changes)
   useEffect(() => {
     configRef.current = config;
   }, [config]);
@@ -255,7 +240,6 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
     setSessionState(s);
   }, []);
 
-  // ── PCM playback ────────────────────────────────────────────────────────────
   const playChunk = useCallback((buf: ArrayBuffer) => {
     if (!playbackCtxRef.current || playbackCtxRef.current.state === "closed") {
       playbackCtxRef.current = new AudioContext({ sampleRate: 16000 });
@@ -274,7 +258,6 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
     nextPlayTimeRef.current = start + abuf.duration;
   }, []);
 
-  // ── VAD helpers ─────────────────────────────────────────────────────────────
   const cleanupMic = useCallback(() => {
     if (silenceTimerRef.current !== null) {
       clearTimeout(silenceTimerRef.current);
@@ -371,20 +354,43 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
       processor.connect(ctx.destination);
       startListening();
     } catch {
-      setErrorMsg("Microphone access denied.");
+      setErrorMsg("Microphone access denied or unavailable.");
       setState("error");
     }
   }, [setState, startListening, flushAudio]);
 
-  // ── WebSocket lifecycle ──────────────────────────────────────────────────────
+  // ── WebSocket lifecycle with timeout guard ──────────────────────────────────
   useEffect(() => {
     if (!active) return;
     const cfg = configRef.current;
-    const ws = new WebSocket(WS_URL);
-    ws.binaryType = "arraybuffer";
-    wsRef.current = ws;
+    setState("connecting");
+    setErrorMsg("");
+
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(WS_URL);
+      ws.binaryType = "arraybuffer";
+      wsRef.current = ws;
+    } catch {
+      setErrorMsg("Live voice streaming unavailable.");
+      setState("error");
+      return;
+    }
+
+    // 5.5 second connection timeout guard so the user is never stuck in infinite connecting state
+    connectTimeoutRef.current = window.setTimeout(() => {
+      if (sessionStateRef.current === "connecting") {
+        setErrorMsg("Live voice connection timed out. You can explore the workflow execution pipeline below.");
+        setState("error");
+        try { ws.close(); } catch { }
+      }
+    }, 5500);
 
     ws.onopen = () => {
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
       ws.send(
         JSON.stringify({
           type: "init",
@@ -422,23 +428,35 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
           startListening();
           break;
         case "error":
-          setErrorMsg(data.message ?? "Unknown error");
+          setErrorMsg(data.message ?? "Operational session error");
           setState("error");
           break;
       }
     };
 
     ws.onerror = () => {
-      setErrorMsg("Cannot reach demo server. Make sure it is running.");
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
+      setErrorMsg("Live voice streaming server unavailable.");
       setState("error");
     };
 
     ws.onclose = () => {
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
       if (sessionStateRef.current !== "error") setState("ended");
     };
 
     return () => {
-      ws.close();
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
+      try { ws.close(); } catch { }
       cleanupMic();
       playbackCtxRef.current?.close().catch(() => { });
     };
@@ -446,6 +464,10 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
   }, [active]);
 
   const endConversation = useCallback(() => {
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = null;
+    }
     wsRef.current?.close();
     cleanupMic();
     playbackCtxRef.current?.close().catch(() => { });
@@ -454,10 +476,9 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
       sessionStateRef.current = "connecting";
       setSessionState("connecting");
       setErrorMsg("");
-    }, 520);
+    }, 500);
   }, [cleanupMic, setState]);
 
-  // ── Derived orb state ───────────────────────────────────────────────────────
   const orbState: OrbState = (() => {
     if (sessionState === "listening") return "listening";
     if (sessionState === "thinking") return "thinking";
@@ -467,13 +488,13 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
   })();
 
   const statusLabel = {
-    connecting: "Connecting…",
-    idle: "Ready — just speak",
+    connecting: "Connecting to operational engine…",
+    idle: "Ready — speak naturally",
     listening: "Listening…",
-    thinking: "Thinking…",
-    speaking: "Speaking…",
-    error: errorMsg || "Error",
-    ended: "Session ended",
+    thinking: "Evaluating business logic…",
+    speaking: "Executing response…",
+    error: errorMsg || "Session unavailable",
+    ended: "Session completed",
   }[sessionState];
 
   return {
@@ -485,4 +506,3 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
     endConversation,
   };
 }
-

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Stethoscope, Building2, Sparkles, Hotel, GraduationCap, Server, PawPrint, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Stethoscope, Building2, Sparkles, Hotel, GraduationCap, CheckCircle2 } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 const VERTICAL_PROFILES = [
@@ -12,9 +12,9 @@ const VERTICAL_PROFILES = [
     slug: "healthcare",
     accentHex: "#22c55e",
     question: "“Will Khyra handle patient appointments and emergency triage?”",
-    exampleCall: "“I need to book a consultation with Dr. Mehta for tomorrow afternoon.”",
-    systemAction: "Khyra searches patient database by phone (+91 98765 43210), locks 06:30 PM slot in Clinic EHR, and dispatches SMS confirmation.",
-    software: "Practo, Hospital EHR, Custom HIS",
+    exampleCall: "“I need to book a consultation with Dr. Lawrence at Horizon Health for tomorrow afternoon.”",
+    systemAction: "Khyra searches patient database by phone (+1 555 019 2834), locks 03:30 PM slot in Clinic EHR, and dispatches SMS confirmation.",
+    software: "Epic, Cerner, Practo, Custom HIS",
   },
   {
     id: "real-estate",
@@ -24,8 +24,8 @@ const VERTICAL_PROFILES = [
     slug: "real-estate",
     accentHex: "#1d4ed8",
     question: "“Will Khyra capture property leads while agents are in the field?”",
-    exampleCall: "“Looking for a 3BHK in Koramangala under ₹2.5 Cr with ready possession.”",
-    systemAction: "Khyra rates lead intent score (92/100), creates contact in Salesforce CRM, and sends site visit booking calendar via WhatsApp.",
+    exampleCall: "“Looking for a 3-bedroom property in Central District under $1.2M / SAR 4.5M with immediate occupancy.”",
+    systemAction: "Khyra rates lead intent score (94/100), creates contact in Salesforce CRM, and sends site visit booking calendar via SMS.",
     software: "Salesforce, HubSpot, LeadSquared",
   },
   {
@@ -36,7 +36,7 @@ const VERTICAL_PROFILES = [
     slug: "hotels-hospitality",
     accentHex: "#d97706",
     question: "“Will Khyra answer guest requests in multiple languages?”",
-    exampleCall: "“Can we request an early check-in at 11 AM for Reservation #HK-4091 tomorrow?”",
+    exampleCall: "“Can we request an early check-in at 11:30 AM for Reservation #HK-4091 tomorrow?”",
     systemAction: "Khyra looks up reservation in Opera PMS, flags room for priority housekeeping, and dispatches early check-in pass via SMS.",
     software: "Oracle Opera PMS, Cloudbeds, Front Desk",
   },
@@ -48,9 +48,9 @@ const VERTICAL_PROFILES = [
     slug: "salons-wellness",
     accentHex: "#db2777",
     question: "“Will Khyra book client appointments without front desk staff?”",
-    exampleCall: "“Can I book a haircut and blow-dry this Saturday at 3 PM with Priya?”",
-    systemAction: "Khyra checks stylist availability in Vagaro, locks the appointment slot, and sends automatic confirmation SMS.",
-    software: "Vagaro, Fresha, Zenith",
+    exampleCall: "“Can I book a styling consultation this Saturday at 3 PM with Elena?”",
+    systemAction: "Khyra checks stylist availability in calendar software, locks the appointment slot, and sends automatic confirmation SMS.",
+    software: "Vagaro, Fresha, Custom Calendar",
   },
   {
     id: "education",
@@ -59,10 +59,10 @@ const VERTICAL_PROFILES = [
     Icon: GraduationCap,
     slug: "education",
     accentHex: "#4f46e5",
-    question: "“Will Khyra qualify student inquiries and schedule interviews?”",
+    question: "“Will Khyra qualify student inquiries and schedule advising calls?”",
     exampleCall: "“What are the eligibility criteria and tuition fee structure for the Data Science program?”",
-    systemAction: "Khyra details fee breakdown, qualifies student candidate profile, and schedules admissions interview in LeadSquared.",
-    software: "ExtraaEdge, LeadSquared CRM",
+    systemAction: "Khyra details fee breakdown ($12,500 / £9,800), qualifies student candidate profile, and schedules admissions interview in CRM.",
+    software: "HubSpot, LeadSquared, Custom SIS",
   },
 ];
 
@@ -86,11 +86,11 @@ export function VerticalFinderSection() {
           Will Khyra work for <span className="italic text-primary">your business?</span>
         </h2>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          Select your business type below to see the exact call flow, backend software integration, and business outcome Khyra delivers out of the box.
+          Select your business type below to see the exact interaction flow, backend software integration, and business outcome Khyra delivers.
         </p>
       </div>
 
-      {/* Grid Layout: Left Selector (5 cols), Right Live Outcome Stage (7 cols) */}
+      {/* Grid Layout */}
       <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
         {/* Left Column: Business Type Buttons */}
         <div className="lg:col-span-5 space-y-2">
@@ -101,6 +101,7 @@ export function VerticalFinderSection() {
             return (
               <button
                 key={prof.id}
+                type="button"
                 onClick={() => setSelectedIdx(idx)}
                 className={`w-full flex items-center justify-between p-4 rounded-xl text-left transition-all duration-200 border ${
                   isSelected
@@ -138,7 +139,7 @@ export function VerticalFinderSection() {
               to="/industries"
               className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-primary transition hover:translate-x-1"
             >
-              <span>Explore all 7 verticals & software integrations</span>
+              <span>Explore all industry vertical architectures</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -180,7 +181,7 @@ export function VerticalFinderSection() {
             <div className="space-y-4 mb-8">
               <div className="p-4 rounded-2xl border border-border/60 bg-background/90 shadow-sm">
                 <div className="text-[11px] font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  1. Customer Call Example
+                  1. Customer Interaction Example
                 </div>
                 <p className="text-sm font-medium text-ink italic">
                   {current.exampleCall}
@@ -189,7 +190,7 @@ export function VerticalFinderSection() {
 
               <div className="p-4 rounded-2xl border border-border/60 bg-background/90 shadow-sm">
                 <div className="flex items-center justify-between gap-2 text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style={{ color: current.accentHex }}>
-                  <span>2. Khyra Voice AI System Execution</span>
+                  <span>2. Khyra Operational System Execution</span>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -205,7 +206,7 @@ export function VerticalFinderSection() {
                 className="group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-xs font-semibold text-white transition-all hover:opacity-90 shadow-md"
                 style={{ backgroundColor: current.accentHex }}
               >
-                <span>Check {current.name} live workflow</span>
+                <span>Check {current.name} workflow</span>
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
 
@@ -213,7 +214,7 @@ export function VerticalFinderSection() {
                 to="/book-demo"
                 className="text-xs font-medium text-muted-foreground hover:text-ink transition-colors"
               >
-                Book a demo →
+                Schedule demo →
               </Link>
             </div>
           </div>

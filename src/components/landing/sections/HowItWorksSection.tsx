@@ -7,45 +7,46 @@ export function HowItWorksSection() {
   return (
     <section
       ref={reveal.ref}
+      id="how-it-works"
       data-visible={reveal.visible}
-      className="bg-beige/40 opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
+      className="bg-beige/40 opacity-0 translate-y-8 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0 border-t border-border/70"
     >
-      <div className="mx-auto max-w-5xl px-6 py-24">
-        <div className="max-w-2xl">
-          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">How it works</div>
-          <h2 className="mt-3 font-display text-4xl text-ink md:text-5xl">From first call to going live.</h2>
+      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+        <div className="max-w-3xl">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold">
+            Implementation Methodology
+          </div>
+          <h2 className="mt-3 font-display text-4xl text-ink md:text-5xl lg:text-6xl">
+            From workflow mapping to live execution.
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+            A disciplined, enterprise-ready deployment process that connects to your existing infrastructure without disrupting day-to-day business.
+          </p>
         </div>
 
-        <div className="relative mt-20">
-          <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-primary/20" />
-
-          <ol className="space-y-20 md:space-y-28">
-            {howItWorksSteps.map((step, index) => {
-              const left = index % 2 === 0;
-              return (
-                <li
-                  key={step.number}
-                  data-visible={reveal.visible}
-                  style={{ transitionDelay: `${index * 120}ms` }}
-                  className="relative grid grid-cols-2 gap-8 md:gap-16 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
-                >
-                  <span
-                    aria-hidden
-                    className="absolute left-1/2 top-6 z-10 grid h-3 w-3 -translate-x-1/2 place-items-center rounded-full bg-primary ring-8 ring-beige/40"
-                  />
-
-                  <div className={left ? "pr-8 text-right md:pr-16" : "col-start-2 pl-8 md:pl-16"}>
-                    <div className="font-display text-6xl leading-none text-primary/80 md:text-7xl">{step.number}</div>
-                    <h3 className="mt-5 text-lg font-semibold text-ink md:text-xl">{step.title}</h3>
-                    <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground md:text-[15px]">
-                      {step.description}
-                    </p>
-                    <div className="mt-6 h-px w-16 bg-primary/30" />
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+        {/* 6-step Grid */}
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {howItWorksSteps.map((step) => (
+            <div
+              key={step.number}
+              className="flex flex-col justify-between rounded-2xl border border-border/80 bg-background/90 p-8 shadow-xs transition-all hover:border-primary/40 hover:shadow-md"
+            >
+              <div>
+                <div className="font-mono text-3xl font-bold text-primary/80">
+                  {step.number}
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-ink">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-border/50 text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                Phase {step.number}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

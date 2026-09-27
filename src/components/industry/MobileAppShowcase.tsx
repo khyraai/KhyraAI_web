@@ -1,62 +1,63 @@
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle2, ShieldCheck, Pause, Play } from "lucide-react";
+import { Sparkles, CheckCircle2, ShieldCheck, Pause, Play, LayoutDashboard } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+
+import dashboardImg from "@/assets/1. dashboard.png";
+import timeSlotsImg from "@/assets/2. time slots.png";
+import appointmentsImg from "@/assets/3. Appointment .png";
+import customersImg from "@/assets/4. users.png";
 
 const MOBILE_SCREENS = [
   {
-    id: "patients-list",
-    title: "Patient Directory & Search",
-    subtitle: "Real-time EHR database lookup",
-    desc: "Khyra searches existing patients by phone number (+91 98765 43210) before every booking, preventing duplicate patient profiles.",
-    image: "/images/healthcare-app/screen-1.jpg",
-    fallbackImage: "/images/healthcare-app/patients-list.png",
-    badge: "Directory Sync",
+    id: "customer-workspace",
+    title: "Operational context, in one place",
+    subtitle: "Unified customer context & record verification",
+    desc: "Khyra keeps customer activity, schedules, requests and workflow status connected so teams can see what happened and what needs to happen next.",
+    image: customersImg,
+    badge: "Customer Context",
     features: [
-      "Instant phone number search & patient matching",
-      "Tracks total patient visits & last visit date",
-      "Direct integration with clinic management database",
+      "Instant caller directory search and identity matching",
+      "Tracks customer activities, interaction logs, and request history",
+      "Direct integration with central operational records and databases",
     ],
   },
   {
-    id: "create-appointment",
-    title: "1-Click Appointment Locking",
-    subtitle: "Automated booking & doctor assignment",
-    desc: "When a patient calls, Khyra automatically fills out patient details, locks available time slots (03:30 PM), assigns the doctor, and sends SMS confirmations.",
-    image: "/images/healthcare-app/screen-4.jpg",
-    fallbackImage: "/images/healthcare-app/create-appointment.png",
-    badge: "Booking Engine",
+    id: "slot-coordination",
+    title: "Capacity & slot coordination",
+    subtitle: "Real-time availability & slot locking",
+    desc: "Appointments, consultations, and team schedules stay organized with real-time slot locking that prevents double-booking.",
+    image: timeSlotsImg,
+    badge: "Capacity Management",
     features: [
-      "Doctor assignment (e.g., Dr. Naga Deepti) & treatment selection",
-      "Live slot locking prevents double bookings",
-      "Automated DLT SMS confirmation to patient",
+      "Live morning and afternoon slot availability with buffer rules",
+      "Multi-slot availability indicators with automated conflict prevention",
+      "Instant reservation locking triggered directly by customer conversations",
     ],
   },
   {
-    id: "patient-history",
-    title: "Patient Visit & Billing Timeline",
-    subtitle: "Complete medical audit trail",
-    desc: "Every completed call and procedure is automatically logged into the patient's timeline, including procedure fees (Root Canal ₹3,500) and payment status.",
-    image: "/images/healthcare-app/screen-2.jpg",
-    fallbackImage: "/images/healthcare-app/patient-history.png",
-    badge: "Medical Timeline",
+    id: "activity-execution",
+    title: "From request to completed action",
+    subtitle: "Request-to-Execution Engine",
+    desc: "Khyra connects the interaction with the operational work behind it — from scheduling and assignment to updates and follow-through.",
+    image: appointmentsImg,
+    badge: "Action Execution",
     features: [
-      "Timelines for Today, Yesterday, and past visits",
-      "Fee status tracking (Paid / Pending)",
-      "Prescription and follow-up date logging",
+      "Chronological upcoming and past operational schedules with status badges",
+      "Direct workflow reason tagging and team assignment briefs",
+      "Automated multi-channel confirmations and proactive reminders",
     ],
   },
   {
-    id: "patient-details",
-    title: "Detailed EHR & Health Files",
-    subtitle: "Comprehensive patient health profiles",
-    desc: "Access complete patient profiles including DOB, Blood Group, Address, and past procedures (Root Canal, Tooth Extraction) updated automatically.",
-    image: "/images/healthcare-app/screen-3.jpg",
-    fallbackImage: "/images/healthcare-app/patient-details.png",
-    badge: "EHR Record Sync",
+    id: "central-command",
+    title: "Operational visibility, in real time",
+    subtitle: "Central command across active work",
+    desc: "Live operational visibility across activities, customers, schedules, and ongoing work across all operational roles.",
+    image: dashboardImg,
+    badge: "Central Command",
     features: [
-      "Blood group, address, and emergency contact storage",
-      "Categorized treatment history (Hygiene, Emergency, Consult)",
-      "Zero manual data entry for front desk staff",
+      "Real-time timeline of completed and upcoming customer actions",
+      "Next scheduled activity status with direct entity linking",
+      "Eliminates siloed records between front-line communication and execution",
     ],
   },
 ];
@@ -64,7 +65,6 @@ const MOBILE_SCREENS = [
 export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: string }) {
   const [activeTab, setActiveTab] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [imgError, setImgError] = useState<Record<number, boolean>>({});
   const reveal = useScrollReveal();
 
   // Auto-rotation timer (4.5s)
@@ -82,30 +82,30 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
     <section
       ref={reveal.ref}
       data-visible={reveal.visible}
-      className="mx-auto max-w-7xl px-6 py-20 border-t border-border/60 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
+      className="mx-auto max-w-7xl px-6 py-14 sm:py-18 lg:py-20 border-t border-border/60 opacity-0 translate-y-6 transition-all duration-700 ease-out data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0 scroll-mt-16 sm:scroll-mt-20"
     >
       {/* Header */}
-      <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="section-label" style={{ color: accentHex }}>
-              Mobile Clinic Software Sync
+            <span className="section-label font-semibold text-xs tracking-wider uppercase" style={{ color: accentHex }}>
+              Operational Platform Evidence
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Mobile Integration
+              Khyra Operations Suite
             </span>
           </div>
-          <h2 className="font-display text-3xl text-ink md:text-5xl leading-tight">
-            Synced directly to your <span className="italic text-primary">Clinic Mobile App</span>.
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-ink leading-tight">
+            Synced directly to <span className="italic" style={{ color: accentHex }}>Khyra Operations</span>.
           </h2>
         </div>
-        
+
         {/* Play / Pause Auto-Rotate Controls */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsPlaying((p) => !p)}
-            className="inline-flex items-center gap-2 rounded-full border border-border/80 px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-secondary hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-full border border-border/80 px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-secondary hover:text-ink cursor-pointer"
           >
             {isPlaying ? (
               <>
@@ -123,7 +123,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
       </div>
 
       {/* Slide Progress Bar Indicator */}
-      <div className="mb-10 grid grid-cols-4 gap-3">
+      <div className="mb-8 grid grid-cols-4 gap-3">
         {MOBILE_SCREENS.map((sc, idx) => {
           const isActive = activeTab === idx;
           return (
@@ -133,7 +133,7 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
                 setActiveTab(idx);
                 setIsPlaying(false);
               }}
-              className="group text-left space-y-2 focus:outline-none"
+              className="group text-left space-y-2 focus:outline-none cursor-pointer"
             >
               <div className="relative h-1 w-full rounded-full bg-secondary overflow-hidden">
                 <div
@@ -157,68 +157,86 @@ export function MobileAppShowcase({ accentHex = "#16a34a" }: { accentHex?: strin
       </div>
 
       {/* Main Interactive Stage */}
-      <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
-        {/* Left Column: Sequential Animated Feature Points (6 cols) */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            {current.badge}
-          </div>
-
-          <h3 className="font-display text-3xl md:text-4xl text-ink leading-tight">
-            {current.title}
-          </h3>
-
-          <p className="text-base leading-relaxed text-muted-foreground max-w-xl">
-            {current.desc}
-          </p>
-
-          {/* Points Revealed One by One */}
-          <div className="space-y-3.5 pt-4 border-t border-border/60">
-            {current.features.map((feat, fIdx) => (
-              <div
-                key={feat}
-                style={{
-                  transitionDelay: `${fIdx * 120}ms`,
-                }}
-                className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border/40 bg-background/80 shadow-sm transition-all duration-500"
-              >
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 pt-0.5" />
-                <span className="text-sm font-semibold text-ink tracking-tight block">
-                  {feat}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Column: Direct Image Display (No Outer Mockup Shell) */}
-        <div className="lg:col-span-6 flex justify-center items-center py-2">
-          <div
-            onMouseEnter={() => setIsPlaying(false)}
-            onMouseLeave={() => setIsPlaying(true)}
-            className="relative flex justify-center items-center w-full"
-          >
-            {/* Direct Image Render (Compact max-height so it fits inside screen viewport) */}
-            <div className="relative overflow-hidden rounded-2xl drop-shadow-2xl transition-all duration-500">
-              <img
-                key={current.id}
-                src={imgError[activeTab] ? current.fallbackImage : current.image}
-                onError={() => setImgError((prev) => ({ ...prev, [activeTab]: true }))}
-                alt={current.title}
-                className="h-auto w-auto max-h-[440px] sm:max-h-[480px] object-contain rounded-2xl transition-opacity duration-700 ease-in-out"
-              />
+      <div className="rounded-3xl border border-border/90 bg-card p-5 sm:p-6 lg:p-8 shadow-lg">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+          {/* Left Column: Context & Feature Points (6 cols) */}
+          <div className="lg:col-span-6 space-y-4 sm:space-y-5">
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border"
+              style={{
+                backgroundColor: `${accentHex}10`,
+                borderColor: `${accentHex}25`,
+                color: accentHex,
+              }}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" style={{ color: accentHex }} />
+              {current.badge}
             </div>
 
-            {/* Floating Live Sync Badge */}
-            <div className="absolute -bottom-4 -right-2 sm:-right-4 z-20 rounded-2xl border border-border/80 bg-background/95 p-3.5 shadow-2xl backdrop-blur-xl max-w-[210px]">
-              <div className="flex items-center gap-2 text-xs font-bold text-ink">
-                <Sparkles className="h-4 w-4 text-emerald-600 animate-pulse" />
-                <span>Khyra EHR Sync</span>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">
+                {current.subtitle}
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl lg:text-3xl text-ink leading-snug">
+                {current.title}
+              </h3>
+            </div>
+
+            <p className="text-sm sm:text-base leading-relaxed text-muted-foreground max-w-xl">
+              {current.desc}
+            </p>
+
+            {/* Feature Checkpoints */}
+            <div className="space-y-2.5 pt-3 border-t border-border/60">
+              {current.features.map((feat) => (
+                <div
+                  key={feat}
+                  className="flex items-start gap-2.5 p-2.5 sm:p-3 rounded-xl border border-border/50 bg-background/80 shadow-2xs transition-all hover:border-border"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: accentHex }} />
+                  <span className="text-xs font-medium text-ink tracking-tight block leading-relaxed">
+                    {feat}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column: Complete Phone Screen Visible in One Glance (6 cols) */}
+          <div className="lg:col-span-6 flex justify-center items-center py-2">
+            <div
+              onMouseEnter={() => setIsPlaying(false)}
+              onMouseLeave={() => setIsPlaying(true)}
+              className="relative flex justify-center items-center w-full min-h-[460px] sm:min-h-[500px]"
+            >
+              {/* Subtle Ambient Radial Accent */}
+              <div
+                className="absolute -inset-4 rounded-3xl blur-2xl pointer-events-none opacity-40"
+                style={{
+                  background: `radial-gradient(ellipse at center, ${accentHex}18, transparent 70%)`,
+                }}
+              />
+
+              {/* Dominant Active Screenshot - Completely Visible Without Scrolling */}
+              <div className="relative z-10 overflow-hidden rounded-[24px] sm:rounded-[28px] drop-shadow-2xl transition-all duration-500">
+                <img
+                  key={current.id}
+                  src={current.image}
+                  alt={current.title}
+                  className="h-[430px] sm:h-[470px] lg:h-[490px] w-auto max-w-[245px] sm:max-w-[260px] object-contain rounded-[24px] sm:rounded-[28px] transition-opacity duration-700 ease-in-out"
+                />
               </div>
-              <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
-                Live mobile clinic records updated automatically.
-              </p>
+
+              {/* Floating Live Sync Badge */}
+              <div className="absolute -bottom-2 right-2 sm:right-6 z-20 rounded-2xl border border-border/80 bg-background/95 p-3 shadow-2xl backdrop-blur-xl max-w-[210px]">
+                <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600 animate-pulse" />
+                  <span>Khyra Operations Sync</span>
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
+                  Live operational records updated automatically.
+                </p>
+              </div>
             </div>
           </div>
         </div>

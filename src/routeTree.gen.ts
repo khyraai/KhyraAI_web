@@ -20,8 +20,10 @@ import { Route as IndustriesIndexRouteImport } from './routes/industries/index'
 import { Route as IndustriesVeterinaryRouteImport } from './routes/industries/veterinary'
 import { Route as IndustriesSalonsWellnessRouteImport } from './routes/industries/salons-wellness'
 import { Route as IndustriesRealEstateRouteImport } from './routes/industries/real-estate'
+import { Route as IndustriesProfessionalServicesRouteImport } from './routes/industries/professional-services'
 import { Route as IndustriesHotelsHospitalityRouteImport } from './routes/industries/hotels-hospitality'
 import { Route as IndustriesHealthcareRouteImport } from './routes/industries/healthcare'
+import { Route as IndustriesFieldServicesRouteImport } from './routes/industries/field-services'
 import { Route as IndustriesEducationRouteImport } from './routes/industries/education'
 import { Route as IndustriesCosmeticClinicsRouteImport } from './routes/industries/cosmetic-clinics'
 
@@ -81,6 +83,12 @@ const IndustriesRealEstateRoute = IndustriesRealEstateRouteImport.update({
   path: '/industries/real-estate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndustriesProfessionalServicesRoute =
+  IndustriesProfessionalServicesRouteImport.update({
+    id: '/industries/professional-services',
+    path: '/industries/professional-services',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const IndustriesHotelsHospitalityRoute =
   IndustriesHotelsHospitalityRouteImport.update({
     id: '/industries/hotels-hospitality',
@@ -90,6 +98,11 @@ const IndustriesHotelsHospitalityRoute =
 const IndustriesHealthcareRoute = IndustriesHealthcareRouteImport.update({
   id: '/industries/healthcare',
   path: '/industries/healthcare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesFieldServicesRoute = IndustriesFieldServicesRouteImport.update({
+  id: '/industries/field-services',
+  path: '/industries/field-services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndustriesEducationRoute = IndustriesEducationRouteImport.update({
@@ -114,8 +127,10 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
   '/industries/education': typeof IndustriesEducationRoute
+  '/industries/field-services': typeof IndustriesFieldServicesRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/professional-services': typeof IndustriesProfessionalServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -131,8 +146,10 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
   '/industries/education': typeof IndustriesEducationRoute
+  '/industries/field-services': typeof IndustriesFieldServicesRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/professional-services': typeof IndustriesProfessionalServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -149,8 +166,10 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/industries/cosmetic-clinics': typeof IndustriesCosmeticClinicsRoute
   '/industries/education': typeof IndustriesEducationRoute
+  '/industries/field-services': typeof IndustriesFieldServicesRoute
   '/industries/healthcare': typeof IndustriesHealthcareRoute
   '/industries/hotels-hospitality': typeof IndustriesHotelsHospitalityRoute
+  '/industries/professional-services': typeof IndustriesProfessionalServicesRoute
   '/industries/real-estate': typeof IndustriesRealEstateRoute
   '/industries/salons-wellness': typeof IndustriesSalonsWellnessRoute
   '/industries/veterinary': typeof IndustriesVeterinaryRoute
@@ -168,8 +187,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/industries/cosmetic-clinics'
     | '/industries/education'
+    | '/industries/field-services'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
+    | '/industries/professional-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -185,8 +206,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/industries/cosmetic-clinics'
     | '/industries/education'
+    | '/industries/field-services'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
+    | '/industries/professional-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -202,8 +225,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/industries/cosmetic-clinics'
     | '/industries/education'
+    | '/industries/field-services'
     | '/industries/healthcare'
     | '/industries/hotels-hospitality'
+    | '/industries/professional-services'
     | '/industries/real-estate'
     | '/industries/salons-wellness'
     | '/industries/veterinary'
@@ -220,8 +245,10 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   IndustriesCosmeticClinicsRoute: typeof IndustriesCosmeticClinicsRoute
   IndustriesEducationRoute: typeof IndustriesEducationRoute
+  IndustriesFieldServicesRoute: typeof IndustriesFieldServicesRoute
   IndustriesHealthcareRoute: typeof IndustriesHealthcareRoute
   IndustriesHotelsHospitalityRoute: typeof IndustriesHotelsHospitalityRoute
+  IndustriesProfessionalServicesRoute: typeof IndustriesProfessionalServicesRoute
   IndustriesRealEstateRoute: typeof IndustriesRealEstateRoute
   IndustriesSalonsWellnessRoute: typeof IndustriesSalonsWellnessRoute
   IndustriesVeterinaryRoute: typeof IndustriesVeterinaryRoute
@@ -307,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndustriesRealEstateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/industries/professional-services': {
+      id: '/industries/professional-services'
+      path: '/industries/professional-services'
+      fullPath: '/industries/professional-services'
+      preLoaderRoute: typeof IndustriesProfessionalServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/industries/hotels-hospitality': {
       id: '/industries/hotels-hospitality'
       path: '/industries/hotels-hospitality'
@@ -319,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/industries/healthcare'
       fullPath: '/industries/healthcare'
       preLoaderRoute: typeof IndustriesHealthcareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/field-services': {
+      id: '/industries/field-services'
+      path: '/industries/field-services'
+      fullPath: '/industries/field-services'
+      preLoaderRoute: typeof IndustriesFieldServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/industries/education': {
@@ -348,8 +389,10 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   IndustriesCosmeticClinicsRoute: IndustriesCosmeticClinicsRoute,
   IndustriesEducationRoute: IndustriesEducationRoute,
+  IndustriesFieldServicesRoute: IndustriesFieldServicesRoute,
   IndustriesHealthcareRoute: IndustriesHealthcareRoute,
   IndustriesHotelsHospitalityRoute: IndustriesHotelsHospitalityRoute,
+  IndustriesProfessionalServicesRoute: IndustriesProfessionalServicesRoute,
   IndustriesRealEstateRoute: IndustriesRealEstateRoute,
   IndustriesSalonsWellnessRoute: IndustriesSalonsWellnessRoute,
   IndustriesVeterinaryRoute: IndustriesVeterinaryRoute,

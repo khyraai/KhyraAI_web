@@ -115,9 +115,9 @@ function PasswordStrength({ password }: { password: string }) {
 /* ---------- Left panel ---------- */
 function LeftPanel() {
   const bullets = [
-    { title: "Instant Deployment", body: "Deploy voice agents in hours, not months." },
-    { title: "Enterprise Grade", body: "99.9% uptime with 10+ Indian languages supported." },
-    { title: "Pay As You Scale", body: "No hidden fees. Start small, grow big." },
+    { title: "Rapid Integration", body: "Connect to your software stack and go live in days." },
+    { title: "Enterprise Grade", body: "Strict security, role-based controls, and human escalation safeguards." },
+    { title: "Operational Execution", body: "Execute real workflows directly inside your CRM and backend systems." },
   ];
   return (
     <div className="relative hidden w-[420px] flex-shrink-0 flex-col overflow-hidden bg-primary px-10 pb-8 pt-0 text-primary-foreground lg:flex">
@@ -135,9 +135,9 @@ function LeftPanel() {
       </div>
 
       <div className="relative pt-1">
-        <h2 className="font-display text-2xl leading-snug">Scale your voice business globally.</h2>
+        <h2 className="font-display text-2xl leading-snug">Turn conversations into executed workflows.</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-primary-foreground/65">
-          Join forward-thinking businesses using Khyra AI's intelligent voice agents to automate customer interactions in India.
+          Join forward-thinking businesses using Khyra AI's operational platform to automate customer interactions and backend tasks.
         </p>
         <div className="mt-4 space-y-3">
           {bullets.map((b) => (
@@ -325,10 +325,10 @@ function SignupPage() {
                 <form onSubmit={handleStep1} className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <F label="Full name" req error={s1.formState.errors.name?.message}>
-                      <input {...s1.register("name")} type="text" autoComplete="name" placeholder="John Doe" className={inputCls} />
+                      <input {...s1.register("name")} type="text" autoComplete="name" placeholder="Alex Morgan" className={inputCls} />
                     </F>
                     <F label="Email address" req error={s1.formState.errors.email?.message}>
-                      <input {...s1.register("email")} type="email" autoComplete="email" placeholder="name@domain.com" className={inputCls} />
+                      <input {...s1.register("email")} type="email" autoComplete="email" placeholder="alex@company.com" className={inputCls} />
                     </F>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">

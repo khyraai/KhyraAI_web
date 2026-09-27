@@ -5,11 +5,17 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Khyra AI — Answers That Act" },
+      { title: "Khyra AI — Operational AI System for Conversation-Driven Workflows" },
       {
         name: "description",
         content:
-          "AI voice agents for Indian businesses — multilingual, always-on, deployable in hours. Hindi, Kannada, Tamil and 8 more languages.",
+          "Khyra is an operational AI system that handles real business conversations and executes the backend workflows behind them. Turn customer conversations into completed business actions.",
+      },
+      { property: "og:title", content: "Khyra AI — Operational AI Platform" },
+      {
+        property: "og:description",
+        content:
+          "Operational AI for conversation-driven workflows. Communicates, reasons within defined business rules, and executes work directly inside your existing systems.",
       },
     ],
   }),

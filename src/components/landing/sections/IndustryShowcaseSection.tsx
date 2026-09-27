@@ -1,71 +1,140 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Stethoscope, Building2, Sparkles, Hotel, PawPrint, GraduationCap, Server, Activity, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  Stethoscope,
+  Building2,
+  Hotel,
+  Users,
+  Truck,
+  CheckCircle2,
+  ChevronRight,
+  Database,
+  Workflow,
+} from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { BookDemoButton } from "@/components/landing/ui/BookDemoButton";
 
-const INDUSTRIES = [
+interface IndustryCardData {
+  slug: string;
+  routeSlug?: string;
+  name: string;
+  tagline: string;
+  targetBuyer: string;
+  operationalRoles: string[];
+  exampleWorkflow: {
+    callerPrompt: string;
+    khyraAction: string;
+    systemsUpdated: string;
+  };
+  supportedStack: string;
+  Icon: typeof Stethoscope;
+  accentHex: string;
+}
+
+const TARGET_INDUSTRIES: IndustryCardData[] = [
   {
     slug: "healthcare",
+    routeSlug: "healthcare",
     name: "Healthcare & Clinics",
-    outcome: "Every patient call ends with the next step booked.",
-    detail: "HIPAA-compliant voice AI that triage calls, schedules appointments in your EHR, and answers post-visit FAQs 24/7.",
-    metric: "3.2× more bookings captured after hours",
+    tagline: "Every patient call ends with the next clinical step executed.",
+    targetBuyer: "Specialty clinics, medical practices, dental centers & outpatient facilities",
+    operationalRoles: [
+      "Front desk call handling",
+      "Patient scheduling & rescheduling",
+      "EHR appointment sync",
+      "Emergency clinical triage routing",
+    ],
+    exampleWorkflow: {
+      callerPrompt: "“I need to reschedule Alex Morgan's consultation with Dr. Lawrence to Thursday afternoon.”",
+      khyraAction: "Queries Horizon Health EHR calendar, verifies doctor availability, locks Thursday 3:30 PM slot, and sends patient SMS confirmation.",
+      systemsUpdated: "Epic / Cerner / Practo EHR · Google Calendar · Twilio SMS",
+    },
+    supportedStack: "EHRs (Epic, Cerner, Practo), Clinic Calendars, SMS & VoIP",
     Icon: Stethoscope,
     accentHex: "#16a34a",
   },
   {
-    slug: "real-estate",
-    name: "Real Estate",
-    outcome: "Never lose a property lead to an unanswered ring.",
-    detail: "Qualifies buyers, captures property criteria, sends tour links via SMS, and books agent calendar slots instantly.",
-    metric: "< 5s response time on inbound property inquiries",
-    Icon: Building2,
-    accentHex: "#1d4ed8",
-  },
-  {
-    slug: "salons-wellness",
-    name: "Salons & Wellness",
-    outcome: "Fill appointment slots while staff focus on clients.",
-    detail: "Handles booking, reschedules, service inquiries, and confirmation texts so your stylists never have to touch a phone.",
-    metric: "45% reduction in appointment no-shows",
-    Icon: Sparkles,
-    accentHex: "#db2777",
-  },
-  {
-    slug: "hotels-hospitality",
+    slug: "hospitality",
+    routeSlug: "hotels-hospitality",
     name: "Hotels & Hospitality",
-    outcome: "Answer guest requests before they reach front desk.",
-    detail: "Handles room inquiries, amenities info, early check-in requests, and direct booking transfers in 30+ languages.",
-    metric: "68% of front desk phone calls automated",
+    tagline: "Answer guest requests and modify bookings without front desk bottlenecks.",
+    targetBuyer: "Hotels, luxury resorts, boutique stays & serviced residences",
+    operationalRoles: [
+      "24/7 guest call reception",
+      "Reservation inquiry & modifications",
+      "Late checkout / early arrival authorization",
+      "Housekeeping & concierge dispatch",
+    ],
+    exampleWorkflow: {
+      callerPrompt: "“Can we arrange an early check-in at 11:30 AM for reservation #HK-4091 tomorrow?”",
+      khyraAction: "Looks up reservation in Opera PMS, verifies room turnover status, authorizes early arrival, and alerts housekeeping.",
+      systemsUpdated: "Oracle Opera PMS · Cloudbeds · Housekeeping Task Engine",
+    },
+    supportedStack: "Oracle Opera, Cloudbeds, FrontDesk Anywhere, Twilio SIP",
     Icon: Hotel,
     accentHex: "#d97706",
   },
   {
-    slug: "veterinary",
-    name: "Veterinary Clinics",
-    outcome: "24/7 triage and appointment booking for pets.",
-    detail: "Categorizes urgent vs routine visits, books appointment slots, and provides post-op care instructions over phone.",
-    metric: "100% of emergency calls routed instantly",
-    Icon: PawPrint,
-    accentHex: "#0f9b8e",
+    slug: "real-estate",
+    routeSlug: "real-estate",
+    name: "Real Estate & Property",
+    tagline: "Never lose a high-value property buyer to an unanswered inquiry.",
+    targetBuyer: "Property developers, commercial brokers, leasing teams & agencies",
+    operationalRoles: [
+      "Inbound buyer & tenant qualification",
+      "Property availability & pricing lookup",
+      "Private viewing tour scheduling",
+      "CRM prospect record enrichment",
+    ],
+    exampleWorkflow: {
+      callerPrompt: "“I saw your listing for the 3-bedroom Central District penthouse. Can I schedule a private tour this Friday?”",
+      khyraAction: "Verifies buyer criteria, captures timeline & financing status, creates Salesforce lead, and books broker tour slot.",
+      systemsUpdated: "Salesforce CRM · HubSpot · Broker Tour Calendar · WhatsApp",
+    },
+    supportedStack: "Salesforce, HubSpot, LeadSquared, Calendly, WhatsApp API",
+    Icon: Building2,
+    accentHex: "#1d4ed8",
   },
   {
-    slug: "education",
-    name: "Education & Academies",
-    outcome: "Turn student inquiries into enrolled interviews.",
-    detail: "Answers tuition & program questions, qualifies applicants, and schedules admissions interviews automatically.",
-    metric: "2.4× faster lead-to-counsellor booking time",
-    Icon: GraduationCap,
-    accentHex: "#4f46e5",
+    slug: "professional-services",
+    name: "Professional Services",
+    tagline: "Automate intake, client qualification, and consultation bookings.",
+    targetBuyer: "Corporate advisory firms, accounting practices, legal teams & consultancies",
+    operationalRoles: [
+      "Inbound inquiry qualification",
+      "Initial scope & requirement capture",
+      "Partner consultation booking",
+      "Practice management system sync",
+    ],
+    exampleWorkflow: {
+      callerPrompt: "“We are looking for an operational compliance audit proposal for our 200-person organization.”",
+      khyraAction: "Gathers company size and audit requirements, logs proposal scope in CRM, and schedules discovery call with practice lead.",
+      systemsUpdated: "HubSpot CRM · Clio · Microsoft Outlook · Teams / Zoom",
+    },
+    supportedStack: "HubSpot, Salesforce, Clio, Microsoft 365, Google Workspace",
+    Icon: Users,
+    accentHex: "#8b5cf6",
   },
   {
-    slug: "cosmetic-clinics",
-    name: "Cosmetic & Aesthetics",
-    outcome: "Convert high-intent aesthetic leads into paid consults.",
-    detail: "Answers treatment questions, collects deposit links, and books initial consultations into your aesthetic software.",
-    metric: "38% increase in weekend consult bookings",
-    Icon: Sparkles,
-    accentHex: "#9333ea",
+    slug: "field-services",
+    name: "Field & Home Services",
+    tagline: "Triage urgent service requests and dispatch technicians in real time.",
+    targetBuyer: "Commercial HVAC, electrical, plumbing, maintenance & facility contractors",
+    operationalRoles: [
+      "24/7 emergency dispatch intake",
+      "Technician territory & skill matching",
+      "Work order creation & scheduling",
+      "Customer arrival ETA notifications",
+    ],
+    exampleWorkflow: {
+      callerPrompt: "“Our commercial HVAC system is leaking water and stopped cooling the server room at 440 Industrial Parkway.”",
+      khyraAction: "Flags emergency priority, creates work order in ServiceTitan, dispatches nearest certified technician, and texts live ETA tracker.",
+      systemsUpdated: "ServiceTitan · Jobber · Technician Mobile Dispatch · Customer SMS",
+    },
+    supportedStack: "ServiceTitan, Jobber, FieldEdge, Custom Dispatch APIs",
+    Icon: Truck,
+    accentHex: "#0ea5e9",
   },
 ];
 
@@ -73,38 +142,42 @@ export function IndustryShowcaseSection() {
   const [activeSlug, setActiveSlug] = useState("healthcare");
   const reveal = useScrollReveal();
 
-  const activeIndustry = INDUSTRIES.find((i) => i.slug === activeSlug) || INDUSTRIES[0];
-  const ActiveIcon = activeIndustry.Icon;
+  const active = TARGET_INDUSTRIES.find((i) => i.slug === activeSlug) || TARGET_INDUSTRIES[0];
+  const ActiveIcon = active.Icon;
 
   return (
     <section
       ref={reveal.ref}
-      className="mx-auto max-w-7xl px-6 py-24 sm:py-32"
+      id="industries"
+      className="mx-auto max-w-7xl px-6 py-24 sm:py-32 border-t border-border/70"
     >
       {/* Header */}
-      <div className="mb-16 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div className="mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Vertical Intelligence
+            Targeted Industry Deployments
           </span>
-          <h2 className="mt-3 max-w-2xl font-display text-4xl text-ink md:text-5xl">
-            Built for your industry.{" "}
-            <span className="italic text-primary">Not just any business.</span>
+          <h2 className="mt-3 max-w-2xl font-display text-4xl text-ink md:text-5xl leading-tight">
+            High-impact operational AI.{" "}
+            <span className="italic text-primary">Configured for your vertical.</span>
           </h2>
+          <p className="mt-4 max-w-2xl text-base text-muted-foreground leading-relaxed">
+            We focus on industries where conversation volume is high, response speed is critical, and every interaction ties directly into backend business systems.
+          </p>
         </div>
         <Link
           to="/industries"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:translate-x-1"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:translate-x-1 shrink-0"
         >
-          View all 7 verticals <ArrowRight className="h-4 w-4" />
+          View all industry architectures <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
-      {/* Split Interactive Editorial Layout */}
-      <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
-        {/* Left Column: Vertical List (5 cols) */}
-        <div className="lg:col-span-5 border-l border-border/60 pl-6 space-y-1">
-          {INDUSTRIES.map((ind) => {
+      {/* Split Interactive Layout */}
+      <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
+        {/* Left Column: 5 Target Industries List (5 cols) */}
+        <div className="lg:col-span-5 space-y-2 border-l border-border/60 pl-4 sm:pl-6">
+          {TARGET_INDUSTRIES.map((ind) => {
             const isActive = ind.slug === activeSlug;
             const IconComponent = ind.Icon;
 
@@ -112,99 +185,166 @@ export function IndustryShowcaseSection() {
               <button
                 key={ind.slug}
                 onClick={() => setActiveSlug(ind.slug)}
-                onMouseEnter={() => setActiveSlug(ind.slug)}
-                className={`group flex w-full items-center justify-between py-3 px-3 rounded-lg text-left transition-all duration-200 ${
+                className={`group flex w-full items-center justify-between p-4 rounded-xl text-left transition-all duration-200 ${
                   isActive
-                    ? "bg-secondary/70 text-ink font-semibold"
+                    ? "bg-secondary/80 text-ink shadow-xs border border-border/60"
                     : "text-muted-foreground hover:text-ink hover:bg-secondary/30"
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <span
-                    className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                      isActive ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                    }`}
-                    style={{ backgroundColor: ind.accentHex }}
-                  />
-                  <IconComponent
-                    className={`h-4 w-4 transition-colors ${
-                      isActive ? "" : "opacity-60"
-                    }`}
-                    style={{ color: isActive ? ind.accentHex : undefined }}
-                  />
-                  <span className="text-sm tracking-tight">{ind.name}</span>
+                    className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: `${ind.accentHex}15`,
+                    }}
+                  >
+                    <IconComponent
+                      className="h-4 w-4"
+                      style={{ color: ind.accentHex }}
+                    />
+                  </span>
+                  <div>
+                    <span className="block text-sm font-semibold text-ink">{ind.name}</span>
+                    <span className="block text-[11px] text-muted-foreground line-clamp-1">
+                      {ind.operationalRoles[0]}
+                    </span>
+                  </div>
                 </div>
+
                 <ChevronRight
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    isActive
-                      ? "translate-x-0 opacity-100 text-ink"
-                      : "-translate-x-1 opacity-0 group-hover:opacity-40"
+                  className={`h-4 w-4 transition-transform ${
+                    isActive ? "translate-x-0 opacity-100 text-primary" : "-translate-x-1 opacity-20 group-hover:opacity-60"
                   }`}
                 />
               </button>
             );
           })}
+
+          <div className="pt-4 pl-2">
+            <span className="text-xs text-muted-foreground">
+              Need a custom workflow for your industry?{" "}
+              <Link to="/book-demo" className="text-primary font-semibold hover:underline">
+                Talk to our solutions team →
+              </Link>
+            </span>
+          </div>
         </div>
 
         {/* Right Column: Display Stage (7 cols) */}
         <div className="lg:col-span-7">
           <div
-            key={activeIndustry.slug}
-            className="relative flex flex-col justify-between min-h-[420px] p-8 md:p-12 rounded-3xl transition-all duration-500 border border-border/40"
+            key={active.slug}
+            className="rounded-3xl border border-border/80 bg-background/90 p-8 sm:p-10 shadow-lg transition-all duration-300"
             style={{
-              backgroundColor: `${activeIndustry.accentHex}08`,
+              borderColor: `${active.accentHex}30`,
             }}
           >
-            {/* Top Tag & Metric */}
-            <div>
-              <div className="flex items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${activeIndustry.accentHex}18` }}
-                  >
-                    <ActiveIcon
-                      className="h-5 w-5"
-                      style={{ color: activeIndustry.accentHex }}
-                    />
-                  </div>
-                  <span
-                    className="text-xs font-semibold uppercase tracking-widest"
-                    style={{ color: activeIndustry.accentHex }}
-                  >
-                    {activeIndustry.name}
-                  </span>
+            {/* Header tag & target buyer */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-6">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${active.accentHex}18` }}
+                >
+                  <ActiveIcon className="h-5 w-5" style={{ color: active.accentHex }} />
                 </div>
-                <span className="text-xs font-mono font-medium px-3 py-1 rounded-full border border-border/60 bg-background/60 text-muted-foreground">
-                  {activeIndustry.metric}
-                </span>
+                <div>
+                  <h3 className="text-base font-bold text-ink">{active.name}</h3>
+                  <p className="text-xs text-muted-foreground">{active.targetBuyer}</p>
+                </div>
               </div>
 
-              {/* Main Headline */}
-              <h3 className="font-display text-3xl md:text-4xl text-ink leading-tight mb-6">
-                “{activeIndustry.outcome}”
-              </h3>
+              <span
+                className="rounded-full px-3 py-1 text-xs font-mono font-medium border"
+                style={{
+                  backgroundColor: `${active.accentHex}10`,
+                  borderColor: `${active.accentHex}30`,
+                  color: active.accentHex,
+                }}
+              >
+                {active.operationalRoles.length} Operational Roles
+              </span>
+            </div>
 
-              {/* Detail Paragraph */}
-              <p className="text-muted-foreground text-base leading-relaxed max-w-xl">
-                {activeIndustry.detail}
+            {/* Headline */}
+            <div className="mt-6">
+              <p className="font-display text-2xl sm:text-3xl text-ink leading-snug">
+                “{active.tagline}”
               </p>
             </div>
 
-            {/* Bottom CTA */}
-            <div className="mt-10 pt-8 border-t border-border/40 flex items-center justify-between">
-              <Link
-                to={`/industries/${activeIndustry.slug}` as any}
-                className="group inline-flex items-center gap-3 text-sm font-semibold transition-all"
-                style={{ color: activeIndustry.accentHex }}
-              >
-                <span>Explore {activeIndustry.name} voice workflows</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1.5" />
-              </Link>
+            {/* Operational Roles list */}
+            <div className="mt-6">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                What Khyra Handles in this Industry:
+              </h4>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {active.operationalRoles.map((role) => (
+                  <div key={role} className="flex items-center gap-2 text-xs font-medium text-foreground/90">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                    <span>{role}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              <span className="text-xs text-muted-foreground font-mono">
-                {INDUSTRIES.findIndex((i) => i.slug === activeSlug) + 1} / 7
-              </span>
+            {/* Concrete Workflow Example Card */}
+            <div className="mt-8 rounded-2xl border border-border/80 bg-secondary/30 p-5">
+              <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wider text-primary mb-2">
+                <span className="inline-flex items-center gap-1.5">
+                  <Workflow className="h-3.5 w-3.5" />
+                  Live Workflow Execution Example
+                </span>
+                <span className="text-[10px] text-muted-foreground">Automated Turn</span>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">
+                    Caller Interaction:
+                  </span>
+                  <p className="text-xs italic text-foreground font-medium bg-background/80 p-2.5 rounded-lg border border-border/50">
+                    {active.exampleWorkflow.callerPrompt}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-primary block mb-0.5">
+                    Khyra Operational Execution:
+                  </span>
+                  <p className="text-xs text-foreground/90 bg-background/80 p-2.5 rounded-lg border border-border/50 leading-relaxed">
+                    {active.exampleWorkflow.khyraAction}
+                  </p>
+                </div>
+
+                <div className="pt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
+                  <Database className="h-3 w-3 text-primary" />
+                  <span>Systems: {active.exampleWorkflow.systemsUpdated}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Stack & CTA */}
+            <div className="mt-8 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Supported Stack: </span>
+                {active.supportedStack}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {active.routeSlug ? (
+                  <Link
+                    to={`/industries/${active.routeSlug}` as any}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    Deep dive <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  <BookDemoButton className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
+                    Schedule demo <ArrowRight className="h-3.5 w-3.5" />
+                  </BookDemoButton>
+                )}
+              </div>
             </div>
           </div>
         </div>

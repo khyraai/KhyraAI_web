@@ -74,25 +74,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Khyra AI — Answers That Act" },
+      { title: "Khyra AI — Operational AI System for Conversation-Driven Workflows" },
       {
         name: "description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra is an operational AI platform that communicates with customers and executes the backend workflows behind every interaction. From conversation to completed business action.",
       },
-      { property: "og:title", content: "Khyra AI — Answers That Act" },
+      { property: "og:title", content: "Khyra AI — Operational AI System" },
       {
         property: "og:description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra is an operational AI platform that communicates with customers and executes the backend workflows behind every interaction. Built by Khyra AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Khyra AI — Answers That Act" },
+      { name: "twitter:title", content: "Khyra AI — Operational AI System" },
       {
         name: "twitter:description",
         content:
-          "AI voice agents for Indian businesses. Multilingual, always-on, deployable in hours. Built by Khyra AI.",
+          "Khyra is an operational AI platform that communicates with customers and executes the backend workflows behind every interaction. Built by Khyra AI.",
       },
     ],
     links: [

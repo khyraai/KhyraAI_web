@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { ArrowRight, Mic } from "lucide-react";
+import { ArrowRight, Workflow, CheckCircle2, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { BookDemoButton } from "@/components/landing/ui/BookDemoButton";
 import { RevealSection } from "@/components/landing/ui/RevealSection";
 import { HERO_INDUSTRY_ROTATIONS } from "@/data/industries";
@@ -9,18 +9,18 @@ function Bubble({ who, children }: { who: "caller" | "khyra"; children: ReactNod
   return (
     <div className={`flex ${isKhyra ? "justify-start" : "justify-end"}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+        className={`max-w-[88%] rounded-2xl px-5 py-3 text-sm md:text-[15px] leading-relaxed ${
           isKhyra
-            ? "bg-primary text-primary-foreground rounded-bl-sm"
-            : "bg-background border border-border rounded-br-sm"
+            ? "bg-primary text-primary-foreground rounded-bl-sm shadow-sm"
+            : "bg-background border border-border/80 text-foreground rounded-br-sm shadow-xs"
         }`}
       >
         <div
-          className={`mb-0.5 text-[10px] uppercase tracking-wider ${
-            isKhyra ? "text-primary-foreground/70" : "text-muted-foreground"
+          className={`mb-1 text-[10px] font-semibold uppercase tracking-wider ${
+            isKhyra ? "text-primary-foreground/75" : "text-muted-foreground"
           }`}
         >
-          {isKhyra ? "Khyra" : "Caller"}
+          {isKhyra ? "Khyra Operational AI" : "Customer / Caller"}
         </div>
         {children}
       </div>
@@ -28,7 +28,7 @@ function Bubble({ who, children }: { who: "caller" | "khyra"; children: ReactNod
   );
 }
 
-const ROTATION_INTERVAL = 4500;
+const ROTATION_INTERVAL = 5500;
 
 export function HeroSection() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -40,7 +40,7 @@ export function HeroSection() {
       setTimeout(() => {
         setActiveIndex((i) => (i + 1) % HERO_INDUSTRY_ROTATIONS.length);
         setFading(false);
-      }, 350);
+      }, 300);
     }, ROTATION_INTERVAL);
     return () => clearInterval(timer);
   }, []);
@@ -48,7 +48,7 @@ export function HeroSection() {
   const scenario = HERO_INDUSTRY_ROTATIONS[activeIndex];
 
   return (
-    <RevealSection id="top" className="relative overflow-hidden">
+    <RevealSection id="top" className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
       <div className="absolute inset-0 bg-grid opacity-[0.35]" />
       <div
         className="pointer-events-none absolute inset-0"
@@ -57,56 +57,69 @@ export function HeroSection() {
             "radial-gradient(ellipse 80% 55% at 50% 0%, color-mix(in oklab, var(--beige) 65%, transparent), transparent 70%)",
         }}
       />
-      <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-12 md:pt-16">
+      <div className="relative mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-10 inline-flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-sm">
+          {/* Top category label */}
+          <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-sm">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-saffron opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-saffron" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            AI voice agents for every customer-facing business
+            Operational AI Platform · Workflow Automation
           </div>
-          <h1 className="font-display text-6xl leading-[1.02] text-balance text-ink md:text-8xl">
-            Every customer call
-            <br />
-            <span className="italic text-primary/90">ends with an action.</span>
+
+          <h1 className="font-display text-5xl leading-[1.04] text-balance text-ink sm:text-6xl md:text-7xl lg:text-8xl">
+            Turn business conversations into{" "}
+            <span className="italic text-primary">completed operations.</span>
           </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-balance text-lg font-light leading-relaxed text-muted-foreground md:text-xl">
-            Khyra's AI voice agents answer, qualify, book, and follow up — across{" "}
-            <span className="font-normal text-foreground">9 industries</span> and{" "}
-            <span className="font-normal text-foreground">11 languages</span>, with sub-second
-            response time.
+
+          <p className="mx-auto mt-7 max-w-3xl text-balance text-base font-light leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
+            Khyra is an operational AI platform that communicates with customers and stakeholders across voice and digital channels, reasons through defined business rules, and executes the backend workflows behind every interaction — 24/7, without manual overhead.
           </p>
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-            <BookDemoButton className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-semibold text-primary-foreground shadow-xl shadow-primary/15 transition-all hover:shadow-2xl hover:shadow-primary/25 active:scale-[0.98]">
-              Book a demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <BookDemoButton className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-[15px] font-semibold text-primary-foreground shadow-xl shadow-primary/15 transition-all hover:bg-primary/90 hover:shadow-2xl hover:shadow-primary/25 active:scale-[0.98]">
+              Schedule a Demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </BookDemoButton>
             <a
-              href="#demo"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-7 py-4 text-[15px] font-semibold text-foreground transition hover:bg-secondary"
+              href="#workflow-engine"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-7 py-4 text-[15px] font-semibold text-foreground transition hover:bg-secondary active:scale-[0.98]"
             >
-              Hear it live <Mic className="h-4 w-4" />
+              See How Khyra Works <Workflow className="h-4 w-4 text-primary" />
             </a>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> No account required to request demo
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Connects to existing software & telephony
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Human escalation safeguards included
+            </span>
           </div>
         </div>
 
-        {/* Rotating industry demo card */}
-        <div className="mx-auto mt-20 max-w-4xl">
-          <div className="rounded-4xl border border-primary/10 bg-background/90 p-3 shadow-[0_40px_100px_-30px_color-mix(in_oklab,var(--primary)_28%,transparent)] backdrop-blur">
-            <div className="rounded-[1.6rem] bg-beige/40 p-6 md:p-10">
+        {/* Rotating operational execution card */}
+        <div className="mx-auto mt-16 max-w-4xl">
+          <div className="rounded-3xl border border-primary/15 bg-background/95 p-3 shadow-[0_30px_90px_-20px_color-mix(in_oklab,var(--primary)_20%,transparent)] backdrop-blur">
+            <div className="rounded-[1.4rem] bg-beige/35 p-6 md:p-8">
               {/* Header row */}
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-border/50 pb-4">
                 <div className="flex items-center gap-2.5">
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-saffron opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-saffron" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                   </span>
-                  <span className="font-medium uppercase tracking-wider text-foreground/50">
-                    Live call
+                  <span className="font-semibold uppercase tracking-wider text-ink/75">
+                    Live Workflow Simulation
                   </span>
                 </div>
+
                 {/* Industry tabs */}
-                <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-widest">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-medium uppercase tracking-wider">
                   {HERO_INDUSTRY_ROTATIONS.map((r, i) => (
                     <button
                       key={r.industry}
@@ -115,10 +128,10 @@ export function HeroSection() {
                         setFading(true);
                         setTimeout(() => { setActiveIndex(i); setFading(false); }, 200);
                       }}
-                      className={`transition-colors ${
+                      className={`px-2.5 py-1 rounded-full transition-colors ${
                         activeIndex === i
-                          ? "font-semibold text-foreground"
-                          : "text-muted-foreground hover:text-foreground/70"
+                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {r.industry}
@@ -127,61 +140,75 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Conversation bubbles */}
+              {/* Conversation & Action Stage */}
               <div
                 className={`mt-6 space-y-4 transition-opacity duration-300 ${
                   fading ? "opacity-0" : "opacity-100"
                 }`}
               >
-                {/* Industry badge */}
-                <div className="mb-2 flex justify-center">
+                {/* Workflow badge */}
+                <div className="flex justify-start">
                   <span
-                    className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider border"
                     style={{
-                      background: `${scenario.accentHex}18`,
+                      background: `${scenario.accentHex}12`,
+                      borderColor: `${scenario.accentHex}30`,
                       color: scenario.accentHex,
                     }}
                   >
-                    {scenario.badge}
+                    Workflow: {scenario.badge}
                   </span>
                 </div>
 
                 <Bubble who="caller">{scenario.callerLine}</Bubble>
                 <Bubble who="khyra">{scenario.khyraLine}</Bubble>
 
-                {/* Actions row */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {scenario.actions.map((action) => (
-                    <span
-                      key={action}
-                      className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground/70"
-                    >
-                      {action}
+                {/* Backend Execution Actions strip */}
+                <div className="mt-5 rounded-2xl border border-border/80 bg-background/80 p-4">
+                  <div className="mb-2.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5 text-primary">
+                      <Workflow className="h-3.5 w-3.5" /> Backend Operational Tasks Executed
                     </span>
-                  ))}
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Sync Complete
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {scenario.actions.map((action) => (
+                      <span
+                        key={action}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground"
+                      >
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                        {action}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-3.5 w-3.5 rounded-full bg-primary" /> Latency · 612ms
+              {/* Card Footer */}
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-4 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 font-medium text-foreground/80">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Autonomous Execution with Human Escalation Safeguard
                 </span>
-                <span>Intent recognised · Action taken · ✓</span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  Workflow Engine · System Synchronized
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Progress dots */}
+          {/* Dots */}
           <div className="mt-5 flex justify-center gap-2">
             {HERO_INDUSTRY_ROTATIONS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => { setFading(true); setTimeout(() => { setActiveIndex(i); setFading(false); }, 200); }}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeIndex === i ? "w-6 bg-primary" : "w-1.5 bg-primary/25"
+                  activeIndex === i ? "w-7 bg-primary" : "w-1.5 bg-primary/25"
                 }`}
-                aria-label={`Show ${HERO_INDUSTRY_ROTATIONS[i].industry} demo`}
+                aria-label={`Show ${HERO_INDUSTRY_ROTATIONS[i].industry} operational workflow`}
               />
             ))}
           </div>

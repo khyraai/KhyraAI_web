@@ -57,43 +57,72 @@ function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">2. How We Use Information</h2>
+                   <p className="text-base leading-8 text-foreground/90">
+Khyra AI uses information to operate, maintain, improve, secure, and support the Services. Information may be used to manage accounts, process subscriptions, facilitate communications, schedule appointments, automate workflows, provide customer support, detect fraud, investigate security incidents, and comply with legal obligations.              </p>
               <p className="text-base leading-8 text-foreground/90">
-                Khyra AI uses information to operate, maintain, improve, secure, and
-                support the Services. Information may be used to manage accounts,
-                process subscriptions, facilitate communications, schedule appointments,
-                generate AI-powered responses, automate workflows, provide customer
-                support, detect fraud, investigate security incidents, and comply with
-                legal obligations.
+                When users connect their Google Calendar using Google's OAuth authorization process, Khyra AI uses Google Calendar data solely to create, update, synchronize, and manage appointments requested by the user. Google Calendar data is accessed only after the user grants explicit permission and is used exclusively to provide the requested scheduling functionality.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">3. Artificial Intelligence Processing</h2>
               <p className="text-base leading-8 text-foreground/90">
-                Khyra AI utilizes artificial intelligence technologies, machine learning
-                systems, and natural language processing tools to provide automation,
-                communication management, scheduling assistance, transcription,
-                analytics, and workflow execution. Information submitted through the
-                Services may be processed by AI systems and trusted service providers.
+                Khyra AI uses artificial intelligence technologies, natural language processing, and automation tools to provide voice conversations, transcription, appointment scheduling assistance, workflow automation, and communication management.
+
+Google Calendar data accessed through authorized Google APIs is processed only as necessary to provide appointment scheduling and synchronization requested by the user. Google Workspace user data is not used to develop, improve, or train generalized artificial intelligence or machine learning models.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">4. Third-Party Services</h2>
               <p className="text-base leading-8 text-foreground/90">
-                To provide the Services, Khyra AI works with third-party providers that
-                support cloud infrastructure, calendar synchronization, telephony,
-                messaging, analytics, payment processing, and AI functionality. These
-                providers may include Google Calendar, WhatsApp Business integrations,
-                hosting providers, telephony providers, and AI service providers.
+To provide the Services, Khyra AI works with trusted third-party providers including Google Calendar APIs, cloud hosting providers, telephony providers, messaging providers, payment processors, and artificial intelligence providers such as Groq where required to deliver the requested functionality.
               </p>
               <p className="text-base leading-8 text-foreground/90">
                 Khyra AI does not sell personal information.
               </p>
             </section>
 
+               <section className="space-y-4">
+              <h2 className="text-2xl font-semibold">5. Google API Services</h2>
+              <p className="text-base leading-8 text-foreground/90">
+               When you connect your Google account, Khyra AI accesses Google Calendar information only after you authorize access through Google's OAuth consent process.
+
+Depending on the permissions granted, this information may include:
+
+• Calendar identifiers
+• Calendar names
+• Appointment titles
+• Appointment descriptions
+• Appointment start and end times
+• Time zone information
+• Attendee information (where applicable)
+• Calendar metadata required for synchronization
+
+Khyra AI accesses only the Google Calendar data necessary to provide appointment scheduling and synchronization features requested by the user.
+
+Khyra AI does not sell Google user data.
+
+Raw Google Calendar data and aggregated or anonymized data derived from Google Calendar are shared only with service providers strictly necessary to provide the Services requested by the user. Such data is never shared for advertising purposes or for developing, improving, or training generalized artificial intelligence or machine learning models.
+              </p>
+            </section>
+
+               <section className="space-y-4">
+              <h2 className="text-2xl font-semibold">6. OAuth Credentials</h2>
+              <p className="text-base leading-8 text-foreground/90">
+               OAuth access tokens and refresh tokens are securely stored solely to maintain authorized access to the user's connected Google Calendar. These credentials are encrypted where appropriate, are never sold, and are never shared except as necessary to provide the Services requested by the user.
+              </p>
+            </section>
+
+             <section className="space-y-4">
+              <h2 className="text-2xl font-semibold">7. Google API Services User Data</h2>
+              <p className="text-base leading-8 text-foreground/90">
+Khyra AI's use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements.
+
+Google Workspace user data is never sold or transferred for the purpose of developing, improving, or training generalized artificial intelligence or machine learning models.      </p>      </section>
+
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">5. Communications and Recordings</h2>
+              <h2 className="text-2xl font-semibold">8. Communications and Recordings</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Certain Services may involve call recording, transcription, voice
                 processing, conversation analysis, AI-generated summaries, and related
@@ -104,18 +133,18 @@ function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">6. Data Retention</h2>
+              <h2 className="text-2xl font-semibold">9. Data Retention</h2>
               <p className="text-base leading-8 text-foreground/90">
                 We retain information only for as long as reasonably necessary to
                 provide the Services, comply with legal obligations, resolve disputes,
                 enforce agreements, maintain security, and support legitimate business
                 operations. When information is no longer required, we take reasonable
-                measures to securely delete or anonymize it.
+                measures to securely delete or anonymize it. Users may disconnect their Google Calendar at any time through their Google Account settings or within the Khyra AI application. Upon disconnection, Khyra AI will no longer access the connected calendar except as required to complete pending operations or comply with legal obligations.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">7. Data Security</h2>
+              <h2 className="text-2xl font-semibold">10. Data Security</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Khyra AI implements commercially reasonable administrative, technical,
                 and organizational safeguards designed to protect information from
@@ -126,17 +155,17 @@ function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">8. User Rights</h2>
+              <h2 className="text-2xl font-semibold">11. User Rights</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Depending on applicable law, individuals may have rights relating to
                 their personal information, including rights to access, correct,
                 delete, restrict, or object to certain processing activities. Requests
-                may be submitted using the contact information below.
+                may be submitted using the contact information below. Users may revoke Google Calendar access at any time through their Google Account permissions.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">9. International Transfers</h2>
+              <h2 className="text-2xl font-semibold">12. International Transfers</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Information may be processed or stored in jurisdictions outside your
                 country of residence where our infrastructure providers and service
@@ -145,7 +174,7 @@ function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">10. Children&apos;s Privacy</h2>
+              <h2 className="text-2xl font-semibold">13. Children&apos;s Privacy</h2>
               <p className="text-base leading-8 text-foreground/90">
                 The Services are not intended for children under the age of 13. We do
                 not knowingly collect personal information from children.
@@ -153,7 +182,7 @@ function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">11. Changes to This Policy</h2>
+              <h2 className="text-2xl font-semibold">14. Changes to This Policy</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Khyra AI may update this Privacy Policy from time to time to reflect
                 changes in our Services, business practices, legal requirements, or
@@ -163,7 +192,7 @@ function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold">12. Contact Information</h2>
+              <h2 className="text-2xl font-semibold">15. Contact Information</h2>
               <p className="text-base leading-8 text-foreground/90">
                 Khyra AI<br />
                 Bengaluru, Karnataka, India

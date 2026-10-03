@@ -85,21 +85,15 @@ function TermsPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">5. Customer Data and Ownership</h2>
               <p className="text-base leading-8 text-foreground/90">
-                You retain ownership of Customer Data submitted through the
-                Services. By using the Services, you grant Khyra AI a limited
-                license to process, store, analyze, and transmit such data
-                solely for the purpose of providing and improving the Services.
+
+                You retain ownership of Customer Data submitted through the Services. By using the Services, you grant Khyra AI a limited license to process, store, analyze, transmit, and synchronize such data solely for the purpose of providing the Services requested by you, including appointment scheduling, calendar synchronization, customer communications, workflow automation, and related functionality. Khyra AI does not acquire ownership of your Customer Data.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">6. Artificial Intelligence Services</h2>
               <p className="text-base leading-8 text-foreground/90">
-                Khyra AI uses artificial intelligence technologies,
-                machine learning systems, and automation tools. AI-generated
-                outputs may not always be accurate, complete, or suitable for
-                every situation. Users remain responsible for reviewing and
-                validating outputs before relying upon them.
+                Khyra AI uses artificial intelligence technologies, machine learning systems, and automation tools to facilitate customer communications, scheduling assistance, transcription, workflow automation, and related features. AI-generated outputs may not always be accurate, complete, or suitable for every situation. Users remain responsible for reviewing and validating AI-generated outputs before relying upon them. Google Workspace data accessed through authorized Google APIs is used only to provide the requested Services and is not used to train or improve generalized artificial intelligence or machine learning models.
               </p>
             </section>
 
@@ -127,7 +121,15 @@ function TermsPage() {
                 subject to their respective terms and policies.
               </p>
             </section>
-
+  <section className="space-y-4">
+              <h2 className="text-2xl font-semibold">
+                9. Google Calendar Integration
+              </h2>
+              <p className="text-base leading-8 text-foreground/90">
+                Users may choose to connect their Google Calendar to Khyra AI using Google's OAuth authorization process. By connecting their Google account, users authorize Khyra AI to access and manage Google Calendar data solely to provide appointment scheduling, synchronization, and calendar management features requested by the user. Users may disconnect their Google account at any time through the application or their Google Account permissions.
+              </p>
+            </section>
+            
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold">9. Acceptable Use</h2>
               <p className="text-base leading-8 text-foreground/90">

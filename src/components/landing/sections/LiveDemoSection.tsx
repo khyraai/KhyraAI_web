@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const defaultRoleId = "front_desk";
 const defaultLanguageCode = "en-IN";
-const defaultVoiceId = "voice_4";
+const defaultVoiceId = "voice_2";
 
 function getDefaultDemoConfig(roleId: string, domainId: string, languageCode: string, voiceId: string, voiceLabel: string): DemoConfig {
   return { roleId, domainId, languageCode, voiceId, voiceLabel };
@@ -52,7 +52,13 @@ export function LiveDemoSection() {
     [domain.id, languageCode, role.id, voice.gender, voice.id, voice.label],
   );
 
-  const { sessionState, orbState, statusLabel, errorMsg, micVolumeRef, endConversation } = useLiveDemoSession(config, active);
+  const { sessionState, orbState, statusLabel, errorMsg, micVolumeRef, startConversation, endConversation } = useLiveDemoSession(config, active);
+
+  const handleStartConversation = async () => {
+    // Rule 1: Unlock AudioContext and request mic directly on the user gesture
+    await startConversation();
+    setActive(true);
+  };
 
   const handleEndConversation = () => {
     endConversation();
@@ -146,7 +152,7 @@ export function LiveDemoSection() {
               <div className="rounded-3xl bg-white/5 border border-white/10 p-6 flex flex-col gap-6 text-primary-foreground shadow-inner backdrop-blur-xl">
                 {configGrid(false)}
                 <div className="pt-2">
-                  <button onClick={() => setActive(true)} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary hover:opacity-90 active:scale-95 transition">
+                  <button onClick={handleStartConversation} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary hover:opacity-90 active:scale-95 transition">
                     Start conversation <ArrowRight className="h-5 w-5" />
                   </button>
                   <p className="mt-4 text-center text-xs opacity-50">This demo does not store any data.</p>
@@ -219,7 +225,7 @@ export function LiveDemoSection() {
               <div className="mt-8">
                 {!active ? (
                   <button
-                    onClick={() => setActive(true)}
+                    onClick={handleStartConversation}
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-foreground py-4 text-base font-semibold text-primary transition hover:opacity-90 active:scale-95 shadow-md"
                   >
                     Start conversation <ArrowRight className="h-5 w-5" />

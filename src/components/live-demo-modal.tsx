@@ -221,10 +221,8 @@ export const WS_URL: string =
   (import.meta.env as Record<string, string>).VITE_DEMO_WS_URL ?? "ws://localhost:8000/ws";
 
 // ─────────────────────────── VAD constants ───────────────────────────────────
-const SILENCE_MS = 1500;          // ms of silence after speech → flush
-const RMS_THRESHOLD = 0.025;         // RMS level to classify as speech
-const MIN_SPEECH_MS = 400;           // discard clips shorter than this
-const BUFFER_CAP_BYTES = 5 * 16_000 * 2; // force-flush after 5 s of audio
+const SILENCE_MS = 1200;       // ms of silence after speech → send {"type": "audio_end"}
+const RMS_THRESHOLD = 0.01;    // RMS level to classify as speech (Rule 2: normal speech is 0.009 - 0.018)
 
 export function useLiveDemoSession(config: DemoConfig, active: boolean) {
   const [sessionState, setSessionState] = useState<SessionState>("connecting");
@@ -232,20 +230,21 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
 
   const sessionStateRef = useRef<SessionState>("connecting");
   const wsRef = useRef<WebSocket | null>(null);
-  const playbackCtxRef = useRef<AudioContext | null>(null);
-  const nextPlayTimeRef = useRef<number>(0);
-  const recordCtxRef = useRef<AudioContext | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const playheadRef = useRef<number>(0);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const muteGainRef = useRef<GainNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const configRef = useRef(config);
-  const aiSpeakingRef = useRef<boolean>(false);
-  const speechStartedRef = useRef<boolean>(false);
+  const isAgentSpeakingRef = useRef<boolean>(false);
+  const isProcessingStateRef = useRef<boolean>(false);
+  const sendingAudioRef = useRef<boolean>(false);
   const silenceTimerRef = useRef<number | null>(null);
-  const audioBufferRef = useRef<ArrayBuffer[]>([]);
-  const bufferBytesRef = useRef<number>(0);
+  const audioEndTimeoutRef = useRef<number | null>(null);
   const micVolumeRef = useRef<number>(0);
 
-  // Update configRef if config changes (though usually active is false when config changes)
   useEffect(() => {
     configRef.current = config;
   }, [config]);
@@ -255,200 +254,403 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
     setSessionState(s);
   }, []);
 
-  // ── PCM playback ────────────────────────────────────────────────────────────
-  const playChunk = useCallback((buf: ArrayBuffer) => {
-    if (!playbackCtxRef.current || playbackCtxRef.current.state === "closed") {
-      playbackCtxRef.current = new AudioContext({ sampleRate: 16000 });
-      nextPlayTimeRef.current = 0;
+  // ── PCM Queue Playback (Rule 3) ─────────────────────────────────────────────
+  const enqueueAudioChunk = useCallback((arrayBuffer: ArrayBuffer) => {
+    let ctx = audioCtxRef.current;
+    if (!ctx || ctx.state === "closed") {
+      const AudioCtxClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      ctx = new AudioCtxClass({ sampleRate: 16000 });
+      audioCtxRef.current = ctx;
+      playheadRef.current = ctx.currentTime;
     }
-    const ctx = playbackCtxRef.current;
-    const f32 = int16ToFloat32(buf);
-    const abuf = ctx.createBuffer(1, f32.length, 16000);
-    abuf.copyToChannel(f32, 0);
-    const src = ctx.createBufferSource();
-    src.buffer = abuf;
-    src.connect(ctx.destination);
+    // Check 2: AudioContext state is "running", not "suspended", when audio chunks arrive
+    if (ctx.state === "suspended") {
+      console.warn("[AudioContext] Suspended when chunk arrived! Resuming...");
+      ctx.resume().catch((err) => console.error("[AudioContext] Resume failed:", err));
+    }
+
+    const int16 = new Int16Array(arrayBuffer);
+    const floatData = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) {
+      floatData[i] = int16[i] / 32768;
+    }
+    const audioBuf = ctx.createBuffer(1, floatData.length, 16000);
+    audioBuf.copyToChannel(floatData, 0);
+
+    const source = ctx.createBufferSource();
+    source.buffer = audioBuf;
+    source.connect(ctx.destination);
+
     const now = ctx.currentTime;
-    const start = Math.max(now, nextPlayTimeRef.current);
-    src.start(start);
-    nextPlayTimeRef.current = start + abuf.duration;
+    if (playheadRef.current < now) {
+      playheadRef.current = now;
+    }
+    source.start(playheadRef.current);
+    playheadRef.current += audioBuf.duration;
+
+    console.log(
+      `[Audio] Enqueued chunk: ${arrayBuffer.byteLength}B | AudioContext state: ${ctx.state} | Queue ahead: ${(playheadRef.current - now).toFixed(2)}s`
+    );
   }, []);
 
-  // ── VAD helpers ─────────────────────────────────────────────────────────────
+  // ── Mic Cleanup ─────────────────────────────────────────────────────────────
   const cleanupMic = useCallback(() => {
     if (silenceTimerRef.current !== null) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
-    processorRef.current?.disconnect();
-    processorRef.current = null;
-    recordCtxRef.current?.close().catch(() => { });
-    recordCtxRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
+    if (audioEndTimeoutRef.current !== null) {
+      clearTimeout(audioEndTimeoutRef.current);
+      audioEndTimeoutRef.current = null;
+    }
+    sendingAudioRef.current = false;
+    isAgentSpeakingRef.current = false;
+    isProcessingStateRef.current = false;
+
+    if (processorRef.current) {
+      try {
+        processorRef.current.disconnect();
+        processorRef.current.onaudioprocess = null;
+      } catch {}
+      processorRef.current = null;
+    }
+    if (muteGainRef.current) {
+      try {
+        muteGainRef.current.disconnect();
+      } catch {}
+      muteGainRef.current = null;
+    }
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.disconnect();
+      } catch {}
+      sourceRef.current = null;
+    }
+    if (analyserRef.current) {
+      try {
+        analyserRef.current.disconnect();
+      } catch {}
+      analyserRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
+    playheadRef.current = 0;
+    micVolumeRef.current = 0;
   }, []);
 
-  const startListening = useCallback(() => {
-    speechStartedRef.current = false;
-    audioBufferRef.current = [];
-    bufferBytesRef.current = 0;
-    if (silenceTimerRef.current !== null) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-    setState("listening");
-  }, [setState]);
-
-  const stopListening = useCallback(() => {
-    if (silenceTimerRef.current !== null) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-    speechStartedRef.current = false;
-    audioBufferRef.current = [];
-    bufferBytesRef.current = 0;
-  }, []);
-
-  const flushAudio = useCallback(() => {
-    const buffers = audioBufferRef.current;
-    if (!speechStartedRef.current || buffers.length === 0) return;
-    const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
-    const durationMs = (totalBytes / 2 / 16_000) * 1000;
-    speechStartedRef.current = false;
-    audioBufferRef.current = [];
-    bufferBytesRef.current = 0;
-    if (durationMs < MIN_SPEECH_MS) return;
-    setState("thinking");
-    const ws = wsRef.current;
-    if (ws?.readyState === WebSocket.OPEN) {
-      for (const buf of buffers) ws.send(buf);
-      ws.send(JSON.stringify({ type: "audio_end" }));
-    }
-  }, [setState]);
-
+  // ── Start Microphone & VAD (Rule 2 & Rule 3) ────────────────────────────────
   const startMic = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        video: false,
-      });
-      streamRef.current = stream;
-      const ctx = new AudioContext({ sampleRate: 16_000 });
-      recordCtxRef.current = ctx;
-      if (ctx.state === "suspended") await ctx.resume();
+      let ctx = audioCtxRef.current;
+      if (!ctx || ctx.state === "closed") {
+        const AudioCtxClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        ctx = new AudioCtxClass({ sampleRate: 16000 });
+        audioCtxRef.current = ctx;
+        playheadRef.current = ctx.currentTime;
+      }
+      if (ctx.state === "suspended") {
+        await ctx.resume();
+      }
+
+      let stream = streamRef.current;
+      if (!stream || !stream.active) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        });
+        streamRef.current = stream;
+      }
+
+      // Cleanup prior node setup if re-invoked
+      if (processorRef.current) {
+        try {
+          processorRef.current.disconnect();
+          processorRef.current.onaudioprocess = null;
+        } catch {}
+        processorRef.current = null;
+      }
+      if (muteGainRef.current) {
+        try {
+          muteGainRef.current.disconnect();
+        } catch {}
+        muteGainRef.current = null;
+      }
+      if (sourceRef.current) {
+        try {
+          sourceRef.current.disconnect();
+        } catch {}
+        sourceRef.current = null;
+      }
+
       const source = ctx.createMediaStreamSource(stream);
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const processor = ctx.createScriptProcessor(2048, 1, 1);
+      sourceRef.current = source;
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      analyserRef.current = analyser;
+
+      // ScriptProcessorNode: 4096 buffer size (~256ms at 16kHz)
+      const processor = ctx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
+
+      // Connect through zero-gain node so Web Audio graph stays alive without routing mic to speakers
+      const muteGain = ctx.createGain();
+      muteGain.gain.value = 0;
+      muteGainRef.current = muteGain;
+
+      source.connect(analyser);
+      analyser.connect(processor);
+      processor.connect(muteGain);
+      muteGain.connect(ctx.destination);
+
       processor.onaudioprocess = (e) => {
-        if (aiSpeakingRef.current) { micVolumeRef.current = 0; return; }
+        const ws = wsRef.current;
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
         const floats = e.inputBuffer.getChannelData(0);
         let sum = 0;
         for (let i = 0; i < floats.length; i++) sum += floats[i] * floats[i];
         const rms = Math.sqrt(sum / floats.length);
-        micVolumeRef.current = rms;
-        const isSpeech = rms > RMS_THRESHOLD;
-        const pcm = new Int16Array(floats.length);
-        for (let i = 0; i < floats.length; i++)
-          pcm[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
-        if (isSpeech) {
-          speechStartedRef.current = true;
+
+        // Rule 3 / Check 5: Microphone is muted while agent audio is playing to eliminate speaker echo
+        const now = ctx?.currentTime ?? 0;
+        const isAgentSpeaking = isAgentSpeakingRef.current || now < playheadRef.current;
+        if (isAgentSpeaking || isProcessingStateRef.current) {
           if (silenceTimerRef.current !== null) {
             clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
           }
-          audioBufferRef.current.push(pcm.buffer.slice(0));
-          bufferBytesRef.current += pcm.buffer.byteLength;
-          if (bufferBytesRef.current >= BUFFER_CAP_BYTES) flushAudio();
-        } else if (speechStartedRef.current && silenceTimerRef.current === null) {
-          silenceTimerRef.current = window.setTimeout(() => {
+          sendingAudioRef.current = false;
+          micVolumeRef.current = 0;
+          return;
+        }
+
+        micVolumeRef.current = rms;
+        const isUserSpeech = rms > RMS_THRESHOLD; // Check 3: RMS > 0.01
+
+        if (isUserSpeech) {
+          // Check 3: Verify by logging RMS in console when speaking
+          console.log(`[VAD] User speaking | RMS: ${rms.toFixed(4)} (Threshold: ${RMS_THRESHOLD})`);
+
+          if (silenceTimerRef.current !== null) {
+            clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
-            if (speechStartedRef.current && !aiSpeakingRef.current) flushAudio();
-          }, SILENCE_MS);
+          }
+
+          if (!sendingAudioRef.current) {
+            sendingAudioRef.current = true;
+            setState("listening");
+          }
+
+          // Check 4: Chunks are streamed live, not accumulated into a giant array
+          const int16 = new Int16Array(floats.length);
+          for (let i = 0; i < floats.length; i++) {
+            int16[i] = Math.max(-32768, Math.min(32767, Math.round(floats[i] * 32767)));
+          }
+          ws.send(int16.buffer);
+        } else {
+          // Step 6: When silence is detected for ~1.2s, send {"type": "audio_end"}
+          if (sendingAudioRef.current && silenceTimerRef.current === null) {
+            silenceTimerRef.current = window.setTimeout(() => {
+              if (!sendingAudioRef.current) return;
+              console.log(`[VAD] Silence detected for ${SILENCE_MS}ms. Sending audio_end.`);
+              sendingAudioRef.current = false;
+              silenceTimerRef.current = null;
+              isProcessingStateRef.current = true;
+              setState("thinking");
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: "audio_end" }));
+              }
+            }, SILENCE_MS);
+          }
         }
       };
-      source.connect(processor);
-      processor.connect(ctx.destination);
-      startListening();
-    } catch {
+
+      setState("listening");
+    } catch (err) {
+      console.error("Microphone setup error:", err);
       setErrorMsg("Microphone access denied.");
       setState("error");
     }
-  }, [setState, startListening, flushAudio]);
+  }, [setState]);
 
-  // ── WebSocket lifecycle ──────────────────────────────────────────────────────
+  // ── Unlock Audio & Pre-request Mic in User Gesture (Rule 1) ──────────────────
+  const startConversation = useCallback(async () => {
+    try {
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+        const AudioCtxClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        audioCtxRef.current = new AudioCtxClass({ sampleRate: 16000 });
+        playheadRef.current = audioCtxRef.current.currentTime;
+      }
+      if (audioCtxRef.current.state === "suspended") {
+        await audioCtxRef.current.resume();
+      }
+      console.log(`[AudioContext] Successfully unlocked on user gesture. State: ${audioCtxRef.current.state}`);
+    } catch (e) {
+      console.warn("AudioContext unlock error:", e);
+    }
+
+    try {
+      if (!streamRef.current || !streamRef.current.active) {
+        streamRef.current = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        });
+        console.log("[Mic] MediaStream access granted.");
+      }
+    } catch (e) {
+      console.warn("Pre-request mic error:", e);
+    }
+  }, []);
+
+  // ── WebSocket lifecycle (Step 1-7) ───────────────────────────────────────────
   useEffect(() => {
     if (!active) return;
+
+    // Ensure audio context is ready
+    if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+      const AudioCtxClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtxRef.current = new AudioCtxClass({ sampleRate: 16000 });
+      playheadRef.current = audioCtxRef.current.currentTime;
+    }
+    if (audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+
     const cfg = configRef.current;
+    console.log(`[WS] Connecting to ${WS_URL}...`);
     const ws = new WebSocket(WS_URL);
+
+    // Check 1: ws.binaryType = "arraybuffer" is set right after creating the WebSocket
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
 
+    // Step 2: Init payload on open
     ws.onopen = () => {
-      ws.send(
-        JSON.stringify({
-          type: "init",
-          role: cfg.roleId,
-          domain: cfg.domainId,
-          language: cfg.languageCode,
-          voice_id: cfg.voiceId,
-        }),
-      );
+      const initPayload = {
+        type: "init",
+        role: cfg.roleId,
+        domain: cfg.domainId,
+        language: cfg.languageCode,
+        voice_id: cfg.voiceId,
+      };
+      console.log("[WS] Connected. Sending init:", initPayload);
+      ws.send(JSON.stringify(initPayload));
     };
 
+    // Step 3, 4, 7: Handle incoming messages and binary audio chunks
     ws.onmessage = (evt) => {
       if (evt.data instanceof ArrayBuffer) {
-        playChunk(evt.data);
-        if (sessionStateRef.current !== "speaking") setState("speaking");
+        enqueueAudioChunk(evt.data);
+        isAgentSpeakingRef.current = true;
+        setState("speaking");
         return;
       }
 
       let data: { type: string; text?: string; message?: string };
-      try { data = JSON.parse(evt.data as string); }
-      catch { return; }
+      try {
+        data = JSON.parse(evt.data as string);
+      } catch {
+        return;
+      }
+
+      console.log("[WS] Message received:", data);
 
       switch (data.type) {
-        case "ready":
+        case "ready": // Step 3
+          console.log("[WS] Server ready. Starting microphone.");
           startMic();
           break;
-        case "response_text":
-          aiSpeakingRef.current = true;
-          stopListening();
+        case "response_text": // Step 4.1 / 7.1
+          console.log("[AI] Response text:", data.text);
+          isAgentSpeakingRef.current = true;
+          isProcessingStateRef.current = false;
           setState("speaking");
           break;
-        case "audio_end":
-          nextPlayTimeRef.current = 0;
-          aiSpeakingRef.current = false;
-          startListening();
+        case "audio_end": { // Step 4.3 / 7.3
+          console.log("[WS] Server sent audio_end for current turn.");
+          const ctx = audioCtxRef.current;
+          const remainingMs = ctx
+            ? Math.max(300, (playheadRef.current - ctx.currentTime) * 1000 + 200)
+            : 400;
+
+          if (audioEndTimeoutRef.current !== null) {
+            clearTimeout(audioEndTimeoutRef.current);
+          }
+          audioEndTimeoutRef.current = window.setTimeout(() => {
+            audioEndTimeoutRef.current = null;
+            if (sessionStateRef.current !== "ended" && sessionStateRef.current !== "error") {
+              isAgentSpeakingRef.current = false;
+              isProcessingStateRef.current = false;
+              if (ctx) playheadRef.current = ctx.currentTime;
+              setState("listening");
+              console.log("[Audio] Agent playback ended. Microphone listening for user.");
+            }
+          }, remainingMs);
           break;
+        }
         case "error":
+          console.error("[WS] Server error:", data.message);
+          isProcessingStateRef.current = false;
+          isAgentSpeakingRef.current = false;
           setErrorMsg(data.message ?? "Unknown error");
           setState("error");
           break;
       }
     };
 
-    ws.onerror = () => {
+    ws.onerror = (err) => {
+      console.error("[WS] Connection error:", err);
       setErrorMsg("Cannot reach demo server. Make sure it is running.");
       setState("error");
     };
 
-    ws.onclose = () => {
+    ws.onclose = (evt) => {
+      console.log(`[WS] Connection closed (code: ${evt.code}, reason: ${evt.reason || "none"})`);
       if (sessionStateRef.current !== "error") setState("ended");
     };
 
     return () => {
-      ws.close();
+      try {
+        ws.close();
+      } catch {}
       cleanupMic();
-      playbackCtxRef.current?.close().catch(() => { });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   const endConversation = useCallback(() => {
-    wsRef.current?.close();
+    try {
+      wsRef.current?.close();
+    } catch {}
+    wsRef.current = null;
     cleanupMic();
-    playbackCtxRef.current?.close().catch(() => { });
     setState("ended");
     setTimeout(() => {
       sessionStateRef.current = "connecting";
@@ -482,7 +684,7 @@ export function useLiveDemoSession(config: DemoConfig, active: boolean) {
     statusLabel,
     errorMsg,
     micVolumeRef,
+    startConversation,
     endConversation,
   };
 }
-

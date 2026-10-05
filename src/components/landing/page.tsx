@@ -33,8 +33,8 @@ export function Index() {
       <FeaturesSection />
       {/* 7. 6-Step Enterprise Implementation Methodology */}
       <HowItWorksSection />
-      {/* 8. Interactive Live Prototype (Test without account creation) */}
-      <LiveDemoSection />
+      {/* 8. commented Interactive Live Prototype (Test without account creation) */}
+      {/* <LiveDemoSection />  */}
       {/* 9. Honest Enterprise FAQs */}
       <FAQSection />
       {/* 10. High-Conversion Lead Capture CTA */}
